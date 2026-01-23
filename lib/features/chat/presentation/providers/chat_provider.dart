@@ -138,6 +138,7 @@ class ChatProvider extends ChangeNotifier {
 
       // Stream response from Gemini
       final responseBuffer = StringBuffer();
+      DateTime lastUpdate = DateTime.now();
       
       await for (final chunk in _geminiService.sendMessageStream(
         userMessage: content,
@@ -151,8 +152,16 @@ class ChatProvider extends ChangeNotifier {
           content: responseBuffer.toString(),
         );
         _messages[_messages.length - 1] = updatedMessage;
-        notifyListeners();
+
+        // Throttle updates to ~100ms to avoid UI jank
+        if (DateTime.now().difference(lastUpdate).inMilliseconds > 100) {
+          lastUpdate = DateTime.now();
+          notifyListeners();
+        }
       }
+
+      // Ensure the final content is shown before finalizing
+      notifyListeners();
 
       // Finalize the message
       final finalMessage = assistantMessage.copyWith(
