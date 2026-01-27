@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
+import '../../../../core/theme/theme_provider.dart';
 import '../../../auth/presentation/providers/user_provider.dart';
 import '../../../subscription/presentation/screens/subscription_screen.dart';
 import '../../../coach/presentation/screens/goals_screen.dart';
@@ -28,8 +29,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
     return Scaffold(
-      backgroundColor: AppColors.jobsCream,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: Consumer<UserProvider>(
           builder: (context, userProvider, child) {
@@ -74,13 +78,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     
                     const SizedBox(height: AppSpacing.spacing16),
                     
-                    const Text(
+                    Text(
                       'Mindful User',
                       style: TextStyle(
                         fontFamily: 'DM Sans',
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.jobsObsidian,
+                        color: theme.colorScheme.onSurface,
                       ),
                     ),
                     
@@ -171,7 +175,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: isDark ? AppColors.cardBackgroundDark : Colors.white,
                         borderRadius: BorderRadius.circular(24),
                       ),
                       child: Column(
@@ -183,15 +187,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               _showComingSoonSnackbar(context);
                             },
                           ),
-                          const _Divider(),
-                          _SettingsItem(
-                            icon: Icons.palette_outlined,
-                            title: 'Theme',
-                            onTap: () {
-                              _showComingSoonSnackbar(context);
+                          _Divider(isDark: isDark),
+                          Consumer<ThemeProvider>(
+                            builder: (context, themeProvider, _) {
+                              return _SettingsItem(
+                                icon: themeProvider.isDarkMode
+                                    ? Icons.dark_mode_outlined
+                                    : Icons.light_mode_outlined,
+                                title: 'Dark Mode',
+                                trailing: Switch.adaptive(
+                                  value: themeProvider.isDarkMode,
+                                  onChanged: (_) => themeProvider.toggleTheme(),
+                                  activeColor: AppColors.jobsSage,
+                                ),
+                                onTap: () => themeProvider.toggleTheme(),
+                              );
                             },
                           ),
-                          const _Divider(),
+                          _Divider(isDark: isDark),
                           _SettingsItem(
                             icon: Icons.person_outline,
                             title: 'Account',
@@ -199,7 +212,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               _showComingSoonSnackbar(context);
                             },
                           ),
-                          const _Divider(),
+                          _Divider(isDark: isDark),
                           _SettingsItem(
                             icon: Icons.workspace_premium_outlined,
                             title: 'Subscription',
@@ -268,7 +281,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: isDark ? AppColors.cardBackgroundDark : Colors.white,
                         borderRadius: BorderRadius.circular(24),
                       ),
                       child: Column(
@@ -280,7 +293,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               _showComingSoonSnackbar(context);
                             },
                           ),
-                          const _Divider(),
+                          _Divider(isDark: isDark),
                           _SettingsItem(
                             icon: Icons.privacy_tip_outlined,
                             title: 'Privacy Policy',
@@ -288,7 +301,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               _showComingSoonSnackbar(context);
                             },
                           ),
-                          const _Divider(),
+                          _Divider(isDark: isDark),
                           _SettingsItem(
                             icon: Icons.description_outlined,
                             title: 'Terms of Service',
@@ -423,6 +436,9 @@ class _SettingsItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final textColor = theme.colorScheme.onSurface;
+    
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(24),
@@ -433,17 +449,17 @@ class _SettingsItem extends StatelessWidget {
             Icon(
               icon,
               size: 24,
-              color: AppColors.jobsObsidian.withOpacity(0.6),
+              color: textColor.withOpacity(0.6),
             ),
             const SizedBox(width: 16),
             Expanded(
               child: Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'DM Sans',
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
-                  color: AppColors.jobsObsidian,
+                  color: textColor,
                 ),
               ),
             ),
@@ -451,7 +467,7 @@ class _SettingsItem extends StatelessWidget {
             if (trailing == null)
               Icon(
                 Icons.chevron_right_rounded,
-                color: AppColors.jobsObsidian.withOpacity(0.3),
+                color: textColor.withOpacity(0.3),
               ),
           ],
         ),
@@ -461,14 +477,18 @@ class _SettingsItem extends StatelessWidget {
 }
 
 class _Divider extends StatelessWidget {
-  const _Divider();
+  final bool isDark;
+  
+  const _Divider({this.isDark = false});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       height: 1,
       margin: const EdgeInsets.symmetric(horizontal: 20),
-      color: AppColors.jobsObsidian.withOpacity(0.05),
+      color: isDark 
+          ? AppColors.jobsObsidianDark.withOpacity(0.1)
+          : AppColors.jobsObsidian.withOpacity(0.05),
     );
   }
 }

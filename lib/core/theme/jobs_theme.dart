@@ -364,6 +364,193 @@ class JobsTheme {
     );
   }
 
+  static ThemeData get darkTheme {
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      fontFamily: _fontFamily,
+
+      colorScheme: const ColorScheme.dark(
+        primary: AppColors.jobsSageDark,
+        onPrimary: AppColors.jobsCreamDark,
+        primaryContainer: AppColors.jobsSageDark,
+        onPrimaryContainer: AppColors.jobsCreamDark,
+        secondary: AppColors.jobsSageDark,
+        onSecondary: AppColors.jobsCreamDark,
+        secondaryContainer: AppColors.jobsSageDark,
+        onSecondaryContainer: AppColors.jobsCreamDark,
+        surface: AppColors.jobsCreamDark,
+        onSurface: AppColors.jobsObsidianDark,
+        surfaceContainerHighest: AppColors.surfaceDark,
+        outline: Colors.transparent,
+        error: Color(0xFFCF6679),
+        onError: AppColors.jobsCreamDark,
+      ),
+
+      scaffoldBackgroundColor: AppColors.jobsCreamDark,
+
+      appBarTheme: AppBarTheme(
+        backgroundColor: AppColors.jobsCreamDark,
+        foregroundColor: AppColors.jobsObsidianDark,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        centerTitle: true,
+        systemOverlayStyle: SystemUiOverlayStyle.light,
+        titleTextStyle: TextStyle(
+          fontFamily: _fontFamily,
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          height: _lineHeight,
+          color: AppColors.jobsObsidianDark,
+          letterSpacing: -0.3,
+        ),
+        iconTheme: const IconThemeData(
+          color: AppColors.jobsObsidianDark,
+          size: 24,
+        ),
+      ),
+
+      cardTheme: CardThemeData(
+        color: AppColors.cardBackgroundDark,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(_radius)),
+          side: BorderSide.none,
+        ),
+        margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      ),
+
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.jobsObsidianDark,
+          foregroundColor: AppColors.jobsCreamDark,
+          elevation: 0,
+          shadowColor: Colors.transparent,
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
+          minimumSize: const Size(double.infinity, 56),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(_radius),
+            side: BorderSide.none,
+          ),
+          textStyle: TextStyle(
+            fontFamily: _fontFamily,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            height: _lineHeight,
+            letterSpacing: 0.3,
+          ),
+        ),
+      ),
+
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: AppColors.surfaceDark,
+        contentPadding: const EdgeInsets.all(20),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(_radius),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(_radius),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(_radius),
+          borderSide: BorderSide.none,
+        ),
+        hintStyle: TextStyle(
+          fontFamily: _fontFamily,
+          fontSize: 16,
+          fontWeight: FontWeight.normal,
+          height: _lineHeight,
+          color: AppColors.jobsObsidianDark.withOpacity(0.4),
+        ),
+      ),
+
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+        backgroundColor: AppColors.jobsCreamDark,
+        selectedItemColor: AppColors.jobsObsidianDark,
+        unselectedItemColor: AppColors.jobsObsidianDark.withOpacity(0.4),
+        type: BottomNavigationBarType.fixed,
+        elevation: 0,
+        selectedLabelStyle: TextStyle(
+          fontFamily: _fontFamily,
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          height: _lineHeight,
+        ),
+        unselectedLabelStyle: TextStyle(
+          fontFamily: _fontFamily,
+          fontSize: 12,
+          fontWeight: FontWeight.normal,
+          height: _lineHeight,
+        ),
+      ),
+
+      dialogTheme: DialogThemeData(
+        backgroundColor: AppColors.cardBackgroundDark,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(_radius),
+        ),
+        titleTextStyle: TextStyle(
+          fontFamily: _fontFamily,
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          height: _lineHeight,
+          color: AppColors.jobsObsidianDark,
+        ),
+        contentTextStyle: TextStyle(
+          fontFamily: _fontFamily,
+          fontSize: 16,
+          fontWeight: FontWeight.normal,
+          height: _lineHeight,
+          color: AppColors.jobsObsidianDark,
+        ),
+      ),
+
+      textTheme: TextTheme(
+        displayLarge: TextStyle(
+          fontFamily: _fontFamily,
+          fontSize: 32,
+          fontWeight: FontWeight.bold,
+          height: _lineHeight,
+          color: AppColors.jobsObsidianDark,
+          letterSpacing: -0.5,
+        ),
+        headlineMedium: TextStyle(
+          fontFamily: _fontFamily,
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          height: _lineHeight,
+          color: AppColors.jobsObsidianDark,
+          letterSpacing: -0.3,
+        ),
+        bodyLarge: TextStyle(
+          fontFamily: _fontFamily,
+          fontSize: 18,
+          fontWeight: FontWeight.normal,
+          height: _lineHeight,
+          color: AppColors.jobsObsidianDark,
+        ),
+        bodyMedium: TextStyle(
+          fontFamily: _fontFamily,
+          fontSize: 16,
+          fontWeight: FontWeight.normal,
+          height: _lineHeight,
+          color: AppColors.jobsObsidianDark,
+        ),
+        bodySmall: TextStyle(
+          fontFamily: _fontFamily,
+          fontSize: 14,
+          fontWeight: FontWeight.normal,
+          height: _lineHeight,
+          color: AppColors.jobsObsidianDark,
+        ),
+      ),
+    );
+  }
+
   static List<BoxShadow> get cardShadow => [
         BoxShadow(
           color: AppColors.jobsObsidian.withOpacity(0.04),

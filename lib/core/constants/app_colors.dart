@@ -150,4 +150,23 @@ class AppColors {
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
+
+  // ============================================
+  // DARK MODE PALETTE
+  // ============================================
+
+  /// Deep charcoal - Dark mode background
+  static const Color jobsCreamDark = Color(0xFF1A1A1A);
+
+  /// Light text for dark mode
+  static const Color jobsObsidianDark = Color(0xFFF5F5F5);
+
+  /// Brighter sage for dark backgrounds
+  static const Color jobsSageDark = Color(0xFFA8BC98);
+
+  /// Card background in dark mode
+  static const Color cardBackgroundDark = Color(0xFF2A2A2A);
+
+  /// Surface color in dark mode
+  static const Color surfaceDark = Color(0xFF242424);
 }

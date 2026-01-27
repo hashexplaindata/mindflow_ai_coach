@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'core/theme/jobs_theme.dart';
+import 'core/theme/theme_provider.dart';
 import 'core/constants/app_colors.dart';
 import 'core/constants/app_spacing.dart';
 import 'core/constants/app_text_styles.dart';
@@ -31,6 +32,9 @@ class MindFlowApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
+          create: (_) => ThemeProvider(),
+        ),
+        ChangeNotifierProvider(
           create: (_) => UserProvider()..initialize(),
         ),
         ChangeNotifierProvider(
@@ -40,11 +44,17 @@ class MindFlowApp extends StatelessWidget {
           create: (_) => SubscriptionProvider(),
         ),
       ],
-      child: MaterialApp(
-        title: 'MindFlow',
-        debugShowCheckedModeBanner: false,
-        theme: JobsTheme.lightTheme,
-        home: const WelcomeScreen(),
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, child) {
+          return MaterialApp(
+            title: 'MindFlow',
+            debugShowCheckedModeBanner: false,
+            theme: JobsTheme.lightTheme,
+            darkTheme: JobsTheme.darkTheme,
+            themeMode: themeProvider.themeMode,
+            home: const WelcomeScreen(),
+          );
+        },
       ),
     );
   }
