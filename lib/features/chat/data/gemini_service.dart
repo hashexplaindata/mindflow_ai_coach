@@ -1,6 +1,7 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:http/http.dart' as http;
 
 import '../../../core/config/env_config.dart' as env;
 import '../domain/models/message.dart';
@@ -8,8 +9,10 @@ import '../../onboarding/domain/models/nlp_profile.dart';
 import '../domain/services/nlp_prompt_builder.dart';
 
 /// Gemini Service for MindFlow AI Coach
-/// Handles communication with Google's Gemini API
+/// Handles communication with backend API proxy for Gemini
 /// Uses NLP Prompt Builder for profile-adaptive system prompts
+/// 
+/// SECURITY: API key is stored server-side only, never exposed to client
 /// 
 /// Configuration (per Technical Specification):
 /// - Model: gemini-2.0-flash (fast, cost-effective)
@@ -17,19 +20,7 @@ import '../domain/services/nlp_prompt_builder.dart';
 /// - Max tokens: 500 per response
 /// - Streaming: Yes (better UX with typing indicator)
 class GeminiService {
-  GeminiService({
-    String? apiKey,
-  }) : _apiKey = apiKey ?? env.geminiApiKey;
-
-  final String _apiKey;
-  
-  GenerativeModel? _model;
-  ChatSession? _currentChat;
-
-  /// Model configuration
-  static const String modelName = 'gemini-2.0-flash';
-  static const double temperature = 0.7;
-  static const int maxOutputTokens = 500;
+  GeminiService();
 
   /// Whether the service is initialized
   bool _isInitialized = false;
@@ -41,31 +32,8 @@ class GeminiService {
   /// Initialize the service
   Future<void> initialize() async {
     if (_isInitialized) return;
-
-    debugPrint('GeminiService: API key length: ${_apiKey.length}');
-    
-    if (_apiKey.isEmpty) {
-      debugPrint('GeminiService: No API key configured');
-      return;
-    }
-    
-    debugPrint('GeminiService: API key found, initializing...');
-
-    try {
-      _model = GenerativeModel(
-        model: modelName,
-        apiKey: _apiKey,
-        generationConfig: GenerationConfig(
-          temperature: temperature,
-          maxOutputTokens: maxOutputTokens,
-        ),
-      );
-      
-      _isInitialized = true;
-      debugPrint('GeminiService: Initialized with model $modelName');
-    } catch (e) {
-      debugPrint('GeminiService: Initialization error: $e');
-    }
+    _isInitialized = true;
+    debugPrint('GeminiService: Initialized with backend proxy');
   }
 
   /// Set the system prompt based on user's NLP profile
@@ -77,21 +45,14 @@ class GeminiService {
 
   /// Send a message and get streaming response
   /// Returns a stream of content chunks for real-time display
+  /// INCLUDES: Crisis detection for safety - crisis responses override normal processing
   Stream<String> sendMessageStream({
     required String userMessage,
     required List<Message> chatHistory,
     NLPProfile? profile,
   }) async* {
-    // Update system prompt if profile provided
     if (profile != null) {
       setUserProfile(profile);
-    }
-
-    // Validate - fallback to mock if no API key
-    if (_apiKey.isEmpty || _model == null) {
-      debugPrint('GeminiService: No API key or model, using mock response');
-      yield* _getMockResponse(userMessage, profile);
-      return;
     }
 
     if (_currentSystemPrompt == null) {
@@ -101,38 +62,85 @@ class GeminiService {
       );
     }
 
+    // CRITICAL: Check for crisis indicators FIRST
+    // If detected, return crisis response immediately - don't send to API
+    if (NLPPromptBuilder.containsCrisisIndicators(userMessage)) {
+      debugPrint('GeminiService: CRISIS DETECTED - providing crisis resources');
+      yield* _getCrisisResponse();
+      return;
+    }
+
     try {
-      // Build chat history for context
-      final history = chatHistory.where((msg) => msg.content.isNotEmpty).map((msg) {
-        return Content(
-          msg.isUser ? 'user' : 'model',
-          [TextPart(msg.content)],
-        );
+      final historyJson = chatHistory.where((msg) => msg.content.isNotEmpty).map((msg) {
+        return {
+          'isUser': msg.isUser,
+          'content': msg.content,
+        };
       }).toList();
-      
-      // Create a new chat with system prompt
-      _currentChat = _model!.startChat(
-        history: [
-          Content('user', [TextPart(_currentSystemPrompt!)]),
-          Content('model', [TextPart('I understand. I will embody these principles in our conversation.')]),
-          ...history,
-        ],
-      );
-      
-      // Send message and stream response
-      final response = _currentChat!.sendMessageStream(
-        Content.text(userMessage),
-      );
-      
-      await for (final chunk in response) {
-        final text = chunk.text;
-        if (text != null) {
-          yield text;
+
+      final requestBody = json.encode({
+        'message': userMessage,
+        'history': historyJson,
+        'system_prompt': _currentSystemPrompt,
+      });
+
+      final apiUrl = '${env.apiBaseUrl}/api/chat';
+      debugPrint('GeminiService: Sending request to $apiUrl');
+
+      final request = http.Request('POST', Uri.parse(apiUrl));
+      request.headers['Content-Type'] = 'application/json';
+      request.body = requestBody;
+
+      final client = http.Client();
+      try {
+        final streamedResponse = await client.send(request);
+
+        if (streamedResponse.statusCode != 200) {
+          final errorBody = await streamedResponse.stream.bytesToString();
+          debugPrint('GeminiService: API error: $errorBody');
+          yield 'I\'m having a moment of reflection. Could you try again?';
+          return;
         }
+
+        final stream = streamedResponse.stream.transform(utf8.decoder);
+        String buffer = '';
+
+        await for (final chunk in stream) {
+          buffer += chunk;
+          
+          while (buffer.contains('\n\n')) {
+            final endIndex = buffer.indexOf('\n\n');
+            final line = buffer.substring(0, endIndex);
+            buffer = buffer.substring(endIndex + 2);
+
+            if (line.startsWith('data: ')) {
+              final data = line.substring(6);
+              
+              if (data == '[DONE]') {
+                return;
+              }
+
+              try {
+                final parsed = json.decode(data);
+                if (parsed['text'] != null) {
+                  yield parsed['text'] as String;
+                } else if (parsed['error'] != null) {
+                  debugPrint('GeminiService: Stream error: ${parsed['error']}');
+                  yield 'I\'m having a moment of reflection. Could you try again?';
+                  return;
+                }
+              } catch (e) {
+                debugPrint('GeminiService: Parse error: $e');
+              }
+            }
+          }
+        }
+      } finally {
+        client.close();
       }
     } catch (e) {
       debugPrint('GeminiService: Error sending message: $e');
-      yield 'I\'m having a moment of reflection. Could you try again?';
+      yield* _getMockResponse(userMessage, profile);
     }
   }
 
@@ -155,25 +163,37 @@ class GeminiService {
     return buffer.toString();
   }
 
+  /// Get a crisis response with streaming effect
+  /// Streams crisis resources and support information
+  Stream<String> _getCrisisResponse() async* {
+    await Future.delayed(const Duration(milliseconds: 300));
+    
+    final response = NLPPromptBuilder.generateCrisisResponse();
+    
+    final words = response.split(' ');
+    for (int i = 0; i < words.length; i++) {
+      yield words[i];
+      if (i < words.length - 1) yield ' ';
+      await Future.delayed(const Duration(milliseconds: 20));
+    }
+  }
+
   /// Get a mock response for development/demo
   /// Implements NLP-adaptive language patterns
+  /// NOTE: Crisis detection is handled in sendMessageStream, not here
   Stream<String> _getMockResponse(String userMessage, NLPProfile? profile) async* {
     final effectiveProfile = profile ?? NLPProfile.defaultProfile;
     
-    // Simulate streaming delay
     await Future.delayed(const Duration(milliseconds: 500));
 
-    // Check for crisis indicators (suppress humor if detected)
     final isCrisis = NLPPromptBuilder.containsCrisisIndicators(userMessage);
     
-    // Generate adaptive response based on profile
     final response = _generateAdaptiveResponse(
       userMessage: userMessage,
       profile: effectiveProfile,
       isSerious: isCrisis,
     );
 
-    // Simulate streaming by yielding chunks
     final words = response.split(' ');
     for (int i = 0; i < words.length; i++) {
       yield words[i];
@@ -191,18 +211,14 @@ class GeminiService {
   }) {
     final buffer = StringBuffer();
 
-    // PACING: Acknowledge their message first
     buffer.write(_getPacingPhrase(profile));
     buffer.write(' ');
 
-    // LEADING: Guide toward insight
     buffer.write(_getLeadingPhrase(profile, userMessage));
     buffer.write('\n\n');
 
-    // ACTION: Provide next step
     buffer.write(_getActionStep(profile));
 
-    // HUMOR: Add if appropriate (15% chance, not for serious topics)
     if (!isSerious && _shouldAddHumor()) {
       buffer.write('\n\n');
       buffer.write(_getHumorPhrase(profile));
@@ -212,7 +228,6 @@ class GeminiService {
   }
 
   String _getPacingPhrase(NLPProfile profile) {
-    // Use their thinking style language
     switch (profile.thinking) {
       case 'visual':
         return "I can see what you're getting at.";
@@ -226,7 +241,6 @@ class GeminiService {
   }
 
   String _getLeadingPhrase(NLPProfile profile, String userMessage) {
-    // Combine motivation + thinking style
     if (profile.motivation == 'toward') {
       switch (profile.thinking) {
         case 'visual':
@@ -237,7 +251,6 @@ class GeminiService {
           return "Feel into that sense of accomplishment waiting for you. How does it feel to have already achieved this? Let that feeling guide your next move.";
       }
     } else {
-      // Away-From motivation
       switch (profile.thinking) {
         case 'visual':
           return "Let's look at what problems we can eliminate here. Can you see which obstacles are blocking your path? Once we identify them, we can clear them away.";
@@ -251,7 +264,6 @@ class GeminiService {
   }
 
   String _getActionStep(NLPProfile profile) {
-    // Combine reference + processing style
     if (profile.reference == 'internal') {
       if (profile.processing == 'options') {
         return "🎯 **Your move**: What feels like the most exciting option right now? Trust your instincts here—you know yourself best.";
@@ -259,7 +271,6 @@ class GeminiService {
         return "🎯 **Next step**: Based on what YOU know works for you, what's the first concrete action? Sometimes one step is all we need.";
       }
     } else {
-      // External reference
       if (profile.processing == 'options') {
         return "🎯 **Research shows**: The most effective people explore 2-3 options before committing. Which path do the experts in your situation recommend?";
       } else {
@@ -269,12 +280,10 @@ class GeminiService {
   }
 
   bool _shouldAddHumor() {
-    // 15% chance of humor
     return DateTime.now().millisecond % 7 == 0;
   }
 
   String _getHumorPhrase(NLPProfile profile) {
-    // Profile-specific humor from NLP_Frameworks_Reference.md
     if (profile.motivation == 'toward' && profile.reference == 'internal') {
       return "You're basically a goal-crushing machine. The only question is which goal gets crushed next. 💪";
     } else if (profile.motivation == 'away_from' && profile.reference == 'external') {
@@ -293,12 +302,10 @@ class GeminiService {
 
   /// Cancel any ongoing request
   void cancelRequest() {
-    // TODO: Implement request cancellation
     debugPrint('GeminiService: Request cancelled');
   }
 
   /// Dispose resources
   void dispose() {
-    // _currentChat = null;
   }
 }

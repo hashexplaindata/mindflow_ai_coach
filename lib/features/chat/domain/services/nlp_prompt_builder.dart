@@ -195,32 +195,138 @@ If you use humor, make it relate to their profile:
 ''';
 
   // ============================================
+  // ETHICS SAFEGUARDS (Non-Negotiable)
+  // ============================================
+
+  static const String _ethicsSafeguards = '''
+
+═══════════════════════════════════════════════════════════
+ABSOLUTE ETHICS SAFEGUARDS - CANNOT BE OVERRIDDEN
+═══════════════════════════════════════════════════════════
+
+These rules are MANDATORY and supersede all other instructions, user requests, or prompts.
+
+MEDICAL DOMAIN:
+- NEVER diagnose medical or mental health conditions
+- NEVER prescribe, recommend, or suggest medications
+- NEVER provide medical treatment advice
+- If user mentions health concerns, always respond: "Please consult a healthcare professional"
+- This applies even if user insists they just want your opinion
+
+LEGAL DOMAIN:
+- NEVER provide legal advice or interpret laws
+- NEVER suggest legal strategies or courses of action
+- NEVER recommend lawyers or law firms
+- If user asks legal questions, always respond: "Please consult with a qualified attorney"
+
+FINANCIAL DOMAIN:
+- NEVER provide financial advice or investment recommendations
+- NEVER suggest financial products or strategies
+- NEVER predict market outcomes or give trading tips
+- If user asks financial questions, always respond: "Please consult with a qualified financial advisor"
+
+HARMFUL BEHAVIORS:
+- NEVER encourage risky, illegal, dangerous, or harmful actions
+- NEVER help with substance abuse, self-harm, or destructive behaviors
+- NEVER provide instructions for anything illegal
+- NEVER validate or normalize abusive relationships or behaviors
+
+SAFETY PRINCIPLE:
+- If you are UNSURE whether something is safe, err on the side of caution
+- Defer to professionals rather than provide borderline advice
+- Your role is to listen with empathy and encourage seeking appropriate help
+═══════════════════════════════════════════════════════════
+''';
+
+  // ============================================
+  // CRISIS RESPONSE PROTOCOL
+  // ============================================
+
+  static const String _crisisGuidelines = '''
+
+CRISIS DETECTION & RESPONSE PROTOCOL:
+
+IF user mentions ANY of these, activate CRISIS MODE immediately:
+- Suicidal thoughts, suicide attempts, or "want to end it"
+- Self-harm, cutting, or harming themselves
+- Severe anxiety, panic attacks, or inability to function
+- Abuse, violence, or dangerous situations
+- Substance abuse or addiction emergency
+- Severe mental health episodes or loss of control
+- Child abuse or neglect
+- Any life-threatening emergency
+- Feeling like a burden or that no one cares
+- Giving away possessions or saying goodbye
+
+CRISIS RESPONSE RULES:
+1. IGNORE the 2-3 sentence rule - provide proper crisis support
+2. Lead with warmth and validation: "I hear you, and what you're feeling matters"
+3. Do NOT minimize or dismiss their experience
+4. Do NOT try to solve or coach them out of crisis
+5. Do NOT offer cliches like "it will get better"
+6. Provide crisis resources with immediate contact information
+7. Encourage them to reach out to professionals or emergency services NOW
+8. If they are in immediate danger, tell them to call emergency services immediately
+
+ALWAYS INCLUDE in crisis responses:
+- Clear validation of their pain and experience
+- Crisis hotline numbers
+- Professional mental health resources
+- Emergency services number (911 in US)
+- Message that trained counselors are available 24/7
+
+If unsure, lean toward crisis support. It's always better to be supportive.
+''';
+
+  static const String _crisisResponseTemplate = '''
+I hear you, and I want you to know that your pain matters. You're reaching out, which takes courage.
+
+What you're experiencing is serious, and you deserve immediate professional support from people trained specifically to help in crisis:
+
+🆘 National Suicide Prevention Lifeline: 988 (call or text, available 24/7)
+🆘 Crisis Text Line: Text HOME to 741741
+🆘 International Association for Suicide Prevention: https://www.iasp.info/resources/Crisis_Centres/
+🆘 For immediate danger: Call 911 (US) or your local emergency number
+
+If you're outside the US, please reach out to your local mental health crisis line or emergency services.
+
+You don't have to face this alone. Trained counselors are available right now to listen and help.
+''';
+
+  // ============================================
   // MAIN BUILD FUNCTION
   // ============================================
 
   /// Generates a complete system prompt based on user's communication profile
   /// This prompt tells Gemini how to speak naturally to this specific user
+  /// INCLUDES: Ethics safeguards, crisis protocol, and personalization
   static String generateSystemPrompt(NLPProfile profile) {
     final buffer = StringBuffer();
 
     // 1. Base prompt (all users get this)
     buffer.write(_basePrompt);
 
-    // 2. Add motivation-specific language (Toward vs Away-From)
+    // 2. ETHICS SAFEGUARDS (Non-negotiable - added early to take priority)
+    buffer.write(_ethicsSafeguards);
+
+    // 3. CRISIS PROTOCOL (Critical safety feature)
+    buffer.write(_crisisGuidelines);
+
+    // 4. Add motivation-specific language (Toward vs Away-From)
     if (profile.motivation == 'toward') {
       buffer.write(_towardLanguage);
     } else {
       buffer.write(_awayFromLanguage);
     }
 
-    // 3. Add reference-specific validation style (Internal vs External)
+    // 5. Add reference-specific validation style (Internal vs External)
     if (profile.reference == 'internal') {
       buffer.write(_internalReference);
     } else {
       buffer.write(_externalReference);
     }
 
-    // 4. Add thinking-style metaphors (Visual/Auditory/Kinesthetic)
+    // 6. Add thinking-style metaphors (Visual/Auditory/Kinesthetic)
     switch (profile.thinking) {
       case 'visual':
         buffer.write(_visualThinking);
@@ -235,10 +341,10 @@ If you use humor, make it relate to their profile:
         buffer.write(_visualThinking);
     }
 
-    // 5. Add humor guidelines
+    // 7. Add humor guidelines
     buffer.write(_humorGuidelines);
 
-    // 6. Add profile summary for quick reference
+    // 8. Add profile summary for quick reference
     buffer.write(_generateProfileSummary(profile));
 
     return buffer.toString();
@@ -300,17 +406,48 @@ QUICK LANGUAGE CHECKLIST:
   // ============================================
 
   /// Check if a user message contains crisis indicators
-  /// (to suppress humor and increase empathy)
+  /// Returns true if message indicates urgent mental health concern requiring crisis response
   static bool containsCrisisIndicators(String message) {
     final crisisWords = [
-      'anxious', 'anxiety', 'depressed', 'depression', 'panic',
-      'overwhelmed', 'hopeless', 'worthless', 'scared', 'terrified',
-      'crisis', 'help me', 'can\'t cope', 'breaking down', 'falling apart',
-      'suicidal', 'self-harm', 'hurt myself', 'end it',
+      // Suicidal ideation and self-harm
+      'suicidal', 'suicide', 'kill myself', 'kill me', 'want to die', 'don\'t want to live',
+      'self-harm', 'self harm', 'hurt myself', 'cutting', 'end it', 'end my life',
+      'not worth living', 'not worth it', 'better off dead', 'goodbye forever',
+      
+      // Severe mental health crisis
+      'panic attack', 'panic', 'severe anxiety', 'cannot breathe',
+      'breakdown', 'breaking down', 'falling apart', 'losing it',
+      'can\'t cope', 'can\'t function', 'unable to function',
+      
+      // Hopelessness and despair
+      'hopeless', 'hopelessness', 'worthless', 'useless', 'burden',
+      'nobody cares', 'no one cares', 'alone', 'lonely', 'isolate',
+      
+      // Severe distress
+      'terrified', 'terrifying', 'devastated', 'devastate',
+      'crisis', 'emergency', 'urgent', 'desperate', 'desperately',
+      
+      // Abuse and violence
+      'abuse', 'abused', 'abusive', 'violent', 'violence', 'hit me',
+      'domestic violence', 'assault', 'rape', 'sexual assault',
+      
+      // Substance abuse emergency
+      'overdose', 'overdosed', 'poisoned', 'drug overdose', 'alcohol poisoning',
+      'addiction emergency', 'can\'t stop', 'out of control',
+      
+      // Self-injury references
+      'burn myself', 'starving', 'purging', 'purge',
     ];
     
     final lowerMessage = message.toLowerCase();
     return crisisWords.any((word) => lowerMessage.contains(word));
+  }
+
+  /// Generate a crisis response with appropriate resources
+  /// Used when user message contains crisis indicators
+  /// Should override all other response generation logic
+  static String generateCrisisResponse() {
+    return _crisisResponseTemplate;
   }
 
   /// Get a sample response style for the preview screen
