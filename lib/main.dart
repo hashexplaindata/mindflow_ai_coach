@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'core/theme/headspace_theme.dart';
+import 'core/theme/jobs_theme.dart';
 import 'core/constants/app_colors.dart';
 import 'core/constants/app_spacing.dart';
 import 'core/constants/app_text_styles.dart';
@@ -13,6 +13,7 @@ import 'features/onboarding/presentation/screens/profiling_screen.dart';
 import 'features/chat/presentation/screens/chat_screen.dart';
 import 'features/chat/presentation/providers/chat_provider.dart';
 import 'features/subscription/presentation/providers/subscription_provider.dart';
+import 'features/dashboard/presentation/screens/dashboard_screen.dart';
 
 void main() {
   runApp(const MindFlowApp());
@@ -42,7 +43,7 @@ class MindFlowApp extends StatelessWidget {
       child: MaterialApp(
         title: 'MindFlow AI Coach',
         debugShowCheckedModeBanner: false,
-        theme: HeadspaceTheme.lightTheme,
+        theme: JobsTheme.lightTheme,
         home: const WelcomeScreen(),
       ),
     );
@@ -132,7 +133,7 @@ class WelcomeScreen extends StatelessWidget {
                     MaterialPageRoute(
                       builder: (context) => ProfilingScreen(
                         onComplete: (profile) {
-                          _navigateToChat(context, profile);
+                          _navigateToDashboard(context, profile);
                         },
                       ),
                     ),
@@ -145,7 +146,7 @@ class WelcomeScreen extends StatelessWidget {
               // Skip to demo
               TextButton(
                 onPressed: () {
-                  _navigateToChat(context, NLPProfile.defaultProfile);
+                  _navigateToDashboard(context, NLPProfile.defaultProfile);
                 },
                 child: Text(
                   'Skip profiling (use default)',
@@ -163,15 +164,14 @@ class WelcomeScreen extends StatelessWidget {
     );
   }
 
-  void _navigateToChat(BuildContext context, NLPProfile profile) {
+  void _navigateToDashboard(BuildContext context, NLPProfile profile) {
     // Set profile in provider
     final chatProvider = context.read<ChatProvider>();
     chatProvider.setUserProfile(profile);
-    chatProvider.startNewChat();
 
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
-        builder: (context) => const ChatScreen(),
+        builder: (context) => const DashboardScreen(),
       ),
     );
   }
