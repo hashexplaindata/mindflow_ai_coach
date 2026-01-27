@@ -74,6 +74,9 @@ The AI coach uses classical and operant conditioning principles to shape user be
 
 ## Design System
 - **Palette:** Cream (#F9F9F2), Sage (#94A684), Obsidian (#1D1D1F), Orange (#F4A261)
+- **Dark Mode:** Full dark theme support with toggle in Profile settings
+  - Dark Background (#1A1A1A), Light Text (#F5F5F5), Brighter Sage (#A8BC98)
+  - ThemeProvider manages theme state globally
 - **Radius:** 32px
 - **Typography:** DM Sans
 - **Animations:** Spring physics, smooth transitions
