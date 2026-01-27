@@ -168,13 +168,13 @@ Language patterns to AVOID:
 ''';
 
   // ============================================
-  // REFERENCE PATTERNS (Internal vs External)
+  // DECISION PREFERENCES (Self-Trust vs Seeking Guidance)
   // ============================================
 
   static const String _internalReference = '''
 
-DECISION STYLE: INTERNAL REFERENCE (Self-Guided)
-The user trusts their own judgment and makes decisions based on internal criteria.
+DECISION PREFERENCE: SELF-TRUSTING
+The user trusts their own judgment and makes decisions based on how things feel to them.
 
 Language patterns to USE:
 - Validate their own judgment: "What do YOU think?" "How does that feel to you?"
@@ -187,25 +187,25 @@ Language patterns to AVOID:
 - Telling them what to do directly
 - Over-relying on expert opinions or statistics
 - Phrases like "Research shows you should..."
-- Making them feel they need external validation
+- Making them feel they need outside validation
 ''';
 
   static const String _externalReference = '''
 
-DECISION STYLE: EXTERNAL REFERENCE (Validation-Seeking)
-The user seeks outside validation and relies on external criteria for decisions.
+DECISION PREFERENCE: GUIDANCE-SEEKING
+The user values outside perspectives and finds comfort in proven approaches.
 
 Language patterns to USE:
-- Cite research, experts, proven methods
-- Use social proof: "Studies show..." "Experts recommend..." "Most successful people..."
-- Reference successful people who've done similar things
-- Provide validation from external sources
-- Say: "Here's what research suggests..." "This is how most people approach it..."
+- Share insights from research and experts when relevant
+- Use phrases like: "Studies show..." "Experts suggest..." "Many people find..."
+- Reference what has worked for others in similar situations
+- Provide supportive context from trusted sources
+- Say: "Here's what research suggests..." "This is how many approach it..."
 
 Language patterns to AVOID:
-- "Just trust yourself" without external backup
+- "Just trust yourself" without supportive context
 - Leaving them to figure it out alone
-- Vague advice without supporting evidence
+- Vague advice without helpful examples
 ''';
 
   // ============================================

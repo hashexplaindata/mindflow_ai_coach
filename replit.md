@@ -48,29 +48,34 @@ build/web/               # Built Flutter app (generated)
 - **Goal Setting:** Wellness goals with visual progress tracking
 
 ## Proactive AI Coaching System
-The AI coach uses classical and operant conditioning principles to shape user behavior:
+The AI coach supports users through gentle, experiential guidance aligned with V5 Constitution:
 
-### Operant Conditioning
-- **Positive Reinforcement:** Celebrates completions, streaks, milestones with variable ratio schedules
-- **Negative Reinforcement:** Frames meditation as relief from stress/anxiety
-- **Shaping:** Progressively harder goals after achievements
-- **Extinction:** Ignores undesired patterns without punishment
+### Supportive Guidance
+- **Positive Acknowledgment:** Celebrates completions, streaks, milestones with varied warmth
+- **Relief Framing:** Frames meditation as relief from stress/anxiety
+- **Meeting Users Where They Are:** Adjusts expectations based on experience level
+- **Gentle Redirection:** Invites possibility without pressure
 
-### Classical Conditioning
-- **Time-based associations:** Morning, evening, and wind-down triggers
-- **Positive emotion pairing:** Links practice with calm, strength, clarity
-- **Environmental cues:** Consistent UI patterns create automatic responses
+### Felt Connections
+- **Time-based nudges:** Morning, midday, evening, and wind-down invitations
+- **Experiential language:** Connects practice with how users feel (calm, clarity)
+- **Supportive presence:** Consistent, non-judgmental guidance
 
 ### Proactive Nudges
 - Context-aware recommendations based on time of day
-- Streak warnings (loss aversion) to maintain consistency
-- Comeback rewards for returning users
+- Supportive streak reminders (no pressure, practice is here when you need it)
+- Comeback welcomes for returning users
 - Goal progress tracking with milestone celebrations
+
+### Practice Stages (PracticeStage enum)
+- **newUser:** First sessions, celebrate showing up
+- **developing:** Building consistency, acknowledge progress
+- **established:** Living the practice, deepen awareness
 
 ### Key Files
 - `lib/features/coach/domain/services/proactive_coach_service.dart` - Main coaching logic
-- `lib/features/coach/domain/services/reinforcement_engine.dart` - Variable ratio schedules
-- `lib/features/chat/domain/services/nlp_prompt_builder.dart` - Agentic AI prompts
+- `lib/features/coach/domain/services/encouragement_engine.dart` - Acknowledgment patterns
+- `lib/features/chat/domain/services/nlp_prompt_builder.dart` - Personalized AI prompts
 
 ## Design System
 - **Palette:** Cream (#F9F9F2), Sage (#94A684), Obsidian (#1D1D1F), Orange (#F4A261)
