@@ -37,6 +37,9 @@ build/web/               # Built Flutter app (generated)
 ```
 
 ## Features
+- **Guided Meditations:** 5 complete meditation scripts with timed prompts (Release Tension, Stress SOS, Ease Anxiety, Sleepy Time, Sharpen Focus)
+- **Breathing Animations:** Visual breathing indicator that responds to prompts (inhale/hold/exhale phases with smooth animations)
+- **Ambient Sounds:** 6 background sound options (Rain, Ocean, Forest, White Noise, Fireplace) using Web Audio API
 - **Meditation Library:** 24 sessions across 6 categories (Stress, Anxiety, Sleep, Focus, Relationships, Self-Esteem)
 - **Sleep Content:** 4 sleep stories, 3 soundscapes, 3 breathing exercises
 - **Progress Tracking:** Minutes meditated, streak counter, session history
