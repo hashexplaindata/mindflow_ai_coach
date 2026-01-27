@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-// import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:google_generative_ai/google_generative_ai.dart';
 
 import '../domain/models/message.dart';
 import '../../onboarding/domain/models/nlp_profile.dart';
@@ -11,7 +11,7 @@ import '../domain/services/nlp_prompt_builder.dart';
 /// Uses NLP Prompt Builder for profile-adaptive system prompts
 /// 
 /// Configuration (per Technical Specification):
-/// - Model: gemini-1.5-flash (fast, cost-effective)
+/// - Model: gemini-2.0-flash (fast, cost-effective)
 /// - Temperature: 0.7 (creative but coherent)
 /// - Max tokens: 500 per response
 /// - Streaming: Yes (better UX with typing indicator)
@@ -22,12 +22,11 @@ class GeminiService {
 
   final String _apiKey;
   
-  // TODO: Uncomment when google_generative_ai is configured
-  // late final GenerativeModel _model;
-  // ChatSession? _currentChat;
+  GenerativeModel? _model;
+  ChatSession? _currentChat;
 
   /// Model configuration
-  static const String modelName = 'gemini-1.5-flash';
+  static const String modelName = 'gemini-2.0-flash';
   static const double temperature = 0.7;
   static const int maxOutputTokens = 500;
 
@@ -48,15 +47,14 @@ class GeminiService {
     }
 
     try {
-      // TODO: Uncomment when google_generative_ai is configured
-      // _model = GenerativeModel(
-      //   model: modelName,
-      //   apiKey: _apiKey,
-      //   generationConfig: GenerationConfig(
-      //     temperature: temperature,
-      //     maxOutputTokens: maxOutputTokens,
-      //   ),
-      // );
+      _model = GenerativeModel(
+        model: modelName,
+        apiKey: _apiKey,
+        generationConfig: GenerationConfig(
+          temperature: temperature,
+          maxOutputTokens: maxOutputTokens,
+        ),
+      );
       
       _isInitialized = true;
       debugPrint('GeminiService: Initialized with model $modelName');
@@ -84,8 +82,9 @@ class GeminiService {
       setUserProfile(profile);
     }
 
-    // Validate
-    if (_apiKey.isEmpty) {
+    // Validate - fallback to mock if no API key
+    if (_apiKey.isEmpty || _model == null) {
+      debugPrint('GeminiService: No API key or model, using mock response');
       yield* _getMockResponse(userMessage, profile);
       return;
     }
@@ -98,40 +97,37 @@ class GeminiService {
     }
 
     try {
-      // TODO: Uncomment when google_generative_ai is configured
-      // // Build chat history for context
-      // final history = chatHistory.map((msg) {
-      //   return Content(
-      //     msg.isUser ? 'user' : 'model',
-      //     [TextPart(msg.content)],
-      //   );
-      // }).toList();
-      // 
-      // // Create a new chat with system prompt
-      // _currentChat = _model.startChat(
-      //   history: [
-      //     Content.system(_currentSystemPrompt!),
-      //     ...history,
-      //   ],
-      // );
-      // 
-      // // Send message and stream response
-      // final response = _currentChat!.sendMessageStream(
-      //   Content.text(userMessage),
-      // );
-      // 
-      // await for (final chunk in response) {
-      //   final text = chunk.text;
-      //   if (text != null) {
-      //     yield text;
-      //   }
-      // }
-
-      // For development: yield mock response
-      yield* _getMockResponse(userMessage, profile);
+      // Build chat history for context
+      final history = chatHistory.where((msg) => msg.content.isNotEmpty).map((msg) {
+        return Content(
+          msg.isUser ? 'user' : 'model',
+          [TextPart(msg.content)],
+        );
+      }).toList();
+      
+      // Create a new chat with system prompt
+      _currentChat = _model!.startChat(
+        history: [
+          Content('user', [TextPart(_currentSystemPrompt!)]),
+          Content('model', [TextPart('I understand. I will embody these principles in our conversation.')]),
+          ...history,
+        ],
+      );
+      
+      // Send message and stream response
+      final response = _currentChat!.sendMessageStream(
+        Content.text(userMessage),
+      );
+      
+      await for (final chunk in response) {
+        final text = chunk.text;
+        if (text != null) {
+          yield text;
+        }
+      }
     } catch (e) {
       debugPrint('GeminiService: Error sending message: $e');
-      yield 'I\'m having a moment of reflection. Could you try again? 🙏';
+      yield 'I\'m having a moment of reflection. Could you try again?';
     }
   }
 
