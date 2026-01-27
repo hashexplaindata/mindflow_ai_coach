@@ -44,7 +44,33 @@ build/web/               # Built Flutter app (generated)
 - **Sleep Content:** 4 sleep stories, 3 soundscapes, 3 breathing exercises
 - **Progress Tracking:** Minutes meditated, streak counter, session history
 - **Premium Subscriptions:** Monthly ($9.99) and Annual ($79.99) via Stripe
-- **AI Coach:** Optional Gemini-powered personalized coaching
+- **AI Coach:** Proactive agentic coaching powered by Gemini with behavioral psychology
+- **Goal Setting:** Wellness goals with visual progress tracking
+
+## Proactive AI Coaching System
+The AI coach uses classical and operant conditioning principles to shape user behavior:
+
+### Operant Conditioning
+- **Positive Reinforcement:** Celebrates completions, streaks, milestones with variable ratio schedules
+- **Negative Reinforcement:** Frames meditation as relief from stress/anxiety
+- **Shaping:** Progressively harder goals after achievements
+- **Extinction:** Ignores undesired patterns without punishment
+
+### Classical Conditioning
+- **Time-based associations:** Morning, evening, and wind-down triggers
+- **Positive emotion pairing:** Links practice with calm, strength, clarity
+- **Environmental cues:** Consistent UI patterns create automatic responses
+
+### Proactive Nudges
+- Context-aware recommendations based on time of day
+- Streak warnings (loss aversion) to maintain consistency
+- Comeback rewards for returning users
+- Goal progress tracking with milestone celebrations
+
+### Key Files
+- `lib/features/coach/domain/services/proactive_coach_service.dart` - Main coaching logic
+- `lib/features/coach/domain/services/reinforcement_engine.dart` - Variable ratio schedules
+- `lib/features/chat/domain/services/nlp_prompt_builder.dart` - Agentic AI prompts
 
 ## Design System
 - **Palette:** Cream (#F9F9F2), Sage (#94A684), Obsidian (#1D1D1F), Orange (#F4A261)
