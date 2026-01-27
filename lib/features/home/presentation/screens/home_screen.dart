@@ -9,6 +9,9 @@ import '../../../meditation/domain/models/meditation_category.dart';
 import '../../../meditation/domain/models/sample_data.dart';
 import '../../../meditation/presentation/screens/player_screen.dart';
 import '../../../explore/presentation/screens/explore_screen.dart';
+import '../../../coach/domain/models/coaching_intervention.dart';
+import '../../../coach/domain/services/proactive_coach_service.dart';
+import '../../../coach/presentation/widgets/coach_nudge_card.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,12 +21,61 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  bool _nudgeDismissed = false;
+  CoachingIntervention? _currentNudge;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<UserProvider>().refreshProgress();
+      _generateNudge();
     });
+  }
+
+  void _generateNudge() {
+    final userProvider = context.read<UserProvider>();
+    final nudge = ProactiveCoachService.getProactiveNudge(
+      currentStreak: userProvider.currentStreak,
+      totalSessions: userProvider.sessionsCompleted,
+      totalMinutes: userProvider.totalMinutes,
+      lastSessionDate: null,
+    );
+    if (mounted) {
+      setState(() {
+        _currentNudge = nudge;
+      });
+    }
+  }
+
+  void _dismissNudge() {
+    setState(() {
+      _nudgeDismissed = true;
+    });
+  }
+
+  void _handleNudgeAction(CoachingIntervention nudge) {
+    final category = nudge.metadata?['category'] as String?;
+    MeditationCategory meditationCategory;
+    
+    switch (category) {
+      case 'focus':
+        meditationCategory = MeditationCategory.focus;
+        break;
+      case 'stress':
+        meditationCategory = MeditationCategory.stress;
+        break;
+      case 'sleep':
+        meditationCategory = MeditationCategory.sleep;
+        break;
+      case 'anxiety':
+        meditationCategory = MeditationCategory.anxiety;
+        break;
+      default:
+        meditationCategory = MeditationCategory.focus;
+    }
+    
+    _navigateToCategory(context, meditationCategory);
   }
 
   String _getGreeting() {
@@ -82,7 +134,17 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     
-                    const SizedBox(height: AppSpacing.spacing32),
+                    const SizedBox(height: AppSpacing.spacing24),
+                    
+                    if (_currentNudge != null && !_nudgeDismissed)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: AppSpacing.spacing24),
+                        child: CoachNudgeCard(
+                          intervention: _currentNudge!,
+                          onAction: () => _handleNudgeAction(_currentNudge!),
+                          onDismiss: _dismissNudge,
+                        ),
+                      ),
                     
                     Center(
                       child: FlowStreakRing(

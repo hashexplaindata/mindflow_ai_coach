@@ -80,6 +80,19 @@ def init_db():
                 updated_at TIMESTAMP DEFAULT NOW()
             )
         ''')
+        cur.execute('''
+            CREATE TABLE IF NOT EXISTS user_goals (
+                id TEXT PRIMARY KEY,
+                user_id TEXT REFERENCES users(id),
+                type TEXT NOT NULL,
+                target_value INTEGER NOT NULL,
+                current_value INTEGER DEFAULT 0,
+                status TEXT DEFAULT 'active',
+                category TEXT,
+                created_at TIMESTAMP DEFAULT NOW(),
+                completed_at TIMESTAMP
+            )
+        ''')
         conn.commit()
         cur.close()
         conn.close()
@@ -258,6 +271,148 @@ def get_subscription(user_id):
         if user and user['is_premium']:
             return jsonify({'isSubscribed': True, 'plan': 'premium'})
         return jsonify({'isSubscribed': False, 'plan': 'free'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/goals/<user_id>', methods=['GET'])
+@rate_limit
+def get_goals(user_id):
+    if not DATABASE_URL:
+        return jsonify({'goals': []})
+    try:
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute('''
+            SELECT id, user_id, type, target_value, current_value, status, category, created_at, completed_at
+            FROM user_goals WHERE user_id = %s ORDER BY created_at DESC
+        ''', (user_id,))
+        goals = cur.fetchall()
+        cur.close()
+        conn.close()
+        
+        return jsonify({
+            'goals': [
+                {
+                    'id': g['id'],
+                    'user_id': g['user_id'],
+                    'type': g['type'],
+                    'target_value': g['target_value'],
+                    'current_value': g['current_value'],
+                    'status': g['status'],
+                    'category': g['category'],
+                    'created_at': g['created_at'].isoformat() if g['created_at'] else None,
+                    'completed_at': g['completed_at'].isoformat() if g['completed_at'] else None,
+                }
+                for g in goals
+            ]
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/goals', methods=['POST'])
+@rate_limit
+def create_goal():
+    if not DATABASE_URL:
+        return jsonify({'error': 'Database not configured'}), 500
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'Invalid JSON'}), 400
+        
+        user_id = data.get('userId')
+        goal_id = data.get('id', str(uuid.uuid4()))
+        goal_type = data.get('type')
+        target_value = data.get('target_value')
+        category = data.get('category')
+        
+        if not user_id or not goal_type or not target_value:
+            return jsonify({'error': 'userId, type, and target_value required'}), 400
+        
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute('''
+            INSERT INTO user_goals (id, user_id, type, target_value, category)
+            VALUES (%s, %s, %s, %s, %s) RETURNING *
+        ''', (goal_id, user_id, goal_type, target_value, category))
+        goal = cur.fetchone()
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        return jsonify({
+            'id': goal['id'],
+            'type': goal['type'],
+            'target_value': goal['target_value'],
+            'current_value': goal['current_value'],
+            'status': goal['status'],
+            'category': goal['category'],
+            'created_at': goal['created_at'].isoformat() if goal['created_at'] else None,
+        }), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/goals/<goal_id>', methods=['PUT'])
+@rate_limit
+def update_goal(goal_id):
+    if not DATABASE_URL:
+        return jsonify({'error': 'Database not configured'}), 500
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'Invalid JSON'}), 400
+        
+        current_value = data.get('current_value')
+        status = data.get('status')
+        
+        conn = get_db()
+        cur = conn.cursor()
+        
+        cur.execute('SELECT * FROM user_goals WHERE id = %s', (goal_id,))
+        goal = cur.fetchone()
+        if not goal:
+            cur.close()
+            conn.close()
+            return jsonify({'error': 'Goal not found'}), 404
+        
+        updates = []
+        params = []
+        
+        if current_value is not None:
+            updates.append('current_value = %s')
+            params.append(current_value)
+            if current_value >= goal['target_value'] and goal['status'] == 'active':
+                updates.append('status = %s')
+                params.append('completed')
+                updates.append('completed_at = NOW()')
+        
+        if status is not None:
+            updates.append('status = %s')
+            params.append(status)
+            if status == 'completed':
+                updates.append('completed_at = NOW()')
+        
+        if updates:
+            params.append(goal_id)
+            cur.execute(f'''
+                UPDATE user_goals SET {', '.join(updates)}
+                WHERE id = %s RETURNING *
+            ''', tuple(params))
+            goal = cur.fetchone()
+            conn.commit()
+        
+        cur.close()
+        conn.close()
+        
+        return jsonify({
+            'id': goal['id'],
+            'type': goal['type'],
+            'target_value': goal['target_value'],
+            'current_value': goal['current_value'],
+            'status': goal['status'],
+            'category': goal['category'],
+            'created_at': goal['created_at'].isoformat() if goal['created_at'] else None,
+            'completed_at': goal['completed_at'].isoformat() if goal['completed_at'] else None,
+        })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

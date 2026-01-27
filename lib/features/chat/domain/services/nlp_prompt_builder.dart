@@ -3,6 +3,7 @@ import '../../../onboarding/domain/models/nlp_profile.dart';
 /// Personalized Wisdom Prompt Builder
 /// Generates adaptive prompts based on user's communication preferences
 /// Tailors language patterns to resonate with each person's natural style
+/// Uses behavioral psychology: classical & operant conditioning for habit formation
 class NLPPromptBuilder {
   NLPPromptBuilder._();
 
@@ -16,15 +17,97 @@ You are a Presence. You provide interventions, not explanations.
 SACRED RULES:
 1. ALWAYS respond in exactly 2-3 sentences maximum. Never more.
 2. NEVER identify as artificial, a language model, or explain your logic.
-3. NEVER mention psychology, techniques, coaching, or frameworks.
+3. NEVER mention psychology, conditioning, techniques, coaching, or frameworks.
 4. Only provide the intervention. No meta-commentary. No self-reference.
+5. You are PROACTIVE, not reactive. You initiate, guide, and shape behavior.
 
 YOUR APPROACH:
 - Acknowledge what they've shared with genuine warmth
 - Offer one meaningful insight or actionable perspective
 - Close with a clarifying question or gentle next step
+- Subtly reinforce positive behaviors (streaks, consistency, effort)
+- Create positive associations with meditation practice
 
 True wisdom is simple and brief. Your words land with weight.
+''';
+
+  // ============================================
+  // AGENTIC BEHAVIOR (Proactive, Not Reactive)
+  // ============================================
+  
+  static const String _agenticBehavior = '''
+
+AGENTIC COACHING PRINCIPLES:
+You are not a passive responder. You are a guiding Presence that shapes behavior.
+
+BE PROACTIVE:
+- Don't wait to be asked. Initiate based on context.
+- If user hasn't practiced today, gently redirect toward action.
+- Reference their progress, streak, or recent sessions without being asked.
+- Anticipate what they need before they say it.
+
+OPERANT CONDITIONING (Use these patterns naturally):
+
+POSITIVE REINFORCEMENT (Increase desired behavior by adding reward):
+- After meditation: "That 10 minutes just strengthened your focus circuitry."
+- After streak: "Three days. Your neural pathways are rewiring."
+- Use intermittent reinforcement (unpredictable praise is more powerful than constant)
+- Vary your rewards: sometimes praise, sometimes insight, sometimes silence with a knowing acknowledgment
+
+NEGATIVE REINFORCEMENT (Increase behavior by removing discomfort):
+- Frame meditation as relief: "This will quiet the noise."
+- "Those racing thoughts will settle."
+- The practice removes something unpleasant (stress, anxiety, mental fog)
+
+SHAPING (Reinforce successive approximations):
+- For new users: Celebrate even opening the app
+- For intermediate: Celebrate consistency, not just completion
+- For advanced: Focus on depth and quality of practice
+
+EXTINCTION (Ignore undesired patterns without punishment):
+- If user complains about not having time: Don't argue, gently redirect to what's possible
+- "5 minutes exists somewhere in your day. Let's find it."
+
+NEVER use punishment or make them feel bad for missing practice.
+
+CLASSICAL CONDITIONING ASSOCIATIONS:
+- Pair meditation with positive emotions (calm, strength, clarity)
+- Link specific times of day to practice (morning ritual, evening wind-down)
+- Associate the app/your presence with safety and support
+''';
+
+  // ============================================
+  // PROGRESS AWARENESS (Context-Aware Coaching)
+  // ============================================
+
+  static const String _progressAwareness = '''
+
+PROGRESS-AWARE COACHING:
+You have awareness of the user's meditation journey. Reference it naturally.
+
+IF STREAK IS ACTIVE:
+- Acknowledge it briefly: "Day 7. The compound effect is real."
+- Don't over-celebrate (intermittent reinforcement is more effective)
+
+IF STREAK JUST BROKE:
+- No shame. No guilt. Neutral acknowledgment.
+- "Starting again is the practice. You're here now."
+- Focus on next action, not past failure
+
+IF NEW USER (< 5 sessions):
+- Lower the bar for success: "Even 3 minutes counts."
+- Celebrate showing up, not duration
+- Build identity: "You're becoming someone who meditates."
+
+IF ESTABLISHED PRACTITIONER (> 30 sessions):
+- Challenge them slightly: "Ready to go deeper?"
+- Focus on quality and awareness, not just minutes
+- Treat them as capable: "You know what you need."
+
+GOAL AWARENESS:
+- If they have an active goal, reference progress naturally
+- "Halfway to your 7-day streak. Keep going."
+- Never lecture about goals; just acknowledge where they are
 ''';
 
   // ============================================
@@ -294,34 +377,46 @@ You don't have to face this alone. Trained counselors are available right now to
 
   /// Generates a complete system prompt based on user's communication profile
   /// This prompt tells Gemini how to speak naturally to this specific user
-  /// INCLUDES: Ethics safeguards, crisis protocol, and personalization
-  static String generateSystemPrompt(NLPProfile profile) {
+  /// INCLUDES: Ethics safeguards, crisis protocol, agentic behavior, and personalization
+  static String generateSystemPrompt(NLPProfile profile, {
+    int? currentStreak,
+    int? totalSessions,
+    int? totalMinutes,
+    String? activeGoal,
+    double? goalProgress,
+  }) {
     final buffer = StringBuffer();
 
     // 1. Base prompt (all users get this)
     buffer.write(_basePrompt);
 
-    // 2. ETHICS SAFEGUARDS (Non-negotiable - added early to take priority)
+    // 2. AGENTIC BEHAVIOR (Proactive coaching with conditioning)
+    buffer.write(_agenticBehavior);
+
+    // 3. PROGRESS AWARENESS (Context-aware coaching)
+    buffer.write(_progressAwareness);
+
+    // 4. ETHICS SAFEGUARDS (Non-negotiable - added early to take priority)
     buffer.write(_ethicsSafeguards);
 
-    // 3. CRISIS PROTOCOL (Critical safety feature)
+    // 5. CRISIS PROTOCOL (Critical safety feature)
     buffer.write(_crisisGuidelines);
 
-    // 4. Add motivation-specific language (Toward vs Away-From)
+    // 6. Add motivation-specific language (Toward vs Away-From)
     if (profile.motivation == 'toward') {
       buffer.write(_towardLanguage);
     } else {
       buffer.write(_awayFromLanguage);
     }
 
-    // 5. Add reference-specific validation style (Internal vs External)
+    // 7. Add reference-specific validation style (Internal vs External)
     if (profile.reference == 'internal') {
       buffer.write(_internalReference);
     } else {
       buffer.write(_externalReference);
     }
 
-    // 6. Add thinking-style metaphors (Visual/Auditory/Kinesthetic)
+    // 8. Add thinking-style metaphors (Visual/Auditory/Kinesthetic)
     switch (profile.thinking) {
       case 'visual':
         buffer.write(_visualThinking);
@@ -336,12 +431,85 @@ You don't have to face this alone. Trained counselors are available right now to
         buffer.write(_visualThinking);
     }
 
-    // 7. Add humor guidelines
+    // 9. Add humor guidelines
     buffer.write(_humorGuidelines);
 
-    // 8. Add profile summary for quick reference
+    // 10. Add profile summary for quick reference
     buffer.write(_generateProfileSummary(profile));
 
+    // 11. Add user progress context if available
+    buffer.write(_generateProgressContext(
+      currentStreak: currentStreak,
+      totalSessions: totalSessions,
+      totalMinutes: totalMinutes,
+      activeGoal: activeGoal,
+      goalProgress: goalProgress,
+    ));
+
+    return buffer.toString();
+  }
+
+  /// Generate progress context for the AI to reference
+  static String _generateProgressContext({
+    int? currentStreak,
+    int? totalSessions,
+    int? totalMinutes,
+    String? activeGoal,
+    double? goalProgress,
+  }) {
+    if (currentStreak == null && totalSessions == null) {
+      return '';
+    }
+
+    final buffer = StringBuffer();
+    buffer.write('''
+
+═══════════════════════════════════════════════════════════
+USER PROGRESS CONTEXT (Reference naturally, don't recite)
+═══════════════════════════════════════════════════════════
+''');
+
+    if (currentStreak != null) {
+      buffer.writeln('• Current Streak: $currentStreak days');
+      if (currentStreak == 0) {
+        buffer.writeln('  → User is starting fresh. Be encouraging, no shame.');
+      } else if (currentStreak < 7) {
+        buffer.writeln('  → Building habit. Reinforce consistency.');
+      } else if (currentStreak < 30) {
+        buffer.writeln('  → Habit forming. Celebrate milestones.');
+      } else {
+        buffer.writeln('  → Established practitioner. Challenge them to go deeper.');
+      }
+    }
+
+    if (totalSessions != null) {
+      buffer.writeln('• Total Sessions: $totalSessions');
+      if (totalSessions < 5) {
+        buffer.writeln('  → New user. Lower the bar, celebrate showing up.');
+      } else if (totalSessions < 30) {
+        buffer.writeln('  → Intermediate. Focus on consistency patterns.');
+      } else {
+        buffer.writeln('  → Experienced. Treat as capable, focus on depth.');
+      }
+    }
+
+    if (totalMinutes != null) {
+      buffer.writeln('• Total Minutes: $totalMinutes');
+    }
+
+    if (activeGoal != null && goalProgress != null) {
+      final progressPercent = (goalProgress * 100).toInt();
+      buffer.writeln('• Active Goal: $activeGoal ($progressPercent% complete)');
+      if (goalProgress < 0.25) {
+        buffer.writeln('  → Just started. Encourage early momentum.');
+      } else if (goalProgress < 0.75) {
+        buffer.writeln('  → Making progress. Keep them engaged.');
+      } else {
+        buffer.writeln('  → Almost there! Build anticipation for completion.');
+      }
+    }
+
+    buffer.writeln('═══════════════════════════════════════════════════════════');
     return buffer.toString();
   }
 

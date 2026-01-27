@@ -1,9 +1,14 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../auth/presentation/providers/user_provider.dart';
 import '../../../subscription/presentation/screens/subscription_screen.dart';
+import '../../../coach/presentation/screens/goals_screen.dart';
+import '../../../coach/presentation/widgets/goal_card.dart';
+import '../../../coach/domain/models/wellness_goal.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -146,7 +151,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ],
                     ),
                     
-                    const SizedBox(height: AppSpacing.spacing32),
+                    const SizedBox(height: AppSpacing.spacing24),
+                    
+                    if (userProvider.userId != null)
+                      _GoalsSummarySection(
+                        userId: userProvider.userId!,
+                        onNavigateToGoals: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => GoalsScreen(
+                                userId: userProvider.userId!,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    
+                    const SizedBox(height: AppSpacing.spacing24),
                     
                     Container(
                       decoration: BoxDecoration(
@@ -448,6 +469,153 @@ class _Divider extends StatelessWidget {
       height: 1,
       margin: const EdgeInsets.symmetric(horizontal: 20),
       color: AppColors.jobsObsidian.withOpacity(0.05),
+    );
+  }
+}
+
+class _GoalsSummarySection extends StatefulWidget {
+  final String userId;
+  final VoidCallback onNavigateToGoals;
+
+  const _GoalsSummarySection({
+    required this.userId,
+    required this.onNavigateToGoals,
+  });
+
+  @override
+  State<_GoalsSummarySection> createState() => _GoalsSummarySectionState();
+}
+
+class _GoalsSummarySectionState extends State<_GoalsSummarySection> {
+  WellnessGoal? _activeGoal;
+  int _completedCount = 0;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadGoals();
+  }
+
+  Future<void> _loadGoals() async {
+    try {
+      final response = await _fetchGoals();
+      if (response != null) {
+        final activeGoals = response.where((g) => g.status == GoalStatus.active).toList();
+        final completedGoals = response.where((g) => g.status == GoalStatus.completed).toList();
+        
+        if (mounted) {
+          setState(() {
+            _activeGoal = activeGoals.isNotEmpty ? activeGoals.first : null;
+            _completedCount = completedGoals.length;
+            _isLoading = false;
+          });
+        }
+      } else {
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<List<WellnessGoal>?> _fetchGoals() async {
+    try {
+      final uri = Uri.parse('/api/goals/${widget.userId}');
+      final response = await http.get(uri);
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return (data['goals'] as List)
+            .map((g) => WellnessGoal.fromJson(g))
+            .toList();
+      }
+    } catch (e) {
+      // Silent fail, will show empty state
+    }
+    return null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Container(
+        padding: const EdgeInsets.all(AppSpacing.spacing24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: const Center(
+          child: SizedBox(
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              valueColor: AlwaysStoppedAnimation(AppColors.jobsSage),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Goals',
+                style: TextStyle(
+                  fontFamily: 'DM Sans',
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.jobsObsidian,
+                ),
+              ),
+              if (_completedCount > 0)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.successGreen.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.emoji_events_rounded,
+                        size: 14,
+                        color: AppColors.successGreen,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '$_completedCount achieved',
+                        style: const TextStyle(
+                          fontFamily: 'DM Sans',
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.successGreen,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: AppSpacing.spacing12),
+        CompactGoalCard(
+          goal: _activeGoal,
+          onTap: widget.onNavigateToGoals,
+          onViewAll: widget.onNavigateToGoals,
+        ),
+      ],
     );
   }
 }
