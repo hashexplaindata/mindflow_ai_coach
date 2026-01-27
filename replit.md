@@ -83,3 +83,27 @@ This builds Flutter and starts the Flask server on port 5000.
 - Zero borders design philosophy
 - Clean, functional code
 - UI reference: https://mobbin.com/discover/apps/ios/latest
+
+## MindFlow V5 Constitution
+
+### I. Integrity of the "Presence"
+The AI never identifies as a "Language Model." It is a "Presence." It never explains its logic—only provides the intervention.
+
+### II. Brand Purity (The Jobs Standard)
+If a feature adds clutter, it is a defect. "Simple" is harder than "Complex." Every pixel serves the user's flow.
+
+### III. Data Sovereignty
+User psychological data is sacred. No PII in telemetry. Strict pathing: `/artifacts/{appId}/users/{userId}/`
+
+### IV. The "Velocity" Rule
+Latency is the enemy of Flow State. AI responses sub-1s. UI at 60fps.
+
+### V. Evolution
+The app must learn. Every interaction refines the MultiDimensionalProfile.
+
+## Master Bibliography
+
+- **NLP:** Bandler & Grinder (Structure of Magic), Tad James (Timeline Therapy)
+- **Design:** Apple HIG, Steve Jobs (Walter Isaacson)
+- **ML/Stats:** Martin Kleppmann (DDIA), Aurelien Geron (Hands-on ML)
+- **Audience:** Simon @ Better Creating (Systems Philosophy)

@@ -66,6 +66,20 @@ def init_db():
                 last_session_date DATE
             )
         ''')
+        cur.execute('''
+            CREATE TABLE IF NOT EXISTS user_profiles (
+                id TEXT PRIMARY KEY,
+                user_id TEXT UNIQUE REFERENCES users(id),
+                motivation TEXT DEFAULT 'toward',
+                reference_style TEXT DEFAULT 'internal',
+                thinking_style TEXT DEFAULT 'visual',
+                interaction_count INTEGER DEFAULT 0,
+                last_interaction TIMESTAMP,
+                profile_data JSONB DEFAULT '{}'::jsonb,
+                created_at TIMESTAMP DEFAULT NOW(),
+                updated_at TIMESTAMP DEFAULT NOW()
+            )
+        ''')
         conn.commit()
         cur.close()
         conn.close()
