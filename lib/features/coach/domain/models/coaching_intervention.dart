@@ -7,10 +7,10 @@ enum InterventionType {
   streakRecovery,
 }
 
-enum ConditioningState {
+enum PracticeStage {
   newUser,
-  habitForming,
-  habitEstablished,
+  developing,
+  established,
 }
 
 class CoachingIntervention {
@@ -121,7 +121,7 @@ class CoachingIntervention {
 }
 
 class UserCoachingState {
-  final ConditioningState conditioningState;
+  final PracticeStage practiceStage;
   final int totalSessions;
   final int currentStreak;
   final int longestStreak;
@@ -132,7 +132,7 @@ class UserCoachingState {
   final int interactionCount;
 
   const UserCoachingState({
-    required this.conditioningState,
+    required this.practiceStage,
     required this.totalSessions,
     required this.currentStreak,
     required this.longestStreak,
@@ -145,7 +145,7 @@ class UserCoachingState {
 
   factory UserCoachingState.initial() {
     return const UserCoachingState(
-      conditioningState: ConditioningState.newUser,
+      practiceStage: PracticeStage.newUser,
       totalSessions: 0,
       currentStreak: 0,
       longestStreak: 0,
@@ -171,17 +171,17 @@ class UserCoachingState {
     
     final streakAtRisk = currentStreak > 0 && daysSinceLastSession == 1;
 
-    ConditioningState state;
+    PracticeStage stage;
     if (totalSessions < 3) {
-      state = ConditioningState.newUser;
+      stage = PracticeStage.newUser;
     } else if (currentStreak < 7) {
-      state = ConditioningState.habitForming;
+      stage = PracticeStage.developing;
     } else {
-      state = ConditioningState.habitEstablished;
+      stage = PracticeStage.established;
     }
 
     return UserCoachingState(
-      conditioningState: state,
+      practiceStage: stage,
       totalSessions: totalSessions,
       currentStreak: currentStreak,
       longestStreak: longestStreak,

@@ -1,6 +1,6 @@
 import 'dart:math';
 import '../models/coaching_intervention.dart';
-import 'reinforcement_engine.dart';
+import 'encouragement_engine.dart';
 
 class ProactiveCoachService {
   ProactiveCoachService._();
@@ -33,7 +33,7 @@ class ProactiveCoachService {
     }
 
     if (state.daysSinceLastSession >= 2) {
-      return ReinforcementEngine.getComebackReward(
+      return EncouragementEngine.getComebackReward(
         daysSinceLastSession: state.daysSinceLastSession,
         previousStreak: currentStreak,
         totalSessions: totalSessions,
@@ -48,6 +48,8 @@ class ProactiveCoachService {
     );
   }
 
+  // Streak reminders: Supportive, not threatening
+  // Invite without pressure or urgency
   static CoachingIntervention _getStreakWarning({
     required String id,
     required int streak,
@@ -56,20 +58,20 @@ class ProactiveCoachService {
     final hoursLeft = 24 - now.hour;
     
     final messages = [
-      'Your $streak-day streak ends in $hoursLeft hours. 5 minutes can save it.',
-      '$streak days of work on the line. Protect your progress.',
-      'Don\'t let today break your $streak-day momentum.',
+      'You\'ve practiced $streak days in a row. A few minutes keeps it going.',
+      'Your $streak-day journey continues whenever you\'re ready.',
+      'If you\'d like to continue your streak, a short session is all it takes.',
     ];
 
     return CoachingIntervention(
       id: id,
       type: InterventionType.streakWarning,
       message: messages[_random.nextInt(messages.length)],
-      subMessage: 'A quick session is all it takes.',
-      actionLabel: 'Save Streak',
+      subMessage: 'No pressure. The practice is here when you need it.',
+      actionLabel: 'Continue',
       createdAt: now,
       priority: 9,
-      requiresAction: true,
+      requiresAction: false,
       metadata: {
         'streak': streak,
         'hoursRemaining': hoursLeft,
@@ -91,19 +93,19 @@ class ProactiveCoachService {
     if (hour >= 5 && hour < 10) {
       final morningNudges = _getMorningNudges(state);
       message = morningNudges[_random.nextInt(morningNudges.length)];
-      subMessage = 'Morning minds absorb more.';
+      subMessage = 'A calm start to the day.';
       actionLabel = 'Morning Calm';
       meditationCategory = 'focus';
     } else if (hour >= 10 && hour < 14) {
       final middayNudges = _getMiddayNudges(state);
       message = middayNudges[_random.nextInt(middayNudges.length)];
-      subMessage = 'A midday reset goes a long way.';
+      subMessage = 'A midday moment of stillness.';
       actionLabel = 'Quick Reset';
       meditationCategory = 'stress';
     } else if (hour >= 14 && hour < 18) {
       final afternoonNudges = _getAfternoonNudges(state);
       message = afternoonNudges[_random.nextInt(afternoonNudges.length)];
-      subMessage = 'Afternoon clarity awaits.';
+      subMessage = 'Rest before the final stretch.';
       actionLabel = 'Recharge';
       meditationCategory = 'focus';
     } else if (hour >= 18 && hour < 22) {
@@ -144,58 +146,70 @@ class ProactiveCoachService {
     return 'night';
   }
 
+  // Morning nudges: Gentle, experiential
   static List<String> _getMorningNudges(UserCoachingState state) {
-    switch (state.conditioningState) {
-      case ConditioningState.newUser:
+    switch (state.practiceStage) {
+      case PracticeStage.newUser:
         return [
-          'Good morning. Your mind is most receptive now.',
-          'A calm morning creates a calm day.',
-          'Start before the world gets loud.',
+          'Good morning. Your mind is fresh and receptive.',
+          'Before the day begins. A few minutes of stillness.',
+          'Start quiet. The noise comes later.',
+          'Morning calm shapes the whole day.',
         ];
-      case ConditioningState.habitForming:
+      case PracticeStage.developing:
         return [
           'Good morning. Day ${state.currentStreak + 1} awaits.',
-          'Your morning routine is taking shape.',
+          'Your morning practice is taking shape.',
           'Same time, same calm. Building something real.',
+          'The morning ritual is becoming familiar.',
         ];
-      case ConditioningState.habitEstablished:
+      case PracticeStage.established:
         return [
-          'Your morning ritual awaits.',
-          'The mind you\'ve built craves this.',
+          'Your morning practice awaits.',
+          'The mind you\'ve built knows what it needs.',
           'Another morning, another layer of peace.',
+          'This is just what you do now. Show up.',
         ];
     }
   }
 
+  // Midday nudges: Simple reset invitation
   static List<String> _getMiddayNudges(UserCoachingState state) {
     return [
-      'Halfway through. Pause and recalibrate.',
-      'A 5-minute reset changes the entire afternoon.',
+      'Halfway through. A moment to pause.',
+      'Five minutes can change the whole afternoon.',
       'Step back from the noise. Just briefly.',
+      'A midday reset goes a long way.',
     ];
   }
 
+  // Afternoon nudges: Gentle energy renewal
   static List<String> _getAfternoonNudges(UserCoachingState state) {
     return [
-      'Decompress from the day. 5 minutes of calm.',
-      'The afternoon slump is optional.',
-      'Restore focus before the final push.',
+      'Afternoon fatigue is natural. Stillness helps.',
+      'A few minutes of calm before the final push.',
+      'Rest your mind. The day isn\'t over yet.',
+      'Recharge with presence, not caffeine.',
     ];
   }
 
+  // Evening nudges: Wind-down invitation
   static List<String> _getEveningNudges(UserCoachingState state) {
     return [
-      'Wind down with tonight\'s session.',
-      'Process the day. Let it go.',
+      'The day is winding down. Wind down with it.',
+      'Process the day. Let go of what you don\'t need.',
       'Evening stillness leads to morning clarity.',
+      'Prepare for rest. You\'ve earned it.',
     ];
   }
 
+  // Night nudges: Sleep preparation
   static List<String> _getNightNudges(UserCoachingState state) {
     return [
       'Quiet the mind for deeper sleep.',
-      'A sleep story awaits you.',
+      'A sleep story awaits.',
       'Let tonight restore tomorrow\'s energy.',
+      'The last moments before sleep matter.',
     ];
   }
 
@@ -205,9 +219,9 @@ class ProactiveCoachService {
     required int durationMinutes,
     required int totalMinutes,
   }) {
-    final state = _getConditioningState(sessionsCompleted, currentStreak);
+    final state = _getPracticeStage(sessionsCompleted, currentStreak);
 
-    return ReinforcementEngine.getCelebration(
+    return EncouragementEngine.getCelebration(
       sessionsCompleted: sessionsCompleted,
       currentStreak: currentStreak,
       durationMinutes: durationMinutes,
@@ -231,23 +245,23 @@ class ProactiveCoachService {
     if (hour >= 5 && hour < 10) {
       category = 'focus';
       title = 'Morning Focus';
-      reason = 'Cortisol peaks in the morning. Ride it.';
+      reason = 'A calm start helps the whole day unfold.';
     } else if (hour >= 10 && hour < 14) {
       category = 'stress';
       title = 'Stress Relief';
-      reason = 'Midday tensions need releasing.';
+      reason = 'A midday pause goes a long way.';
     } else if (hour >= 14 && hour < 18) {
       category = 'focus';
       title = 'Afternoon Clarity';
-      reason = 'Beat the slump with presence.';
+      reason = 'Rest your mind before the final stretch.';
     } else if (hour >= 18 && hour < 22) {
       category = 'anxiety';
       title = 'Evening Calm';
-      reason = 'Process the day before it ends.';
+      reason = 'Settle the day gently.';
     } else {
       category = 'sleep';
       title = 'Sleep Preparation';
-      reason = 'Quality sleep starts with a quiet mind.';
+      reason = 'A quiet mind invites restful sleep.';
     }
 
     return CoachingIntervention(
@@ -266,10 +280,10 @@ class ProactiveCoachService {
     );
   }
 
-  static ConditioningState _getConditioningState(int sessions, int streak) {
-    if (sessions < 3) return ConditioningState.newUser;
-    if (streak < 7) return ConditioningState.habitForming;
-    return ConditioningState.habitEstablished;
+  static PracticeStage _getPracticeStage(int sessions, int streak) {
+    if (sessions < 3) return PracticeStage.newUser;
+    if (streak < 7) return PracticeStage.developing;
+    return PracticeStage.established;
   }
 
   static bool shouldShowNudge({

@@ -50,19 +50,19 @@ class AmbientSoundService {
       type: AmbientSoundType.rain,
       name: 'Rain',
       icon: '🌧️',
-      audioUrl: 'https://cdn.pixabay.com/audio/2022/05/13/audio_257112473d.mp3',
+      audioUrl: 'https://actions.google.com/sounds/v1/ambiences/rain_on_roof.ogg',
     ),
     AmbientSound(
       type: AmbientSoundType.ocean,
       name: 'Ocean',
       icon: '🌊',
-      audioUrl: 'https://cdn.pixabay.com/audio/2024/11/21/audio_bc6d6db73e.mp3',
+      audioUrl: 'https://actions.google.com/sounds/v1/ambiences/ocean_waves_crashing_on_rock_beach.ogg',
     ),
     AmbientSound(
       type: AmbientSoundType.forest,
       name: 'Forest',
       icon: '🌲',
-      audioUrl: 'https://cdn.pixabay.com/audio/2022/03/10/audio_4a84dcc571.mp3',
+      audioUrl: 'https://actions.google.com/sounds/v1/ambiences/forest_with_small_birds.ogg',
     ),
     AmbientSound(
       type: AmbientSoundType.whiteNoise,
@@ -73,7 +73,7 @@ class AmbientSoundService {
       type: AmbientSoundType.fireplace,
       name: 'Fireplace',
       icon: '🔥',
-      audioUrl: 'https://cdn.pixabay.com/audio/2024/04/17/audio_76e4d07b00.mp3',
+      audioUrl: 'https://actions.google.com/sounds/v1/ambiences/fireplace_with_crackling_sounds.ogg',
     ),
   ];
 
