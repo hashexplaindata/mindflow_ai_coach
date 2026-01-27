@@ -7,7 +7,7 @@ from flask_cors import CORS
 import google.generativeai as genai
 
 app = Flask(__name__, static_folder='build/web')
-CORS(app)
+CORS(app, resources={r"/api/*": {"origins": ["http://localhost:5000", "http://127.0.0.1:5000", "https://*.replit.dev", "https://*.repl.co"]}})
 
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
 MODEL_NAME = 'gemini-2.0-flash'
@@ -22,6 +22,7 @@ def add_security_headers(response):
     response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '0'
+    response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://*.replit.dev https://*.repl.co https://www.gstatic.com https://fonts.gstatic.com; frame-ancestors 'self'"
     return response
 
 @app.after_request
@@ -58,19 +59,21 @@ def chat():
             )
         
         genai.configure(api_key=GEMINI_API_KEY)
-        model = genai.GenerativeModel(
-            model_name=MODEL_NAME,
-            generation_config=genai.types.GenerationConfig(
+        
+        model_config = {
+            'model_name': MODEL_NAME,
+            'generation_config': genai.types.GenerationConfig(
                 temperature=TEMPERATURE,
                 max_output_tokens=MAX_OUTPUT_TOKENS,
             )
-        )
+        }
+        
+        if system_prompt:
+            model_config['system_instruction'] = system_prompt
+        
+        model = genai.GenerativeModel(**model_config)
         
         chat_history = []
-        if system_prompt:
-            chat_history.append({'role': 'user', 'parts': [system_prompt]})
-            chat_history.append({'role': 'model', 'parts': ['I understand. I will embody these principles in our conversation.']})
-        
         for msg in history:
             role = 'user' if msg.get('isUser', False) else 'model'
             content = msg.get('content', '')
