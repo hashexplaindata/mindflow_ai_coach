@@ -7,6 +7,10 @@ import '../../../../core/constants/app_spacing.dart';
 import '../../../auth/presentation/providers/user_provider.dart';
 import '../../domain/models/meditation_session.dart';
 import '../../domain/models/meditation_category.dart';
+import '../../domain/models/guided_content.dart';
+import '../../data/ambient_sound_service.dart';
+import '../widgets/breathing_indicator.dart';
+import '../widgets/ambient_sound_picker.dart';
 
 class PlayerScreen extends StatefulWidget {
   final MeditationSession meditation;
@@ -21,24 +25,53 @@ class _PlayerScreenState extends State<PlayerScreen> with TickerProviderStateMix
   bool _isPlaying = false;
   late int _remainingSeconds;
   late int _totalSeconds;
+  int _elapsedSeconds = 0;
   Timer? _timer;
   late AnimationController _progressController;
   late AnimationController _pulseController;
+  late AnimationController _promptFadeController;
+  late Animation<double> _promptFadeAnimation;
   bool _isLoggingSession = false;
+  
+  GuidedContent? _guidedContent;
+  GuidedPrompt? _currentPrompt;
+  String _displayedPromptText = '';
+  
+  final AmbientSoundService _ambientSoundService = AmbientSoundService();
 
   @override
   void initState() {
     super.initState();
     _totalSeconds = widget.meditation.durationMinutes * 60;
     _remainingSeconds = _totalSeconds;
+    
+    _guidedContent = GuidedMeditationScripts.getScript(widget.meditation.id);
+    
     _progressController = AnimationController(
       vsync: this,
       duration: Duration(seconds: _totalSeconds),
     );
+    
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
     )..repeat(reverse: true);
+    
+    _promptFadeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    
+    _promptFadeAnimation = CurvedAnimation(
+      parent: _promptFadeController,
+      curve: Curves.easeInOut,
+    );
+    
+    if (_guidedContent != null && _guidedContent!.prompts.isNotEmpty) {
+      _currentPrompt = _guidedContent!.prompts.first;
+      _displayedPromptText = _currentPrompt!.text;
+      _promptFadeController.value = 1.0;
+    }
   }
 
   @override
@@ -46,7 +79,27 @@ class _PlayerScreenState extends State<PlayerScreen> with TickerProviderStateMix
     _timer?.cancel();
     _progressController.dispose();
     _pulseController.dispose();
+    _promptFadeController.dispose();
+    _ambientSoundService.stop();
     super.dispose();
+  }
+
+  void _updateCurrentPrompt() {
+    if (_guidedContent == null) return;
+    
+    final newPrompt = _guidedContent!.getPromptAt(_elapsedSeconds);
+    
+    if (newPrompt != null && newPrompt != _currentPrompt) {
+      _promptFadeController.reverse().then((_) {
+        if (mounted) {
+          setState(() {
+            _currentPrompt = newPrompt;
+            _displayedPromptText = newPrompt.text;
+          });
+          _promptFadeController.forward();
+        }
+      });
+    }
   }
 
   void _togglePlayPause() {
@@ -55,12 +108,15 @@ class _PlayerScreenState extends State<PlayerScreen> with TickerProviderStateMix
     });
 
     if (_isPlaying) {
+      _ambientSoundService.resume();
       _progressController.forward(from: 1 - (_remainingSeconds / _totalSeconds));
       _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
         if (_remainingSeconds > 0) {
           setState(() {
             _remainingSeconds--;
+            _elapsedSeconds = _totalSeconds - _remainingSeconds;
           });
+          _updateCurrentPrompt();
         } else {
           _timer?.cancel();
           setState(() {
@@ -72,11 +128,14 @@ class _PlayerScreenState extends State<PlayerScreen> with TickerProviderStateMix
     } else {
       _timer?.cancel();
       _progressController.stop();
+      _ambientSoundService.pause();
     }
   }
 
   Future<void> _completeSession() async {
     if (_isLoggingSession) return;
+    
+    await _ambientSoundService.stop();
     
     setState(() {
       _isLoggingSession = true;
@@ -158,7 +217,7 @@ class _PlayerScreenState extends State<PlayerScreen> with TickerProviderStateMix
               ),
               const SizedBox(height: 24),
               const Text(
-                'Session Complete! 🎉',
+                'Session Complete!',
                 style: TextStyle(
                   fontFamily: 'DM Sans',
                   fontSize: 24,
@@ -169,7 +228,7 @@ class _PlayerScreenState extends State<PlayerScreen> with TickerProviderStateMix
               ),
               const SizedBox(height: 12),
               Text(
-                'Great job completing ${widget.meditation.title}!',
+                'You\'ve completed ${widget.meditation.title}',
                 style: TextStyle(
                   fontFamily: 'DM Sans',
                   fontSize: 16,
@@ -182,8 +241,8 @@ class _PlayerScreenState extends State<PlayerScreen> with TickerProviderStateMix
               Text(
                 completedMinutes > 0 
                     ? '+$completedMinutes minutes added to your journey'
-                    : 'Every second counts!',
-                style: TextStyle(
+                    : 'Every moment of mindfulness counts!',
+                style: const TextStyle(
                   fontFamily: 'DM Sans',
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
@@ -235,6 +294,7 @@ class _PlayerScreenState extends State<PlayerScreen> with TickerProviderStateMix
   Widget build(BuildContext context) {
     final progress = 1 - (_remainingSeconds / _totalSeconds);
     final hasStarted = _remainingSeconds < _totalSeconds;
+    final hasGuidedContent = _guidedContent != null;
 
     return Scaffold(
       backgroundColor: AppColors.jobsCream,
@@ -296,79 +356,133 @@ class _PlayerScreenState extends State<PlayerScreen> with TickerProviderStateMix
                 ],
               ),
               
-              const Spacer(),
+              const SizedBox(height: AppSpacing.spacing24),
               
-              AnimatedBuilder(
-                animation: _pulseController,
-                builder: (context, child) {
-                  final scale = _isPlaying ? 1.0 + (_pulseController.value * 0.02) : 1.0;
-                  return Transform.scale(
-                    scale: scale,
-                    child: SizedBox(
-                      width: 280,
-                      height: 280,
-                      child: CustomPaint(
-                        painter: _ProgressRingPainter(
-                          progress: progress,
-                          strokeWidth: 16,
-                        ),
-                        child: Center(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                _formatTime(_remainingSeconds),
-                                style: const TextStyle(
-                                  fontFamily: 'DM Sans',
-                                  fontSize: 56,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.jobsObsidian,
-                                  height: 1.0,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'remaining',
-                                style: TextStyle(
-                                  fontFamily: 'DM Sans',
-                                  fontSize: 16,
-                                  color: AppColors.jobsObsidian.withOpacity(0.5),
-                                ),
-                              ),
-                            ],
+              if (hasGuidedContent) ...[
+                BreathingIndicator(
+                  currentPromptType: _currentPrompt?.type,
+                  isPlaying: _isPlaying,
+                ),
+                const SizedBox(height: AppSpacing.spacing32),
+                
+                SizedBox(
+                  height: 100,
+                  child: FadeTransition(
+                    opacity: _promptFadeAnimation,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.7),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Center(
+                        child: Text(
+                          _displayedPromptText,
+                          style: TextStyle(
+                            fontFamily: 'DM Sans',
+                            fontSize: 20,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.jobsObsidian.withOpacity(0.85),
+                            height: 1.4,
                           ),
+                          textAlign: TextAlign.center,
                         ),
                       ),
                     ),
-                  );
-                },
-              ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.spacing24),
+              ],
               
-              const Spacer(),
+              Expanded(
+                child: Center(
+                  child: AnimatedBuilder(
+                    animation: _pulseController,
+                    builder: (context, child) {
+                      final scale = _isPlaying ? 1.0 + (_pulseController.value * 0.015) : 1.0;
+                      return Transform.scale(
+                        scale: scale,
+                        child: SizedBox(
+                          width: hasGuidedContent ? 200 : 280,
+                          height: hasGuidedContent ? 200 : 280,
+                          child: CustomPaint(
+                            painter: _ProgressRingPainter(
+                              progress: progress,
+                              strokeWidth: hasGuidedContent ? 12 : 16,
+                            ),
+                            child: Center(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    _formatTime(_remainingSeconds),
+                                    style: TextStyle(
+                                      fontFamily: 'DM Sans',
+                                      fontSize: hasGuidedContent ? 40 : 56,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.jobsObsidian,
+                                      height: 1.0,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'remaining',
+                                    style: TextStyle(
+                                      fontFamily: 'DM Sans',
+                                      fontSize: 14,
+                                      color: AppColors.jobsObsidian.withOpacity(0.5),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
               
               Text(
                 widget.meditation.title,
                 style: const TextStyle(
                   fontFamily: 'DM Sans',
-                  fontSize: 28,
+                  fontSize: 24,
                   fontWeight: FontWeight.bold,
                   color: AppColors.jobsObsidian,
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: AppSpacing.spacing12),
-              Text(
-                widget.meditation.description,
-                style: TextStyle(
-                  fontFamily: 'DM Sans',
-                  fontSize: 16,
-                  color: AppColors.jobsObsidian.withOpacity(0.6),
-                  height: 1.5,
+              const SizedBox(height: AppSpacing.spacing8),
+              if (!hasGuidedContent)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Text(
+                    widget.meditation.description,
+                    style: TextStyle(
+                      fontFamily: 'DM Sans',
+                      fontSize: 16,
+                      color: AppColors.jobsObsidian.withOpacity(0.6),
+                      height: 1.5,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-                textAlign: TextAlign.center,
+              
+              const SizedBox(height: AppSpacing.spacing16),
+              
+              AmbientSoundPicker(
+                onSoundChanged: (soundType) {
+                  if (_isPlaying && soundType != AmbientSoundType.none) {
+                    _ambientSoundService.resume();
+                  }
+                },
               ),
               
-              const Spacer(),
+              const SizedBox(height: AppSpacing.spacing24),
               
               _isLoggingSession
                   ? Container(
@@ -414,7 +528,19 @@ class _PlayerScreenState extends State<PlayerScreen> with TickerProviderStateMix
                       ),
                     ),
               
-              const SizedBox(height: AppSpacing.spacing48),
+              const SizedBox(height: AppSpacing.spacing24),
+              
+              if (!_isPlaying && !hasStarted && hasGuidedContent)
+                Text(
+                  'Tap play to begin your guided meditation',
+                  style: TextStyle(
+                    fontFamily: 'DM Sans',
+                    fontSize: 14,
+                    color: AppColors.jobsObsidian.withOpacity(0.5),
+                  ),
+                ),
+              
+              const SizedBox(height: AppSpacing.spacing24),
             ],
           ),
         ),
