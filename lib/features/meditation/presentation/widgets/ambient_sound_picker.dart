@@ -2,17 +2,23 @@ import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../data/ambient_sound_service.dart';
+import '../../data/binaural_audio_service.dart';
+import 'brainwave_selector.dart';
 
 class AmbientSoundPicker extends StatefulWidget {
   final Function(AmbientSoundType)? onSoundChanged;
   final double volume;
   final Function(double)? onVolumeChanged;
+  final bool showBrainwaves;
+  final Function(BrainwaveType)? onBrainwaveChanged;
 
   const AmbientSoundPicker({
     super.key,
     this.onSoundChanged,
     this.volume = 0.5,
     this.onVolumeChanged,
+    this.showBrainwaves = true,
+    this.onBrainwaveChanged,
   });
 
   @override
@@ -24,6 +30,7 @@ class _AmbientSoundPickerState extends State<AmbientSoundPicker> {
   AmbientSoundType _selectedSound = AmbientSoundType.none;
   late double _volume;
   bool _showVolumeSlider = false;
+  int _selectedTab = 0;
 
   @override
   void initState() {
@@ -55,18 +62,53 @@ class _AmbientSoundPickerState extends State<AmbientSoundPicker> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 12),
-          child: Text(
-            'Ambient Sounds',
-            style: TextStyle(
-              fontFamily: 'DM Sans',
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: AppColors.jobsObsidian.withOpacity(0.6),
+        if (widget.showBrainwaves) ...[
+          Row(
+            children: [
+              _TabButton(
+                label: 'Ambient',
+                icon: Icons.water_drop_outlined,
+                isSelected: _selectedTab == 0,
+                onTap: () => setState(() => _selectedTab = 0),
+              ),
+              const SizedBox(width: 8),
+              _TabButton(
+                label: 'Brainwaves',
+                icon: Icons.waves_rounded,
+                isSelected: _selectedTab == 1,
+                onTap: () => setState(() => _selectedTab = 1),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.spacing16),
+        ],
+        if (!widget.showBrainwaves || _selectedTab == 0)
+          _buildAmbientSection()
+        else
+          BrainwaveSelector(
+            onBrainwaveChanged: widget.onBrainwaveChanged,
+          ),
+      ],
+    );
+  }
+
+  Widget _buildAmbientSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (!widget.showBrainwaves)
+          Padding(
+            padding: const EdgeInsets.only(left: 4, bottom: 12),
+            child: Text(
+              'Ambient Sounds',
+              style: TextStyle(
+                fontFamily: 'DM Sans',
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: AppColors.jobsObsidian.withOpacity(0.6),
+              ),
             ),
           ),
-        ),
         SizedBox(
           height: 80,
           child: ListView.builder(
@@ -178,6 +220,67 @@ class _AmbientSoundPickerState extends State<AmbientSoundPicker> {
           ),
         ],
       ],
+    );
+  }
+}
+
+class _TabButton extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _TabButton({
+    required this.label,
+    required this.icon,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected 
+              ? AppColors.jobsSage.withOpacity(0.15) 
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected 
+                ? AppColors.jobsSage 
+                : AppColors.jobsObsidian.withOpacity(0.15),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 16,
+              color: isSelected
+                  ? AppColors.jobsSage
+                  : AppColors.jobsObsidian.withOpacity(0.5),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontFamily: 'DM Sans',
+                fontSize: 13,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                color: isSelected
+                    ? AppColors.jobsSage
+                    : AppColors.jobsObsidian.withOpacity(0.6),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -40,6 +40,7 @@ dependencies:
   shared_preferences: ^2.2.2  # Local storage for user data
   url_launcher: ^6.2.2  # Open Stripe checkout URL
   uuid: ^4.3.3  # Generate unique user IDs
+  web: ^1.0.0  # JS interop for web platform
   
   # Cupertino Icons
   cupertino_icons: ^1.0.6

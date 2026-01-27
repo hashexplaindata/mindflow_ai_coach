@@ -3,20 +3,13 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_text_styles.dart';
 
-/// Chat Input Widget
-/// Headspace-style input field with send button
-///
-/// Per @Architect rules:
-/// - Soft corners (16dp radius)
-/// - Generous padding
-/// - Smooth animations on focus
 class ChatInput extends StatefulWidget {
   const ChatInput({
     super.key,
     required this.onSend,
     this.onTypingChanged,
     this.enabled = true,
-    this.placeholder = 'Type your message...',
+    this.placeholder = 'What\'s on your mind?',
   });
 
   final void Function(String message) onSend;
@@ -28,20 +21,23 @@ class ChatInput extends StatefulWidget {
   State<ChatInput> createState() => _ChatInputState();
 }
 
-class _ChatInputState extends State<ChatInput> {
+class _ChatInputState extends State<ChatInput> with SingleTickerProviderStateMixin {
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
   bool _hasText = false;
+  bool _isFocused = false;
 
   @override
   void initState() {
     super.initState();
     _controller.addListener(_onTextChanged);
+    _focusNode.addListener(_onFocusChanged);
   }
 
   @override
   void dispose() {
     _controller.removeListener(_onTextChanged);
+    _focusNode.removeListener(_onFocusChanged);
     _controller.dispose();
     _focusNode.dispose();
     super.dispose();
@@ -57,6 +53,12 @@ class _ChatInputState extends State<ChatInput> {
     }
   }
 
+  void _onFocusChanged() {
+    setState(() {
+      _isFocused = _focusNode.hasFocus;
+    });
+  }
+
   void _onSend() {
     final text = _controller.text.trim();
     if (text.isEmpty || !widget.enabled) return;
@@ -70,129 +72,99 @@ class _ChatInputState extends State<ChatInput> {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.spacing16),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.cardBackground,
         boxShadow: [
           BoxShadow(
-            color: Color(0x0D000000), // black at 5% opacity
-            blurRadius: 10,
-            offset: Offset(0, -2),
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 16,
+            offset: const Offset(0, -4),
           ),
         ],
       ),
       child: SafeArea(
         top: false,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            // Text input
-            Expanded(
-              child: Container(
-                constraints: const BoxConstraints(maxHeight: 120),
-                decoration: BoxDecoration(
-                  color: AppColors.neutralLight,
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusInput),
-                ),
-                child: TextField(
-                  controller: _controller,
-                  focusNode: _focusNode,
-                  enabled: widget.enabled,
-                  maxLines: null,
-                  textCapitalization: TextCapitalization.sentences,
-                  style: AppTextStyles.bodyMedium,
-                  decoration: InputDecoration(
-                    hintText: widget.placeholder,
-                    hintStyle: AppTextStyles.bodyMedium.copyWith(
-                      color: AppColors.textHint,
-                    ),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.spacing16,
-                      vertical: AppSpacing.spacing12,
-                    ),
-                  ),
-                  onSubmitted: (_) => _onSend(),
-                ),
-              ),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          decoration: BoxDecoration(
+            color: _isFocused
+                ? AppColors.jobsSage.withOpacity(0.05)
+                : AppColors.neutralLight,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: _isFocused
+                  ? AppColors.jobsSage.withOpacity(0.4)
+                  : Colors.transparent,
+              width: 1.5,
             ),
-
-            const SizedBox(width: AppSpacing.spacing12),
-
-            // Send button
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeInOut,
-              width: 48,
-              height: 48,
-              child: Material(
-                color: _hasText && widget.enabled
-                    ? AppColors.primaryOrange
-                    : AppColors.neutralMedium,
-                borderRadius: BorderRadius.circular(24),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(24),
-                  onTap: _hasText && widget.enabled ? _onSend : null,
-                  child: const Center(
-                    child: Icon(
-                      Icons.arrow_upward_rounded,
-                      color: Colors.white,
-                      size: 24,
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Expanded(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 120),
+                  child: TextField(
+                    controller: _controller,
+                    focusNode: _focusNode,
+                    enabled: widget.enabled,
+                    maxLines: null,
+                    textCapitalization: TextCapitalization.sentences,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: AppColors.jobsObsidian,
                     ),
+                    decoration: InputDecoration(
+                      hintText: widget.placeholder,
+                      hintStyle: AppTextStyles.bodyMedium.copyWith(
+                        color: AppColors.textHint,
+                      ),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.spacing20,
+                        vertical: AppSpacing.spacing12,
+                      ),
+                    ),
+                    onSubmitted: (_) => _onSend(),
                   ),
                 ),
               ),
-            ),
-          ],
+              Padding(
+                padding: const EdgeInsets.only(
+                  right: AppSpacing.spacing8,
+                  bottom: AppSpacing.spacing4,
+                ),
+                child: AnimatedScale(
+                  scale: _hasText ? 1.0 : 0.8,
+                  duration: const Duration(milliseconds: 150),
+                  child: AnimatedOpacity(
+                    opacity: _hasText ? 1.0 : 0.5,
+                    duration: const Duration(milliseconds: 150),
+                    child: Material(
+                      color: _hasText && widget.enabled
+                          ? AppColors.jobsSage
+                          : AppColors.neutralMedium,
+                      borderRadius: BorderRadius.circular(20),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(20),
+                        onTap: _hasText && widget.enabled ? _onSend : null,
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          alignment: Alignment.center,
+                          child: Icon(
+                            Icons.arrow_upward_rounded,
+                            color: Colors.white,
+                            size: 22,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
-    );
-  }
-}
-
-/// Suggestions chip row
-/// Shows quick prompts for users who don't know what to say
-class SuggestionChips extends StatelessWidget {
-  const SuggestionChips({
-    super.key,
-    required this.onTap,
-    this.suggestions = const [
-      "I'm feeling stuck",
-      "Help me set a goal",
-      "I need motivation",
-    ],
-  });
-
-  final void Function(String suggestion) onTap;
-  final List<String> suggestions;
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.spacing16,
-      ),
-      child: Row(
-        children: suggestions.map((suggestion) {
-          return Padding(
-            padding: const EdgeInsets.only(right: AppSpacing.spacing8),
-            child: ActionChip(
-              label: Text(
-                suggestion,
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: AppColors.primaryOrange,
-                ),
-              ),
-              backgroundColor:
-                  const Color(0x1AF4A261), // primaryOrange at 10% opacity
-              side: BorderSide.none,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppSpacing.radiusSmall),
-              ),
-              onPressed: () => onTap(suggestion),
-            ),
-          );
-        }).toList(),
       ),
     );
   }

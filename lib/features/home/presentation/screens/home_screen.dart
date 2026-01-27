@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
@@ -12,6 +13,9 @@ import '../../../explore/presentation/screens/explore_screen.dart';
 import '../../../coach/domain/models/coaching_intervention.dart';
 import '../../../coach/domain/services/proactive_coach_service.dart';
 import '../../../coach/presentation/widgets/coach_nudge_card.dart';
+import '../../../wisdom/presentation/providers/wisdom_provider.dart';
+import '../../../wisdom/presentation/widgets/wisdom_card.dart';
+import '../../../wisdom/presentation/screens/wisdom_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -145,6 +149,76 @@ class _HomeScreenState extends State<HomeScreen> {
                           onDismiss: _dismissNudge,
                         ),
                       ),
+                    
+                    Consumer<WisdomProvider>(
+                      builder: (context, wisdomProvider, child) {
+                        final todaysWisdom = wisdomProvider.todaysWisdom;
+                        if (todaysWisdom == null) return const SizedBox.shrink();
+
+                        wisdomProvider.updateUserProgress(
+                          currentStreak: userProvider.currentStreak,
+                          daysSinceLastSession: 0,
+                          totalSessions: userProvider.sessionsCompleted,
+                          totalMinutes: userProvider.totalMinutes,
+                        );
+
+                        final hasResonated = wisdomProvider.getWisdomFeedback(todaysWisdom.id);
+
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: AppSpacing.spacing24),
+                          child: WisdomCardHero(
+                            wisdom: todaysWisdom,
+                            isFavorite: wisdomProvider.isFavorite(todaysWisdom.id),
+                            hasResonated: hasResonated,
+                            greeting: wisdomProvider.wisdomGreeting,
+                            onFavoriteToggle: () {
+                              wisdomProvider.toggleFavorite(todaysWisdom.id);
+                              HapticFeedback.lightImpact();
+                            },
+                            onResonates: () {
+                              wisdomProvider.recordWisdomResonates(todaysWisdom.id);
+                              HapticFeedback.mediumImpact();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: const Text(
+                                    'Thanks! We\'ll find more like this.',
+                                    style: TextStyle(
+                                      fontFamily: 'DM Sans',
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  behavior: SnackBarBehavior.floating,
+                                  backgroundColor: AppColors.jobsSage,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  duration: const Duration(seconds: 2),
+                                ),
+                              );
+                            },
+                            onShowAnother: () {
+                              wisdomProvider.requestNewWisdom();
+                              HapticFeedback.lightImpact();
+                            },
+                            onTap: () {
+                              Navigator.of(context).push(
+                                PageRouteBuilder(
+                                  pageBuilder: (context, animation, secondaryAnimation) =>
+                                      const WisdomScreen(),
+                                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                    return FadeTransition(
+                                      opacity: animation,
+                                      child: child,
+                                    );
+                                  },
+                                  transitionDuration: const Duration(milliseconds: 200),
+                                ),
+                              );
+                            },
+                          ),
+                        );
+                      },
+                    ),
                     
                     Center(
                       child: FlowStreakRing(

@@ -9,6 +9,7 @@ import '../../domain/models/meditation_session.dart';
 import '../../domain/models/meditation_category.dart';
 import '../../domain/models/guided_content.dart';
 import '../../data/ambient_sound_service.dart';
+import '../../data/binaural_audio_service.dart';
 import '../widgets/breathing_indicator.dart';
 import '../widgets/ambient_sound_picker.dart';
 
@@ -38,6 +39,7 @@ class _PlayerScreenState extends State<PlayerScreen> with TickerProviderStateMix
   String _displayedPromptText = '';
   
   final AmbientSoundService _ambientSoundService = AmbientSoundService();
+  final BinauralAudioService _binauralAudioService = BinauralAudioService();
 
   @override
   void initState() {
@@ -81,6 +83,7 @@ class _PlayerScreenState extends State<PlayerScreen> with TickerProviderStateMix
     _pulseController.dispose();
     _promptFadeController.dispose();
     _ambientSoundService.stop();
+    _binauralAudioService.stop();
     super.dispose();
   }
 
@@ -109,6 +112,7 @@ class _PlayerScreenState extends State<PlayerScreen> with TickerProviderStateMix
 
     if (_isPlaying) {
       _ambientSoundService.resume();
+      _binauralAudioService.resume();
       _progressController.forward(from: 1 - (_remainingSeconds / _totalSeconds));
       _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
         if (_remainingSeconds > 0) {
@@ -129,6 +133,7 @@ class _PlayerScreenState extends State<PlayerScreen> with TickerProviderStateMix
       _timer?.cancel();
       _progressController.stop();
       _ambientSoundService.pause();
+      _binauralAudioService.pause();
     }
   }
 
@@ -136,6 +141,7 @@ class _PlayerScreenState extends State<PlayerScreen> with TickerProviderStateMix
     if (_isLoggingSession) return;
     
     await _ambientSoundService.stop();
+    await _binauralAudioService.stop();
     
     setState(() {
       _isLoggingSession = true;
@@ -478,6 +484,11 @@ class _PlayerScreenState extends State<PlayerScreen> with TickerProviderStateMix
                 onSoundChanged: (soundType) {
                   if (_isPlaying && soundType != AmbientSoundType.none) {
                     _ambientSoundService.resume();
+                  }
+                },
+                onBrainwaveChanged: (brainwaveType) {
+                  if (_isPlaying && brainwaveType != BrainwaveType.none) {
+                    _binauralAudioService.resume();
                   }
                 },
               ),

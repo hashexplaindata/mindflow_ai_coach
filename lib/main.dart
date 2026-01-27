@@ -14,10 +14,16 @@ import 'features/onboarding/presentation/screens/profiling_screen.dart';
 import 'features/chat/presentation/providers/chat_provider.dart';
 import 'features/subscription/presentation/providers/subscription_provider.dart';
 import 'features/auth/presentation/providers/user_provider.dart';
+import 'features/habits/presentation/providers/habit_provider.dart';
+import 'features/wisdom/presentation/providers/wisdom_provider.dart';
+import 'features/coach/presentation/providers/background_coach_provider.dart';
+import 'features/coach/presentation/widgets/coach_intervention_overlay.dart';
 import 'features/home/presentation/screens/home_screen.dart';
 import 'features/explore/presentation/screens/explore_screen.dart';
 import 'features/sleep/presentation/screens/sleep_screen.dart';
 import 'features/profile/presentation/screens/profile_screen.dart';
+import 'features/habits/presentation/screens/habits_screen.dart';
+import 'features/chat/presentation/screens/chat_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,6 +49,15 @@ class MindFlowApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => SubscriptionProvider(),
         ),
+        ChangeNotifierProvider(
+          create: (_) => HabitProvider()..initialize(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => WisdomProvider()..initialize(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => BackgroundCoachProvider()..initialize(),
+        ),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
@@ -67,31 +82,204 @@ class MainAppShell extends StatefulWidget {
   State<MainAppShell> createState() => _MainAppShellState();
 }
 
-class _MainAppShellState extends State<MainAppShell> {
+class _MainAppShellState extends State<MainAppShell> with WidgetsBindingObserver {
   int _currentIndex = 0;
 
   final List<Widget> _screens = const [
     HomeScreen(),
     ExploreScreen(),
+    HabitsScreen(),
     SleepScreen(),
     ProfileScreen(),
   ];
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkForInterventions();
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed) {
+      _checkForInterventions();
+    }
+  }
+
+  void _checkForInterventions() {
+    final userProvider = context.read<UserProvider>();
+    final habitProvider = context.read<HabitProvider>();
+    final coachProvider = context.read<BackgroundCoachProvider>();
+
+    final now = DateTime.now();
+    final lastSessionDate = userProvider.sessionsCompleted > 0 ? now : null;
+    final daysSinceLastSession = lastSessionDate != null
+        ? now.difference(lastSessionDate).inDays
+        : 0;
+
+    final hasCompletedTodaySession = habitProvider.todayProgress > 0;
+
+    coachProvider.onAppResumed(
+      currentStreak: userProvider.currentStreak,
+      totalSessions: userProvider.sessionsCompleted,
+      totalMinutes: userProvider.totalMinutes,
+      daysSinceLastSession: daysSinceLastSession,
+      habits: habitProvider.activeHabits,
+      hasCompletedTodaySession: hasCompletedTodaySession,
+      weeklyGoalProgress: habitProvider.todayProgress,
+    );
+  }
+
+  void _onTabChanged(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+
+    final userProvider = context.read<UserProvider>();
+    final habitProvider = context.read<HabitProvider>();
+    final coachProvider = context.read<BackgroundCoachProvider>();
+
+    final now = DateTime.now();
+    final lastSessionDate = userProvider.sessionsCompleted > 0 ? now : null;
+    final daysSinceLastSession = lastSessionDate != null
+        ? now.difference(lastSessionDate).inDays
+        : 0;
+
+    coachProvider.onTabChanged(
+      currentStreak: userProvider.currentStreak,
+      totalSessions: userProvider.sessionsCompleted,
+      totalMinutes: userProvider.totalMinutes,
+      daysSinceLastSession: daysSinceLastSession,
+      habits: habitProvider.activeHabits,
+      hasCompletedTodaySession: habitProvider.todayProgress > 0,
+    );
+  }
+
+  void _navigateToMeditation() {
+    setState(() {
+      _currentIndex = 1;
+    });
+  }
+
+  void _navigateToHabits() {
+    setState(() {
+      _currentIndex = 2;
+    });
+  }
+
+  void _navigateToProgress() {
+    setState(() {
+      _currentIndex = 4;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
+    return CoachInterventionManager(
+      onNavigateToMeditation: _navigateToMeditation,
+      onNavigateToHabits: _navigateToHabits,
+      onNavigateToProgress: _navigateToProgress,
+      child: Scaffold(
+        body: IndexedStack(
+          index: _currentIndex,
+          children: _screens,
+        ),
+        floatingActionButton: _CoachFloatingButton(
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const ChatScreen(),
+              ),
+            );
+          },
+        ),
+        bottomNavigationBar: BottomNavBar(
+          currentIndex: _currentIndex,
+          onTap: _onTabChanged,
+        ),
       ),
-      bottomNavigationBar: BottomNavBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-      ),
+    );
+  }
+}
+
+class _CoachFloatingButton extends StatefulWidget {
+  const _CoachFloatingButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  State<_CoachFloatingButton> createState() => _CoachFloatingButtonState();
+}
+
+class _CoachFloatingButtonState extends State<_CoachFloatingButton>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _glowAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 2000),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.05).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+
+    _glowAnimation = Tween<double>(begin: 0.3, end: 0.5).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: _scaleAnimation.value,
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.jobsSage.withOpacity(_glowAnimation.value),
+                  blurRadius: 20,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+            child: FloatingActionButton(
+              onPressed: widget.onPressed,
+              backgroundColor: AppColors.jobsSage,
+              elevation: 8,
+              child: const Text(
+                '🧘',
+                style: TextStyle(fontSize: 24),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -214,6 +402,9 @@ class WelcomeScreen extends StatelessWidget {
   void _navigateToMainApp(BuildContext context, NLPProfile profile) {
     final chatProvider = context.read<ChatProvider>();
     chatProvider.setUserProfile(profile);
+
+    final wisdomProvider = context.read<WisdomProvider>();
+    wisdomProvider.setUserProfile(profile);
 
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(

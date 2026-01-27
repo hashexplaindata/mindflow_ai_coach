@@ -19,8 +19,11 @@ import '../domain/services/nlp_prompt_builder.dart';
 /// - Temperature: 0.7 (creative but coherent)
 /// - Max tokens: 500 per response
 /// - Streaming: Yes (better UX with typing indicator)
+/// - Conversation Memory: Last 10 messages for context
 class GeminiService {
   GeminiService();
+
+  static const int _maxConversationMemory = 10;
 
   /// Whether the service is initialized
   bool _isInitialized = false;
@@ -28,6 +31,13 @@ class GeminiService {
 
   /// Current system prompt (set per user profile)
   String? _currentSystemPrompt;
+
+  /// User progress context for coaching
+  int? _currentStreak;
+  int? _totalSessions;
+  int? _totalMinutes;
+  String? _activeGoal;
+  double? _goalProgress;
 
   /// Initialize the service
   Future<void> initialize() async {
@@ -39,8 +49,39 @@ class GeminiService {
   /// Set the system prompt based on user's NLP profile
   /// Call this when user logs in or profile changes
   void setUserProfile(NLPProfile profile) {
-    _currentSystemPrompt = NLPPromptBuilder.generateSystemPrompt(profile);
+    _currentSystemPrompt = NLPPromptBuilder.generateSystemPrompt(
+      profile,
+      currentStreak: _currentStreak,
+      totalSessions: _totalSessions,
+      totalMinutes: _totalMinutes,
+      activeGoal: _activeGoal,
+      goalProgress: _goalProgress,
+    );
     debugPrint('GeminiService: System prompt updated for ${profile.displayName}');
+  }
+
+  /// Set user progress context for more personalized coaching
+  void setProgressContext({
+    int? currentStreak,
+    int? totalSessions,
+    int? totalMinutes,
+    String? activeGoal,
+    double? goalProgress,
+  }) {
+    _currentStreak = currentStreak;
+    _totalSessions = totalSessions;
+    _totalMinutes = totalMinutes;
+    _activeGoal = activeGoal;
+    _goalProgress = goalProgress;
+  }
+
+  /// Get limited conversation history for context
+  /// Returns only the last N messages to prevent token overflow
+  List<Message> _getLimitedHistory(List<Message> fullHistory) {
+    if (fullHistory.length <= _maxConversationMemory) {
+      return fullHistory;
+    }
+    return fullHistory.sublist(fullHistory.length - _maxConversationMemory);
   }
 
   /// Send a message and get streaming response
@@ -71,7 +112,8 @@ class GeminiService {
     }
 
     try {
-      final historyJson = chatHistory.where((msg) => msg.content.isNotEmpty).map((msg) {
+      final limitedHistory = _getLimitedHistory(chatHistory);
+      final historyJson = limitedHistory.where((msg) => msg.content.isNotEmpty).map((msg) {
         return {
           'isUser': msg.isUser,
           'content': msg.content,

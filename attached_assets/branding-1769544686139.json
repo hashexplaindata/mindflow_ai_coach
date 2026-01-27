@@ -1,0 +1,86 @@
+{
+  "colorScheme": "light",
+  "fonts": [
+    {
+      "family": "saans",
+      "count": 70
+    },
+    {
+      "family": "saans Fallback",
+      "count": 70
+    },
+    {
+      "family": "sans-serif",
+      "count": 70
+    }
+  ],
+  "colors": {
+    "primary": "#9CA3AF",
+    "accent": "#FFF7B3",
+    "background": "#FFFFFF",
+    "textPrimary": "#141414",
+    "link": "#FFF7B3"
+  },
+  "typography": {
+    "fontFamilies": {
+      "primary": "saans",
+      "heading": "saans"
+    },
+    "fontStacks": {
+      "body": [
+        "saans",
+        "saans Fallback",
+        "sans-serif"
+      ],
+      "heading": [
+        "saans",
+        "saans Fallback",
+        "sans-serif"
+      ],
+      "paragraph": [
+        "saans",
+        "saans Fallback",
+        "sans-serif"
+      ]
+    },
+    "fontSizes": {
+      "h1": "80px",
+      "h2": "16px",
+      "body": "20px"
+    }
+  },
+  "spacing": {
+    "baseUnit": 4,
+    "borderRadius": "12px"
+  },
+  "components": {},
+  "images": {
+    "logo": "File saved at: attached_assets/logo.svg",
+    "favicon": "File saved at: attached_assets/favicon.ico",
+    "ogImage": "File saved at: attached_assets/ogImage.png"
+  },
+  "__framework_hints": [],
+  "__llm_logo_reasoning": {
+    "selectedIndex": 0,
+    "reasoning": "Heuristic fallback: Moderate indicators: header logo linking to homepage, header location, visible, src contains brand name \"Mobbin\", reasonable size, SVG format. Score: 99. May benefit from LLM validation.",
+    "confidence": 0.5
+  },
+  "__llm_button_reasoning": {
+    "primary": {
+      "index": -1,
+      "text": "N/A",
+      "reasoning": "LLM failed"
+    },
+    "secondary": {
+      "index": -1,
+      "text": "N/A",
+      "reasoning": "LLM failed"
+    },
+    "confidence": 0
+  },
+  "confidence": {
+    "buttons": 0,
+    "colors": 0,
+    "overall": 0
+  }
+}

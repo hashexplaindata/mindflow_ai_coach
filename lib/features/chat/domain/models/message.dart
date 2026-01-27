@@ -7,6 +7,7 @@ class Message {
     required this.content,
     required this.timestamp,
     this.isStreaming = false,
+    this.isLoading = false,
   });
 
   /// Unique message identifier
@@ -23,6 +24,9 @@ class Message {
 
   /// Whether the message is still being streamed
   final bool isStreaming;
+
+  /// Whether the message is in loading state (waiting for response)
+  final bool isLoading;
 
   /// Check if message is from user
   bool get isUser => role == 'user';
@@ -98,6 +102,7 @@ class Message {
     String? content,
     DateTime? timestamp,
     bool? isStreaming,
+    bool? isLoading,
   }) {
     return Message(
       id: id ?? this.id,
@@ -105,6 +110,7 @@ class Message {
       content: content ?? this.content,
       timestamp: timestamp ?? this.timestamp,
       isStreaming: isStreaming ?? this.isStreaming,
+      isLoading: isLoading ?? this.isLoading,
     );
   }
 

@@ -3,23 +3,19 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../domain/models/message.dart';
+import 'typing_indicator.dart';
 
-/// Message Bubble Widget
-/// Headspace-style chat bubble with soft corners and appropriate colors
-///
-/// Per @Architect rules:
-/// - All corners rounded (min 16dp)
-/// - Soft shadows on cards
-/// - Generous spacing (8dp grid)
 class MessageBubble extends StatelessWidget {
   const MessageBubble({
     super.key,
     required this.message,
     this.showTimestamp = false,
+    this.showAvatar = true,
   });
 
   final Message message;
   final bool showTimestamp;
+  final bool showAvatar;
 
   @override
   Widget build(BuildContext context) {
@@ -35,57 +31,77 @@ class MessageBubble extends StatelessWidget {
         crossAxisAlignment:
             isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
-          // Message bubble
-          Container(
-            decoration: BoxDecoration(
-              color:
-                  isUser ? AppColors.primaryOrange : AppColors.cardBackground,
-              borderRadius: BorderRadius.only(
-                topLeft: const Radius.circular(20),
-                topRight: const Radius.circular(20),
-                bottomLeft: Radius.circular(isUser ? 20 : 4),
-                bottomRight: Radius.circular(isUser ? 4 : 20),
-              ),
-              boxShadow: isUser
-                  ? null
-                  : [
-                      const BoxShadow(
-                        color: Color(0x0D000000), // black at 5% opacity
-                        blurRadius: 8,
-                        offset: Offset(0, 2),
+          Row(
+            mainAxisAlignment:
+                isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              if (!isUser && showAvatar) ...[
+                const CoachAvatar(size: 32),
+                const SizedBox(width: AppSpacing.spacing8),
+              ],
+              Flexible(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: isUser
+                        ? AppColors.cardBackground
+                        : AppColors.jobsSage.withOpacity(0.12),
+                    borderRadius: BorderRadius.only(
+                      topLeft: const Radius.circular(20),
+                      topRight: const Radius.circular(20),
+                      bottomLeft: Radius.circular(isUser ? 20 : 4),
+                      bottomRight: Radius.circular(isUser ? 4 : 20),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: isUser
+                            ? Colors.black.withOpacity(0.05)
+                            : AppColors.jobsSage.withOpacity(0.15),
+                        blurRadius: 10,
+                        offset: const Offset(0, 2),
                       ),
                     ],
-            ),
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.spacing16,
-              vertical: AppSpacing.spacing12,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Message content
-                if (message.isStreaming && message.content.isEmpty)
-                  _TypingIndicator()
-                else
-                  _MessageContent(
-                    content: message.content,
-                    isUser: isUser,
+                    border: isUser
+                        ? Border.all(
+                            color: AppColors.neutralMedium.withOpacity(0.5),
+                            width: 1,
+                          )
+                        : null,
                   ),
-              ],
-            ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.spacing16,
+                    vertical: AppSpacing.spacing12,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (message.isStreaming && message.content.isEmpty)
+                        const TypingIndicator()
+                      else if (message.isLoading)
+                        const TypingIndicator()
+                      else
+                        _MessageContent(
+                          content: message.content,
+                          isUser: isUser,
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
-
-          // Timestamp
-          if (showTimestamp && !message.isStreaming)
+          if (showTimestamp && !message.isStreaming && !message.isLoading)
             Padding(
-              padding: const EdgeInsets.only(
+              padding: EdgeInsets.only(
                 top: AppSpacing.spacing4,
-                left: AppSpacing.spacing8,
-                right: AppSpacing.spacing8,
+                left: isUser ? 0 : 40,
+                right: isUser ? 0 : 0,
               ),
               child: Text(
                 _formatTimestamp(message.timestamp),
-                style: AppTextStyles.chatTimestamp,
+                style: AppTextStyles.chatTimestamp.copyWith(
+                  color: AppColors.textSecondary.withOpacity(0.6),
+                ),
               ),
             ),
         ],
@@ -109,7 +125,6 @@ class MessageBubble extends StatelessWidget {
   }
 }
 
-/// Message content with markdown-lite formatting
 class _MessageContent extends StatelessWidget {
   const _MessageContent({
     required this.content,
@@ -121,10 +136,17 @@ class _MessageContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Simple markdown parsing for **bold** and emojis
     return Text.rich(
       _parseContent(content),
-      style: isUser ? AppTextStyles.chatUser : AppTextStyles.chatAssistant,
+      style: isUser
+          ? AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.jobsObsidian,
+              height: 1.5,
+            )
+          : AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.jobsObsidian.withOpacity(0.9),
+              height: 1.5,
+            ),
     );
   }
 
@@ -134,19 +156,16 @@ class _MessageContent extends StatelessWidget {
 
     int lastEnd = 0;
     for (final match in boldPattern.allMatches(text)) {
-      // Add text before the match
       if (match.start > lastEnd) {
         spans.add(TextSpan(text: text.substring(lastEnd, match.start)));
       }
-      // Add bold text
       spans.add(TextSpan(
         text: match.group(1),
-        style: const TextStyle(fontWeight: FontWeight.bold),
+        style: const TextStyle(fontWeight: FontWeight.w600),
       ));
       lastEnd = match.end;
     }
 
-    // Add remaining text
     if (lastEnd < text.length) {
       spans.add(TextSpan(text: text.substring(lastEnd)));
     }
@@ -155,80 +174,6 @@ class _MessageContent extends StatelessWidget {
   }
 }
 
-/// Typing indicator (3 bouncing dots)
-class _TypingIndicator extends StatefulWidget {
-  @override
-  State<_TypingIndicator> createState() => _TypingIndicatorState();
-}
-
-class _TypingIndicatorState extends State<_TypingIndicator>
-    with TickerProviderStateMixin {
-  late List<AnimationController> _controllers;
-  late List<Animation<double>> _animations;
-
-  @override
-  void initState() {
-    super.initState();
-    _controllers = List.generate(3, (index) {
-      return AnimationController(
-        duration: const Duration(milliseconds: 600),
-        vsync: this,
-      );
-    });
-
-    _animations = _controllers.map((controller) {
-      return Tween<double>(begin: 0.0, end: -6.0).animate(
-        CurvedAnimation(parent: controller, curve: Curves.easeInOut),
-      );
-    }).toList();
-
-    // Staggered start
-    for (int i = 0; i < 3; i++) {
-      Future.delayed(Duration(milliseconds: i * 150), () {
-        if (mounted) {
-          _controllers[i].repeat(reverse: true);
-        }
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    for (final controller in _controllers) {
-      controller.dispose();
-    }
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: List.generate(3, (index) {
-        return AnimatedBuilder(
-          animation: _animations[index],
-          builder: (context, child) {
-            return Transform.translate(
-              offset: Offset(0, _animations[index].value),
-              child: Container(
-                width: 8,
-                height: 8,
-                margin: const EdgeInsets.symmetric(horizontal: 2),
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.neutralMedium,
-                ),
-              ),
-            );
-          },
-        );
-      }),
-    );
-  }
-}
-
-/// Coach Avatar Widget
-/// Shows a friendly avatar for the AI coach
 class CoachAvatar extends StatelessWidget {
   const CoachAvatar({
     super.key,
@@ -244,21 +189,28 @@ class CoachAvatar extends StatelessWidget {
     return Container(
       width: size,
       height: size,
-      decoration: const BoxDecoration(
-        gradient: AppColors.sageGradient,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppColors.jobsSage,
+            AppColors.jobsSage.withOpacity(0.8),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: Color(0x4DB2AC88), // sage at 30% opacity
+            color: AppColors.jobsSage.withOpacity(0.3),
             blurRadius: 8,
-            offset: Offset(0, 2),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Center(
         child: Text(
           _getEmoji(),
-          style: TextStyle(fontSize: size * 0.5),
+          style: TextStyle(fontSize: size * 0.45),
         ),
       ),
     );
@@ -267,7 +219,7 @@ class CoachAvatar extends StatelessWidget {
   String _getEmoji() {
     switch (state) {
       case CoachState.neutral:
-        return '🧠';
+        return '🧘';
       case CoachState.happy:
         return '😊';
       case CoachState.thoughtful:
@@ -278,10 +230,90 @@ class CoachAvatar extends StatelessWidget {
   }
 }
 
-/// Coach emotional states
 enum CoachState {
   neutral,
   happy,
   thoughtful,
   celebrating,
+}
+
+class StreamingMessageBubble extends StatelessWidget {
+  const StreamingMessageBubble({
+    super.key,
+    required this.content,
+    this.isComplete = false,
+  });
+
+  final String content;
+  final bool isComplete;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(
+        left: AppSpacing.spacing8,
+        right: AppSpacing.spacing48,
+        bottom: AppSpacing.spacing12,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          const CoachAvatar(size: 32),
+          const SizedBox(width: AppSpacing.spacing8),
+          Flexible(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              decoration: BoxDecoration(
+                color: AppColors.jobsSage.withOpacity(0.12),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  topRight: Radius.circular(20),
+                  bottomLeft: Radius.circular(4),
+                  bottomRight: Radius.circular(20),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.jobsSage.withOpacity(0.15),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.spacing16,
+                vertical: AppSpacing.spacing12,
+              ),
+              child: content.isEmpty
+                  ? const TypingIndicator()
+                  : Row(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            content,
+                            style: AppTextStyles.bodyMedium.copyWith(
+                              color: AppColors.jobsObsidian.withOpacity(0.9),
+                              height: 1.5,
+                            ),
+                          ),
+                        ),
+                        if (!isComplete)
+                          Container(
+                            margin: const EdgeInsets.only(left: 2),
+                            width: 2,
+                            height: 16,
+                            decoration: BoxDecoration(
+                              color: AppColors.jobsSage,
+                              borderRadius: BorderRadius.circular(1),
+                            ),
+                          ),
+                      ],
+                    ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../../onboarding/domain/models/nlp_profile.dart';
 import '../../domain/models/message.dart';
 import '../../domain/models/chat_session.dart';
+import '../../domain/models/conversation_context.dart';
 import '../../data/chat_repository.dart';
 import '../../data/gemini_service.dart';
 
@@ -35,6 +36,13 @@ class ChatProvider extends ChangeNotifier {
   // User ID (set after auth)
   String _userId = 'demo_user';
 
+  // User context for personalization
+  int _currentStreak = 0;
+  int _totalSessions = 0;
+  int _totalMinutes = 0;
+  String? _activeGoal;
+  double? _goalProgress;
+
   // Getters
   ChatSession? get currentSession => _currentSession;
   List<Message> get messages => List.unmodifiable(_messages);
@@ -43,6 +51,8 @@ class ChatProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   NLPProfile get userProfile => _userProfile;
   bool get hasMessages => _messages.isNotEmpty;
+  int get currentStreak => _currentStreak;
+  int get totalSessions => _totalSessions;
 
   /// Initialize the provider
   Future<void> initialize() async {
@@ -58,6 +68,51 @@ class ChatProvider extends ChangeNotifier {
   void setUserProfile(NLPProfile profile) {
     _userProfile = profile;
     _geminiService.setUserProfile(profile);
+    notifyListeners();
+  }
+
+  /// Set user progress context for personalized coaching
+  void setProgressContext({
+    int? currentStreak,
+    int? totalSessions,
+    int? totalMinutes,
+    String? activeGoal,
+    double? goalProgress,
+  }) {
+    if (currentStreak != null) _currentStreak = currentStreak;
+    if (totalSessions != null) _totalSessions = totalSessions;
+    if (totalMinutes != null) _totalMinutes = totalMinutes;
+    _activeGoal = activeGoal ?? _activeGoal;
+    _goalProgress = goalProgress ?? _goalProgress;
+
+    _geminiService.setProgressContext(
+      currentStreak: _currentStreak,
+      totalSessions: _totalSessions,
+      totalMinutes: _totalMinutes,
+      activeGoal: _activeGoal,
+      goalProgress: _goalProgress,
+    );
+    notifyListeners();
+  }
+
+  /// Get the current conversation context
+  ConversationContext getConversationContext() {
+    return ConversationContext(
+      userProfile: _userProfile,
+      currentStreak: _currentStreak,
+      totalSessions: _totalSessions,
+      totalMinutes: _totalMinutes,
+      activeGoal: _activeGoal,
+      goalProgress: _goalProgress,
+      timeOfDay: ConversationContext.getCurrentTimeContext(),
+    );
+  }
+
+  /// Clear conversation history
+  Future<void> clearHistory() async {
+    _messages = [];
+    _currentSession = null;
+    _errorMessage = null;
     notifyListeners();
   }
 
