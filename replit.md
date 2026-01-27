@@ -6,9 +6,9 @@ MindFlow is a Headspace-style Flutter web application for meditation and wellnes
 ## Tech Stack
 - **Frontend:** Flutter Web (Dart)
 - **State Management:** Provider
-- **Backend:** Node.js/Express (port 3000) + Python Flask (port 5000)
-- **Database:** PostgreSQL with Drizzle ORM
-- **Payments:** Stripe + RevenueCat
+- **Backend:** Python Flask (port 5000) - consolidated single server
+- **Database:** PostgreSQL with psycopg2
+- **Payments:** Stripe (via Replit connector)
 - **AI Coach:** Google Gemini 2.5 Flash (optional feature)
 
 ## Project Structure
@@ -32,16 +32,8 @@ lib/
 │   └── widgets/         # BottomNavBar, FlowStreakRing, AppButton
 └── main.dart            # Entry point with MultiProvider
 
-server/                  # Node.js backend
-├── index.ts             # Express server with Stripe
-├── routes.ts            # API endpoints
-├── stripeClient.ts      # Stripe integration
-├── storage.ts           # Database queries
-├── db.ts                # Drizzle setup
-└── seed-products.ts     # Create subscription products
-
-shared/schema.ts         # Drizzle schema (users, sessions, progress)
-server.py                # Flask server for Flutter web hosting
+server.py                # Flask server: API + Flutter web hosting
+build/web/               # Built Flutter app (generated)
 ```
 
 ## Features
@@ -61,31 +53,22 @@ server.py                # Flask server for Flutter web hosting
 
 ### Development
 ```bash
-# Frontend (port 5000)
 python server.py
-
-# Backend API (port 3000)
-cd server && npm run dev
 ```
-
-### Seed Stripe Products
-```bash
-cd server && npm run seed
-```
+This builds Flutter and starts the Flask server on port 5000.
 
 ## API Endpoints
 - `GET /api/health` - Health check
 - `GET /api/products` - List subscription products
 - `POST /api/checkout` - Create Stripe checkout session
-- `GET /api/subscription` - Get user subscription status
+- `GET /api/subscription/<userId>` - Get user subscription status
 - `POST /api/users` - Create/get user
 - `POST /api/sessions` - Log meditation session
-- `GET /api/progress/:userId` - Get user progress stats
+- `GET /api/progress/<userId>` - Get user progress stats
 
 ## Environment Variables
-- `DATABASE_URL` - PostgreSQL connection string
+- `DATABASE_URL` - PostgreSQL connection string (auto-provided)
 - `GEMINI_API_KEY` - Google AI Studio API key
-- `REVENUECAT_API_KEY` - RevenueCat API key
 - Stripe keys managed via Replit connector
 
 ## Competition Criteria Alignment
@@ -94,3 +77,9 @@ cd server && npm run seed
 - **Monetization (20%):** Free tier + Premium monthly/annual subscriptions
 - **Innovation (15%):** AI coach integration, NLP-based personalization
 - **Technical Quality (10%):** PostgreSQL, Stripe, proper API architecture
+
+## User Preferences
+- Steve Jobs minimalist aesthetic
+- Zero borders design philosophy
+- Clean, functional code
+- UI reference: https://mobbin.com/discover/apps/ios/latest
