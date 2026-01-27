@@ -6,26 +6,23 @@ import 'core/constants/app_colors.dart';
 import 'core/constants/app_spacing.dart';
 import 'core/constants/app_text_styles.dart';
 import 'shared/widgets/app_button.dart';
+import 'shared/widgets/bottom_nav_bar.dart';
 
-// Feature imports
 import 'features/onboarding/domain/models/nlp_profile.dart';
 import 'features/onboarding/presentation/screens/profiling_screen.dart';
-import 'features/chat/presentation/screens/chat_screen.dart';
 import 'features/chat/presentation/providers/chat_provider.dart';
 import 'features/subscription/presentation/providers/subscription_provider.dart';
-import 'features/dashboard/presentation/screens/dashboard_screen.dart';
+import 'features/auth/presentation/providers/user_provider.dart';
+import 'features/home/presentation/screens/home_screen.dart';
+import 'features/explore/presentation/screens/explore_screen.dart';
+import 'features/sleep/presentation/screens/sleep_screen.dart';
+import 'features/profile/presentation/screens/profile_screen.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MindFlowApp());
 }
 
-/// MindFlow AI Coach
-/// The first AI coach that actually understands how YOUR brain works
-///
-/// Built with:
-/// - Flutter + Firebase + Gemini API + RevenueCat
-/// - NLP frameworks from Bandler, Grinder, and James
-/// - Headspace-inspired "Warm Minimalism" design
 class MindFlowApp extends StatelessWidget {
   const MindFlowApp({super.key});
 
@@ -34,6 +31,9 @@ class MindFlowApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
+          create: (_) => UserProvider()..initialize(),
+        ),
+        ChangeNotifierProvider(
           create: (_) => ChatProvider()..initialize(),
         ),
         ChangeNotifierProvider(
@@ -41,7 +41,7 @@ class MindFlowApp extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
-        title: 'MindFlow AI Coach',
+        title: 'MindFlow',
         debugShowCheckedModeBanner: false,
         theme: JobsTheme.lightTheme,
         home: const WelcomeScreen(),
@@ -50,8 +50,42 @@ class MindFlowApp extends StatelessWidget {
   }
 }
 
-/// Welcome Screen - Entry point for new users
-/// Displays app value prop and CTA buttons
+class MainAppShell extends StatefulWidget {
+  const MainAppShell({super.key});
+
+  @override
+  State<MainAppShell> createState() => _MainAppShellState();
+}
+
+class _MainAppShellState extends State<MainAppShell> {
+  int _currentIndex = 0;
+
+  final List<Widget> _screens = const [
+    HomeScreen(),
+    ExploreScreen(),
+    SleepScreen(),
+    ProfileScreen(),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: IndexedStack(
+        index: _currentIndex,
+        children: _screens,
+      ),
+      bottomNavigationBar: BottomNavBar(
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+      ),
+    );
+  }
+}
+
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
 
@@ -66,7 +100,6 @@ class WelcomeScreen extends StatelessWidget {
             children: [
               const SizedBox(height: AppSpacing.spacing48),
 
-              // Welcome Header
               const Text(
                 'Welcome to',
                 style: AppTextStyles.bodyLarge,
@@ -74,7 +107,6 @@ class WelcomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.spacing8),
 
-              // App Name with Gradient Effect
               ShaderMask(
                 shaderCallback: (bounds) =>
                     AppColors.primaryGradient.createShader(bounds),
@@ -91,9 +123,8 @@ class WelcomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.spacing12),
 
-              // Tagline
               Text(
-                'The AI coach that understands\nhow YOUR brain works',
+                'Your personal meditation\n& wellness companion',
                 style: AppTextStyles.bodyMedium.copyWith(
                   color: AppColors.neutralDark,
                 ),
@@ -102,29 +133,36 @@ class WelcomeScreen extends StatelessWidget {
 
               const SizedBox(height: AppSpacing.spacing48),
 
-              // Feature Card 1: NLP Psychology
               const _FeatureCard(
-                icon: Icons.psychology_outlined,
+                icon: Icons.self_improvement_rounded,
                 iconGradient: AppColors.sageGradient,
-                title: 'Powered by NLP Psychology',
+                title: 'Mindful Meditation',
                 description:
-                    'Adapts to your unique decision-making patterns using frameworks from Bandler, Grinder, and James.',
+                    'Guided sessions for stress, sleep, focus, and more.',
               ),
 
               const SizedBox(height: AppSpacing.spacing16),
 
-              // Feature Card 2: Personalized
               const _FeatureCard(
-                icon: Icons.chat_bubble_outline_rounded,
+                icon: Icons.nightlight_round,
                 iconColor: AppColors.accentBlueDark,
-                title: 'Truly Personalized',
+                title: 'Better Sleep',
                 description:
-                    'Speaks your brain\'s language—visual, auditory, or kinesthetic.',
+                    'Sleep stories, soundscapes, and wind-down exercises.',
+              ),
+
+              const SizedBox(height: AppSpacing.spacing16),
+
+              const _FeatureCard(
+                icon: Icons.trending_up_rounded,
+                iconColor: AppColors.primaryOrange,
+                title: 'Track Progress',
+                description:
+                    'Build healthy habits with streaks and daily goals.',
               ),
 
               const Spacer(),
 
-              // CTA Buttons
               AppButton(
                 text: 'Get Started',
                 icon: Icons.arrow_forward_rounded,
@@ -133,7 +171,7 @@ class WelcomeScreen extends StatelessWidget {
                     MaterialPageRoute(
                       builder: (context) => ProfilingScreen(
                         onComplete: (profile) {
-                          _navigateToDashboard(context, profile);
+                          _navigateToMainApp(context, profile);
                         },
                       ),
                     ),
@@ -143,13 +181,12 @@ class WelcomeScreen extends StatelessWidget {
 
               const SizedBox(height: AppSpacing.spacing16),
 
-              // Skip to demo
               TextButton(
                 onPressed: () {
-                  _navigateToDashboard(context, NLPProfile.defaultProfile);
+                  _navigateToMainApp(context, NLPProfile.defaultProfile);
                 },
                 child: Text(
-                  'Skip profiling (use default)',
+                  'Skip to app',
                   style: AppTextStyles.buttonSmall.copyWith(
                     color: AppColors.neutralMedium,
                   ),
@@ -164,20 +201,18 @@ class WelcomeScreen extends StatelessWidget {
     );
   }
 
-  void _navigateToDashboard(BuildContext context, NLPProfile profile) {
-    // Set profile in provider
+  void _navigateToMainApp(BuildContext context, NLPProfile profile) {
     final chatProvider = context.read<ChatProvider>();
     chatProvider.setUserProfile(profile);
 
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
-        builder: (context) => const DashboardScreen(),
+        builder: (context) => const MainAppShell(),
       ),
     );
   }
 }
 
-/// Feature card for welcome screen
 class _FeatureCard extends StatelessWidget {
   const _FeatureCard({
     required this.icon,
@@ -201,7 +236,7 @@ class _FeatureCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppSpacing.radiusCard),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x0D000000), // black at 5% opacity
+            color: Color(0x0D000000),
             blurRadius: 12,
             offset: Offset(0, 4),
           ),
@@ -210,14 +245,13 @@ class _FeatureCard extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.cardPadding),
       child: Row(
         children: [
-          // Icon
           Container(
             width: 48,
             height: 48,
             decoration: BoxDecoration(
               gradient: iconGradient,
               color: iconGradient == null
-                  ? const Color(0x26F4A261) // primaryOrange at 15% opacity
+                  ? const Color(0x26F4A261)
                   : null,
               borderRadius: BorderRadius.circular(12),
             ),
@@ -232,7 +266,6 @@ class _FeatureCard extends StatelessWidget {
 
           const SizedBox(width: AppSpacing.spacing16),
 
-          // Text
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
