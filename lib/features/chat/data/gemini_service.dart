@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 
+import '../../../core/config/env_config.dart' as env;
 import '../domain/models/message.dart';
 import '../../onboarding/domain/models/nlp_profile.dart';
 import '../domain/services/nlp_prompt_builder.dart';
@@ -18,7 +19,7 @@ import '../domain/services/nlp_prompt_builder.dart';
 class GeminiService {
   GeminiService({
     String? apiKey,
-  }) : _apiKey = apiKey ?? const String.fromEnvironment('GEMINI_API_KEY');
+  }) : _apiKey = apiKey ?? env.geminiApiKey;
 
   final String _apiKey;
   
@@ -41,10 +42,14 @@ class GeminiService {
   Future<void> initialize() async {
     if (_isInitialized) return;
 
+    debugPrint('GeminiService: API key length: ${_apiKey.length}');
+    
     if (_apiKey.isEmpty) {
       debugPrint('GeminiService: No API key configured');
       return;
     }
+    
+    debugPrint('GeminiService: API key found, initializing...');
 
     try {
       _model = GenerativeModel(

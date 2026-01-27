@@ -130,4 +130,24 @@ class AppColors {
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
+
+  // ============================================
+  // JOBS PALETTE (Steve Jobs-inspired minimalism)
+  // ============================================
+
+  /// Cream - Primary background, warm and inviting
+  static const Color jobsCream = Color(0xFFF9F9F2);
+
+  /// Sage - Accent color, natural and calming
+  static const Color jobsSage = Color(0xFF94A684);
+
+  /// Obsidian - Text and primary elements, sophisticated black
+  static const Color jobsObsidian = Color(0xFF1D1D1F);
+
+  /// Jobs palette gradient
+  static const LinearGradient jobsGradient = LinearGradient(
+    colors: [jobsSage, Color(0xFF7A8C6A)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
 }
