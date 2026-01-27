@@ -21,9 +21,8 @@ class ApiService {
       body: jsonEncode({'id': id, 'email': email}),
     );
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return data['user'];
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return jsonDecode(response.body);
     } else {
       throw Exception('Failed to create user: ${response.body}');
     }
@@ -34,7 +33,7 @@ class ApiService {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      return List<Map<String, dynamic>>.from(data['data'] ?? []);
+      return List<Map<String, dynamic>>.from(data['products'] ?? []);
     } else {
       throw Exception('Failed to fetch products: ${response.body}');
     }
@@ -67,14 +66,13 @@ class ApiService {
     }
   }
 
-  Future<Map<String, dynamic>?> getSubscription(String userId) async {
+  Future<Map<String, dynamic>> getSubscription(String userId) async {
     final response = await http.get(
-      Uri.parse('$_baseUrl/api/subscription?userId=$userId'),
+      Uri.parse('$_baseUrl/api/subscription/$userId'),
     );
 
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return data['subscription'];
+      return jsonDecode(response.body);
     } else {
       throw Exception('Failed to fetch subscription: ${response.body}');
     }
@@ -106,14 +104,7 @@ class ApiService {
     );
 
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return {
-        'totalMinutes': data['progress']?['totalMinutes'] ?? 0,
-        'currentStreak': data['progress']?['currentStreak'] ?? 0,
-        'longestStreak': data['progress']?['longestStreak'] ?? 0,
-        'sessionsCompleted': (data['recentSessions'] as List?)?.length ?? 0,
-        'recentSessions': data['recentSessions'] ?? [],
-      };
+      return jsonDecode(response.body);
     } else {
       throw Exception('Failed to fetch progress: ${response.body}');
     }
