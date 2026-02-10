@@ -12,6 +12,7 @@ import '../widgets/typing_indicator.dart';
 import '../../domain/models/conversation_context.dart';
 import '../../../subscription/presentation/providers/subscription_provider.dart';
 import '../../../subscription/presentation/widgets/paywall_trigger.dart';
+import '../../../coach/presentation/screens/coach_gallery_screen.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -124,7 +125,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       leading: IconButton(
         icon: Icon(
           Icons.arrow_back_ios_rounded,
-          color: AppColors.jobsObsidian.withOpacity(0.7),
+          color: AppColors.jobsObsidian.withValues(alpha: 0.7),
         ),
         onPressed: () => Navigator.of(context).pop(),
       ),
@@ -137,7 +138,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Your Presence',
+                provider.activeCoach.name,
                 style: AppTextStyles.label.copyWith(
                   fontWeight: FontWeight.w600,
                   color: AppColors.jobsObsidian,
@@ -160,6 +161,18 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         ],
       ),
       actions: [
+        IconButton(
+          icon: Icon(
+            Icons.people_alt_rounded,
+            color: AppColors.jobsObsidian.withValues(alpha: 0.7),
+          ),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const CoachGalleryScreen()),
+            );
+          },
+        ),
         if (!context.watch<SubscriptionProvider>().isPro)
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 8),
@@ -168,7 +181,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         IconButton(
           icon: Icon(
             Icons.more_vert_rounded,
-            color: AppColors.jobsObsidian.withOpacity(0.7),
+            color: AppColors.jobsObsidian.withValues(alpha: 0.7),
           ),
           onPressed: () {
             _showOptionsMenu(context, provider);
@@ -213,7 +226,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   },
                 ),
                 ListTile(
-                  leading: Icon(Icons.refresh_rounded, color: AppColors.jobsSage),
+                  leading:
+                      Icon(Icons.refresh_rounded, color: AppColors.jobsSage),
                   title: const Text('Clear History'),
                   onTap: () {
                     Navigator.pop(context);
@@ -221,8 +235,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   },
                 ),
                 ListTile(
-                  leading: Icon(Icons.star_rounded,
-                      color: AppColors.primaryOrange),
+                  leading:
+                      Icon(Icons.star_rounded, color: AppColors.primaryOrange),
                   title: const Text('Manage Subscription'),
                   subtitle: Text(
                     context.watch<SubscriptionProvider>().isPro
@@ -243,7 +257,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   },
                 ),
                 ListTile(
-                  leading: Icon(Icons.psychology_outlined, color: AppColors.jobsSage),
+                  leading: Icon(Icons.psychology_outlined,
+                      color: AppColors.jobsSage),
                   title: const Text('Your Profile'),
                   subtitle: Text(provider.userProfile.displayName),
                   onTap: () {
@@ -341,7 +356,7 @@ class _EmptyState extends StatelessWidget {
               borderRadius: BorderRadius.circular(AppSpacing.radiusCard),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
+                  color: Colors.black.withValues(alpha: 0.04),
                   blurRadius: 20,
                   offset: const Offset(0, 4),
                 ),
@@ -397,15 +412,15 @@ class _QuickActionButton extends StatelessWidget {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                AppColors.jobsSage.withOpacity(0.15),
-                AppColors.jobsSage.withOpacity(0.08),
+                AppColors.jobsSage.withValues(alpha: 0.15),
+                AppColors.jobsSage.withValues(alpha: 0.08),
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: AppColors.jobsSage.withOpacity(0.25),
+              color: AppColors.jobsSage.withValues(alpha: 0.25),
               width: 1,
             ),
           ),
@@ -465,14 +480,14 @@ class _SuggestionTile extends StatelessWidget {
               child: Text(
                 text,
                 style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.jobsObsidian.withOpacity(0.8),
+                  color: AppColors.jobsObsidian.withValues(alpha: 0.8),
                 ),
               ),
             ),
             Icon(
               Icons.arrow_forward_ios_rounded,
               size: 14,
-              color: AppColors.jobsSage.withOpacity(0.6),
+              color: AppColors.jobsSage.withValues(alpha: 0.6),
             ),
           ],
         ),
@@ -513,7 +528,8 @@ class _MessagesList extends StatelessWidget {
         final showAvatar = !message.isUser &&
             (isLastMessage ||
                 messages[index + 1].isUser ||
-                messages[index + 1].timestamp
+                messages[index + 1]
+                        .timestamp
                         .difference(message.timestamp)
                         .inMinutes >
                     1);
@@ -546,7 +562,7 @@ class _ErrorBanner extends StatelessWidget {
         horizontal: AppSpacing.spacing16,
         vertical: AppSpacing.spacing12,
       ),
-      color: AppColors.errorRed.withOpacity(0.1),
+      color: AppColors.errorRed.withValues(alpha: 0.1),
       child: Row(
         children: [
           Icon(

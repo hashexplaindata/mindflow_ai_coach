@@ -97,7 +97,7 @@ class _BreathingIndicatorState extends State<BreathingIndicator>
       case PromptType.hold:
         return AppColors.accentBlue;
       case PromptType.breatheOut:
-        return AppColors.primaryOrange.withOpacity(0.8);
+        return AppColors.primaryOrange.withValues(alpha: 0.8);
       case PromptType.affirmation:
         return AppColors.accentYellow;
       default:
@@ -120,9 +120,10 @@ class _BreathingIndicatorState extends State<BreathingIndicator>
 
   @override
   Widget build(BuildContext context) {
-    final isBreathingPrompt = widget.currentPromptType == PromptType.breatheIn ||
-        widget.currentPromptType == PromptType.hold ||
-        widget.currentPromptType == PromptType.breatheOut;
+    final isBreathingPrompt =
+        widget.currentPromptType == PromptType.breatheIn ||
+            widget.currentPromptType == PromptType.hold ||
+            widget.currentPromptType == PromptType.breatheOut;
 
     return AnimatedBuilder(
       animation: Listenable.merge([_scaleAnimation, _glowAnimation]),
@@ -143,13 +144,13 @@ class _BreathingIndicatorState extends State<BreathingIndicator>
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      color.withOpacity(0.4),
-                      color.withOpacity(0.1),
+                      color.withValues(alpha: 0.4),
+                      color.withValues(alpha: 0.1),
                     ],
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: color.withOpacity(glowOpacity * 0.5),
+                      color: color.withValues(alpha: glowOpacity * 0.5),
                       blurRadius: 30,
                       spreadRadius: 10,
                     ),
@@ -161,9 +162,9 @@ class _BreathingIndicatorState extends State<BreathingIndicator>
                     height: 80,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: color.withOpacity(0.3),
+                      color: color.withValues(alpha: 0.3),
                       border: Border.all(
-                        color: color.withOpacity(0.6),
+                        color: color.withValues(alpha: 0.6),
                         width: 2,
                       ),
                     ),
@@ -173,7 +174,7 @@ class _BreathingIndicatorState extends State<BreathingIndicator>
                         height: 40,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: color.withOpacity(0.5),
+                          color: color.withValues(alpha: 0.5),
                         ),
                       ),
                     ),
@@ -216,7 +217,8 @@ class BreathingExerciseWidget extends StatefulWidget {
   });
 
   @override
-  State<BreathingExerciseWidget> createState() => _BreathingExerciseWidgetState();
+  State<BreathingExerciseWidget> createState() =>
+      _BreathingExerciseWidgetState();
 }
 
 class _BreathingExerciseWidgetState extends State<BreathingExerciseWidget>
@@ -340,7 +342,7 @@ class _BreathingExerciseWidgetState extends State<BreathingExerciseWidget>
       case BreathPhase.hold:
         return AppColors.accentBlue;
       case BreathPhase.exhale:
-        return AppColors.primaryOrange.withOpacity(0.8);
+        return AppColors.primaryOrange.withValues(alpha: 0.8);
     }
   }
 
@@ -360,7 +362,7 @@ class _BreathingExerciseWidgetState extends State<BreathingExerciseWidget>
                 fontFamily: 'DM Sans',
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: AppColors.jobsObsidian.withOpacity(0.5),
+                color: AppColors.jobsObsidian.withValues(alpha: 0.5),
               ),
             ),
             const SizedBox(height: 8),
@@ -369,7 +371,7 @@ class _BreathingExerciseWidgetState extends State<BreathingExerciseWidget>
               style: TextStyle(
                 fontFamily: 'DM Sans',
                 fontSize: 12,
-                color: AppColors.jobsObsidian.withOpacity(0.4),
+                color: AppColors.jobsObsidian.withValues(alpha: 0.4),
               ),
             ),
             const SizedBox(height: 24),
@@ -382,13 +384,14 @@ class _BreathingExerciseWidgetState extends State<BreathingExerciseWidget>
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      color.withOpacity(_opacityAnimation.value * 0.6),
-                      color.withOpacity(_opacityAnimation.value * 0.2),
+                      color.withValues(alpha: _opacityAnimation.value * 0.6),
+                      color.withValues(alpha: _opacityAnimation.value * 0.2),
                     ],
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: color.withOpacity(_opacityAnimation.value * 0.4),
+                      color: color.withValues(
+                          alpha: _opacityAnimation.value * 0.4),
                       blurRadius: 40,
                       spreadRadius: 15,
                     ),
@@ -400,9 +403,9 @@ class _BreathingExerciseWidgetState extends State<BreathingExerciseWidget>
                     height: 100,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: color.withOpacity(0.4),
+                      color: color.withValues(alpha: 0.4),
                       border: Border.all(
-                        color: color.withOpacity(0.8),
+                        color: color.withValues(alpha: 0.8),
                         width: 3,
                       ),
                     ),
@@ -430,7 +433,7 @@ class _BreathingExerciseWidgetState extends State<BreathingExerciseWidget>
               style: TextStyle(
                 fontFamily: 'DM Sans',
                 fontSize: 16,
-                color: AppColors.jobsObsidian.withOpacity(0.5),
+                color: AppColors.jobsObsidian.withValues(alpha: 0.5),
               ),
             ),
           ],

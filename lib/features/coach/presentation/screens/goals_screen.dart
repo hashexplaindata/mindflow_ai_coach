@@ -20,7 +20,8 @@ class GoalsScreen extends StatefulWidget {
   State<GoalsScreen> createState() => _GoalsScreenState();
 }
 
-class _GoalsScreenState extends State<GoalsScreen> with SingleTickerProviderStateMixin {
+class _GoalsScreenState extends State<GoalsScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   List<WellnessGoal> _activeGoals = [];
   List<WellnessGoal> _completedGoals = [];
@@ -59,8 +60,10 @@ class _GoalsScreenState extends State<GoalsScreen> with SingleTickerProviderStat
             .toList();
 
         setState(() {
-          _activeGoals = goals.where((g) => g.status == GoalStatus.active).toList();
-          _completedGoals = goals.where((g) => g.status == GoalStatus.completed).toList();
+          _activeGoals =
+              goals.where((g) => g.status == GoalStatus.active).toList();
+          _completedGoals =
+              goals.where((g) => g.status == GoalStatus.completed).toList();
           _isLoading = false;
         });
       } else {
@@ -107,7 +110,8 @@ class _GoalsScreenState extends State<GoalsScreen> with SingleTickerProviderStat
               content: const Text('Goal created! Let\'s achieve it together.'),
               backgroundColor: AppColors.successGreen,
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
             ),
           );
         }
@@ -117,7 +121,7 @@ class _GoalsScreenState extends State<GoalsScreen> with SingleTickerProviderStat
         _activeGoals.insert(0, goal);
       });
     }
-    
+
     if (mounted) {
       Navigator.of(context).pop();
     }
@@ -150,7 +154,7 @@ class _GoalsScreenState extends State<GoalsScreen> with SingleTickerProviderStat
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: AppColors.jobsObsidian.withOpacity(0.2),
+                      color: AppColors.jobsObsidian.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -173,7 +177,7 @@ class _GoalsScreenState extends State<GoalsScreen> with SingleTickerProviderStat
                   style: TextStyle(
                     fontFamily: 'DM Sans',
                     fontSize: 15,
-                    color: AppColors.jobsObsidian.withOpacity(0.6),
+                    color: AppColors.jobsObsidian.withValues(alpha: 0.6),
                   ),
                 ),
                 const SizedBox(height: AppSpacing.spacing24),
@@ -187,18 +191,19 @@ class _GoalsScreenState extends State<GoalsScreen> with SingleTickerProviderStat
                     fontFamily: 'DM Sans',
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.jobsObsidian.withOpacity(0.5),
+                    color: AppColors.jobsObsidian.withValues(alpha: 0.5),
                     letterSpacing: 0.5,
                   ),
                 ),
                 const SizedBox(height: AppSpacing.spacing12),
                 ...suggestedGoals.map((template) => Padding(
-                  padding: const EdgeInsets.only(bottom: AppSpacing.spacing12),
-                  child: GoalTemplateCard(
-                    template: template,
-                    onSelect: () => _createGoal(template),
-                  ),
-                )),
+                      padding:
+                          const EdgeInsets.only(bottom: AppSpacing.spacing12),
+                      child: GoalTemplateCard(
+                        template: template,
+                        onSelect: () => _createGoal(template),
+                      ),
+                    )),
                 const SizedBox(height: AppSpacing.spacing16),
               ],
             ),
@@ -216,7 +221,8 @@ class _GoalsScreenState extends State<GoalsScreen> with SingleTickerProviderStat
         backgroundColor: AppColors.jobsCream,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.jobsObsidian),
+          icon: const Icon(Icons.arrow_back_rounded,
+              color: AppColors.jobsObsidian),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(
@@ -232,7 +238,7 @@ class _GoalsScreenState extends State<GoalsScreen> with SingleTickerProviderStat
         bottom: TabBar(
           controller: _tabController,
           labelColor: AppColors.jobsObsidian,
-          unselectedLabelColor: AppColors.jobsObsidian.withOpacity(0.4),
+          unselectedLabelColor: AppColors.jobsObsidian.withValues(alpha: 0.4),
           indicatorColor: AppColors.jobsSage,
           indicatorWeight: 3,
           labelStyle: const TextStyle(
@@ -343,7 +349,7 @@ class _GoalsScreenState extends State<GoalsScreen> with SingleTickerProviderStat
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: AppColors.jobsSage.withOpacity(0.15),
+                color: AppColors.jobsSage.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -369,7 +375,7 @@ class _GoalsScreenState extends State<GoalsScreen> with SingleTickerProviderStat
               style: TextStyle(
                 fontFamily: 'DM Sans',
                 fontSize: 15,
-                color: AppColors.jobsObsidian.withOpacity(0.6),
+                color: AppColors.jobsObsidian.withValues(alpha: 0.6),
                 height: 1.4,
               ),
             ),

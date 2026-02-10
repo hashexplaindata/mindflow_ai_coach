@@ -109,7 +109,7 @@ class _CoachInterventionOverlayState extends State<CoachInterventionOverlay>
               child: GestureDetector(
                 onTap: _dismiss,
                 child: Container(
-                  color: Colors.black.withOpacity(0.3),
+                  color: Colors.black.withValues(alpha: 0.3),
                 ),
               ),
             ),
@@ -130,11 +130,12 @@ class _CoachInterventionOverlayState extends State<CoachInterventionOverlay>
                     decoration: BoxDecoration(
                       color: isDark
                           ? AppColors.cardBackgroundDark
-                          : AppColors.jobsSage.withOpacity(0.95),
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusCard),
+                          : AppColors.jobsSage.withValues(alpha: 0.95),
+                      borderRadius:
+                          BorderRadius.circular(AppSpacing.radiusCard),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.15),
+                          color: Colors.black.withValues(alpha: 0.15),
                           blurRadius: 20,
                           offset: const Offset(0, -4),
                         ),
@@ -150,10 +151,8 @@ class _CoachInterventionOverlayState extends State<CoachInterventionOverlay>
                             height: 4,
                             margin: const EdgeInsets.only(top: 12),
                             decoration: BoxDecoration(
-                              color: (isDark
-                                      ? Colors.white
-                                      : Colors.white)
-                                  .withOpacity(0.3),
+                              color: (isDark ? Colors.white : Colors.white)
+                                  .withValues(alpha: 0.3),
                               borderRadius: BorderRadius.circular(2),
                             ),
                           ),
@@ -168,7 +167,8 @@ class _CoachInterventionOverlayState extends State<CoachInterventionOverlay>
                                       width: 44,
                                       height: 44,
                                       decoration: BoxDecoration(
-                                        color: Colors.white.withOpacity(0.2),
+                                        color:
+                                            Colors.white.withValues(alpha: 0.2),
                                         borderRadius: BorderRadius.circular(12),
                                       ),
                                       child: Center(
@@ -190,7 +190,7 @@ class _CoachInterventionOverlayState extends State<CoachInterventionOverlay>
                                             style:
                                                 AppTextStyles.caption.copyWith(
                                               color: Colors.white
-                                                  .withOpacity(0.7),
+                                                  .withValues(alpha: 0.7),
                                               letterSpacing: 1.0,
                                             ),
                                           ),
@@ -213,7 +213,8 @@ class _CoachInterventionOverlayState extends State<CoachInterventionOverlay>
                                   Text(
                                     widget.intervention.subMessage!,
                                     style: AppTextStyles.bodyMedium.copyWith(
-                                      color: Colors.white.withOpacity(0.85),
+                                      color:
+                                          Colors.white.withValues(alpha: 0.85),
                                     ),
                                   ),
                                 ],
@@ -232,8 +233,8 @@ class _CoachInterventionOverlayState extends State<CoachInterventionOverlay>
                                               AppSpacing.radiusButton,
                                             ),
                                             side: BorderSide(
-                                              color:
-                                                  Colors.white.withOpacity(0.3),
+                                              color: Colors.white
+                                                  .withValues(alpha: 0.3),
                                             ),
                                           ),
                                         ),
@@ -380,7 +381,9 @@ class _CoachInterventionManagerState extends State<CoachInterventionManager> {
       widget.onNavigateToHabits?.call();
     } else if (trigger == 'goalProgress') {
       widget.onNavigateToProgress?.call();
-    } else if (category == 'focus' || category == 'sleep' || category == 'stress') {
+    } else if (category == 'focus' ||
+        category == 'sleep' ||
+        category == 'stress') {
       widget.onNavigateToMeditation?.call();
     } else {
       widget.onNavigateToMeditation?.call();

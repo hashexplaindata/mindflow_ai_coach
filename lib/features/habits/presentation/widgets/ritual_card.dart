@@ -25,7 +25,7 @@ class RitualCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(32),
           boxShadow: [
             BoxShadow(
-              color: AppColors.jobsObsidian.withOpacity(0.05),
+              color: AppColors.jobsObsidian.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, 2),
             ),
@@ -58,7 +58,7 @@ class RitualCard extends StatelessWidget {
                     style: TextStyle(
                       fontFamily: 'DM Sans',
                       fontSize: 14,
-                      color: AppColors.jobsObsidian.withOpacity(0.5),
+                      color: AppColors.jobsObsidian.withValues(alpha: 0.5),
                     ),
                   ),
                 ],
@@ -68,7 +68,7 @@ class RitualCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.jobsSage.withOpacity(0.15),
+                  color: AppColors.jobsSage.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -80,7 +80,7 @@ class RitualCard extends StatelessWidget {
             else
               Icon(
                 Icons.arrow_forward_ios_rounded,
-                color: AppColors.jobsObsidian.withOpacity(0.3),
+                color: AppColors.jobsObsidian.withValues(alpha: 0.3),
                 size: 16,
               ),
           ],
@@ -114,7 +114,7 @@ class _RitualProgressRing extends StatelessWidget {
             painter: _ProgressRingPainter(
               progress: progress,
               strokeWidth: 4,
-              backgroundColor: AppColors.jobsSage.withOpacity(0.15),
+              backgroundColor: AppColors.jobsSage.withValues(alpha: 0.15),
               progressColor: AppColors.jobsSage,
             ),
           ),
@@ -198,7 +198,7 @@ class RitualCardExpanded extends StatelessWidget {
         borderRadius: BorderRadius.circular(32),
         boxShadow: [
           BoxShadow(
-            color: AppColors.jobsObsidian.withOpacity(0.05),
+            color: AppColors.jobsObsidian.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -236,7 +236,7 @@ class RitualCardExpanded extends StatelessWidget {
                         style: TextStyle(
                           fontFamily: 'DM Sans',
                           fontSize: 14,
-                          color: AppColors.jobsObsidian.withOpacity(0.5),
+                          color: AppColors.jobsObsidian.withValues(alpha: 0.5),
                         ),
                       ),
                     ],
@@ -244,9 +244,10 @@ class RitualCardExpanded extends StatelessWidget {
                 ),
                 if (ritual.isComplete)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: AppColors.jobsSage.withOpacity(0.15),
+                      color: AppColors.jobsSage.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Row(

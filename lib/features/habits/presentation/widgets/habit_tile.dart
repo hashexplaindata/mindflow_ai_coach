@@ -22,7 +22,8 @@ class HabitTile extends StatefulWidget {
   State<HabitTile> createState() => _HabitTileState();
 }
 
-class _HabitTileState extends State<HabitTile> with SingleTickerProviderStateMixin {
+class _HabitTileState extends State<HabitTile>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
 
@@ -86,12 +87,13 @@ class _HabitTileState extends State<HabitTile> with SingleTickerProviderStateMix
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
                     color: widget.habit.isCompletedToday
-                        ? AppColors.jobsObsidian.withOpacity(0.5)
+                        ? AppColors.jobsObsidian.withValues(alpha: 0.5)
                         : AppColors.jobsObsidian,
                     decoration: widget.habit.isCompletedToday
                         ? TextDecoration.lineThrough
                         : null,
-                    decorationColor: AppColors.jobsObsidian.withOpacity(0.5),
+                    decorationColor:
+                        AppColors.jobsObsidian.withValues(alpha: 0.5),
                   ),
                 ),
               ),
@@ -126,7 +128,9 @@ class _CheckBox extends StatelessWidget {
           color: isChecked ? AppColors.jobsSage : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: isChecked ? AppColors.jobsSage : AppColors.jobsObsidian.withOpacity(0.2),
+            color: isChecked
+                ? AppColors.jobsSage
+                : AppColors.jobsObsidian.withValues(alpha: 0.2),
             width: 2,
           ),
         ),
@@ -162,7 +166,7 @@ class StreakBadge extends StatelessWidget {
         vertical: compact ? 2 : 4,
       ),
       decoration: BoxDecoration(
-        color: AppColors.primaryOrange.withOpacity(0.15),
+        color: AppColors.primaryOrange.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -210,7 +214,7 @@ class HabitTileCompact extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: AppColors.jobsObsidian.withOpacity(0.03),
+              color: AppColors.jobsObsidian.withValues(alpha: 0.03),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -222,7 +226,7 @@ class HabitTileCompact extends StatelessWidget {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: AppColors.jobsSage.withOpacity(0.1),
+                color: AppColors.jobsSage.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Center(
@@ -252,7 +256,7 @@ class HabitTileCompact extends StatelessWidget {
                     style: TextStyle(
                       fontFamily: 'DM Sans',
                       fontSize: 13,
-                      color: AppColors.jobsObsidian.withOpacity(0.5),
+                      color: AppColors.jobsObsidian.withValues(alpha: 0.5),
                     ),
                   ),
                 ],
@@ -264,7 +268,7 @@ class HabitTileCompact extends StatelessWidget {
             Icon(
               Icons.arrow_forward_ios_rounded,
               size: 14,
-              color: AppColors.jobsObsidian.withOpacity(0.3),
+              color: AppColors.jobsObsidian.withValues(alpha: 0.3),
             ),
           ],
         ),

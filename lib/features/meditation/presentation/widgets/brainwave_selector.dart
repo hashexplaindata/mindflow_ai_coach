@@ -36,13 +36,13 @@ class _BrainwaveSelectorState extends State<BrainwaveSelector> {
 
   void _selectBrainwave(BrainwaveType type) async {
     final wasNone = _selectedType == BrainwaveType.none;
-    
+
     setState(() {
       _selectedType = type;
       _showVolumeSlider = type != BrainwaveType.none;
       _showHeadphonesWarning = type != BrainwaveType.none && wasNone;
     });
-    
+
     await _binauralService.startBinauralBeat(
       type: type,
       volume: _volume,
@@ -83,14 +83,14 @@ class _BrainwaveSelectorState extends State<BrainwaveSelector> {
                   fontFamily: 'DM Sans',
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.jobsObsidian.withOpacity(0.6),
+                  color: AppColors.jobsObsidian.withValues(alpha: 0.6),
                 ),
               ),
               const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: AppColors.jobsSage.withOpacity(0.15),
+                  color: AppColors.jobsSage.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -123,12 +123,13 @@ class _BrainwaveSelectorState extends State<BrainwaveSelector> {
           child: _showHeadphonesWarning
               ? Container(
                   margin: const EdgeInsets.only(bottom: 8),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
-                    color: AppColors.accentYellow.withOpacity(0.2),
+                    color: AppColors.accentYellow.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: AppColors.accentYellow.withOpacity(0.5),
+                      color: AppColors.accentYellow.withValues(alpha: 0.5),
                       width: 1,
                     ),
                   ),
@@ -147,7 +148,8 @@ class _BrainwaveSelectorState extends State<BrainwaveSelector> {
                             fontFamily: 'DM Sans',
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
-                            color: AppColors.jobsObsidian.withOpacity(0.8),
+                            color:
+                                AppColors.jobsObsidian.withValues(alpha: 0.8),
                           ),
                         ),
                       ),
@@ -164,11 +166,12 @@ class _BrainwaveSelectorState extends State<BrainwaveSelector> {
             itemBuilder: (context, index) {
               final brainwave = BinauralAudioService.availableBrainwaves[index];
               final isSelected = _selectedType == brainwave.type;
-              
+
               return Padding(
                 padding: EdgeInsets.only(
-                  right: index < BinauralAudioService.availableBrainwaves.length - 1 
-                      ? AppSpacing.spacing12 
+                  right: index <
+                          BinauralAudioService.availableBrainwaves.length - 1
+                      ? AppSpacing.spacing12
                       : 0,
                 ),
                 child: GestureDetector(
@@ -177,20 +180,21 @@ class _BrainwaveSelectorState extends State<BrainwaveSelector> {
                     duration: const Duration(milliseconds: 200),
                     width: 80,
                     decoration: BoxDecoration(
-                      color: isSelected 
-                          ? AppColors.jobsSage.withOpacity(0.2) 
+                      color: isSelected
+                          ? AppColors.jobsSage.withValues(alpha: 0.2)
                           : Colors.white,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: isSelected 
-                            ? AppColors.jobsSage 
+                        color: isSelected
+                            ? AppColors.jobsSage
                             : Colors.transparent,
                         width: 2,
                       ),
                       boxShadow: isSelected
                           ? [
                               BoxShadow(
-                                color: AppColors.jobsSage.withOpacity(0.2),
+                                color:
+                                    AppColors.jobsSage.withValues(alpha: 0.2),
                                 blurRadius: 8,
                                 offset: const Offset(0, 4),
                               ),
@@ -216,12 +220,11 @@ class _BrainwaveSelectorState extends State<BrainwaveSelector> {
                           style: TextStyle(
                             fontFamily: 'DM Sans',
                             fontSize: 10,
-                            fontWeight: isSelected 
-                                ? FontWeight.w600 
-                                : FontWeight.w500,
+                            fontWeight:
+                                isSelected ? FontWeight.w600 : FontWeight.w500,
                             color: isSelected
                                 ? AppColors.jobsSage
-                                : AppColors.jobsObsidian.withOpacity(0.7),
+                                : AppColors.jobsObsidian.withValues(alpha: 0.7),
                           ),
                           textAlign: TextAlign.center,
                           maxLines: 1,
@@ -236,8 +239,9 @@ class _BrainwaveSelectorState extends State<BrainwaveSelector> {
                               fontSize: 9,
                               fontWeight: FontWeight.w400,
                               color: isSelected
-                                  ? AppColors.jobsSage.withOpacity(0.7)
-                                  : AppColors.jobsObsidian.withOpacity(0.4),
+                                  ? AppColors.jobsSage.withValues(alpha: 0.7)
+                                  : AppColors.jobsObsidian
+                                      .withValues(alpha: 0.4),
                             ),
                           ),
                         ],
@@ -255,16 +259,17 @@ class _BrainwaveSelectorState extends State<BrainwaveSelector> {
             children: [
               Icon(
                 Icons.volume_down_rounded,
-                color: AppColors.jobsObsidian.withOpacity(0.5),
+                color: AppColors.jobsObsidian.withValues(alpha: 0.5),
                 size: 20,
               ),
               Expanded(
                 child: SliderTheme(
                   data: SliderThemeData(
                     activeTrackColor: AppColors.jobsSage,
-                    inactiveTrackColor: AppColors.jobsSage.withOpacity(0.2),
+                    inactiveTrackColor:
+                        AppColors.jobsSage.withValues(alpha: 0.2),
                     thumbColor: AppColors.jobsSage,
-                    overlayColor: AppColors.jobsSage.withOpacity(0.1),
+                    overlayColor: AppColors.jobsSage.withValues(alpha: 0.1),
                     trackHeight: 4,
                     thumbShape: const RoundSliderThumbShape(
                       enabledThumbRadius: 8,
@@ -280,7 +285,7 @@ class _BrainwaveSelectorState extends State<BrainwaveSelector> {
               ),
               Icon(
                 Icons.volume_up_rounded,
-                color: AppColors.jobsObsidian.withOpacity(0.5),
+                color: AppColors.jobsObsidian.withValues(alpha: 0.5),
                 size: 20,
               ),
             ],
@@ -290,7 +295,7 @@ class _BrainwaveSelectorState extends State<BrainwaveSelector> {
             style: TextStyle(
               fontFamily: 'DM Sans',
               fontSize: 11,
-              color: AppColors.jobsObsidian.withOpacity(0.4),
+              color: AppColors.jobsObsidian.withValues(alpha: 0.4),
             ),
             textAlign: TextAlign.center,
           ),
@@ -384,7 +389,8 @@ class _WavePainter extends CustomPainter {
     path.moveTo(0, centerY);
 
     for (var x = 0.0; x < size.width; x += 1) {
-      final y = centerY + amplitude * math.sin((x / size.width) * 4 * math.pi + phase);
+      final y = centerY +
+          amplitude * math.sin((x / size.width) * 4 * math.pi + phase);
       path.lineTo(x, y);
     }
 

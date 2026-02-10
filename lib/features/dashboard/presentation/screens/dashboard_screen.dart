@@ -21,37 +21,28 @@ class DashboardScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(height: AppSpacing.spacing48),
-
               const _GreetingHeader(),
-
               const SizedBox(height: AppSpacing.spacing48),
-
               const FlowStreakRing(
                 streakDays: 7,
                 maxDays: 30,
                 size: 200,
                 strokeWidth: 14,
               ),
-
               const SizedBox(height: AppSpacing.spacing16),
-
               Text(
                 'Keep your streak going!',
                 style: TextStyle(
                   fontFamily: 'DM Sans',
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
-                  color: AppColors.jobsObsidian.withOpacity(0.6),
+                  color: AppColors.jobsObsidian.withValues(alpha: 0.6),
                   letterSpacing: 0.2,
                 ),
               ),
-
               const Spacer(),
-
               const _InsightCard(),
-
               const SizedBox(height: AppSpacing.spacing24),
-
               _StartCoachingButton(
                 onPressed: () {
                   Navigator.of(context).push(
@@ -61,7 +52,6 @@ class DashboardScreen extends StatelessWidget {
                   );
                 },
               ),
-
               const SizedBox(height: AppSpacing.spacing48),
             ],
           ),
@@ -103,7 +93,7 @@ class _GreetingHeader extends StatelessWidget {
             fontFamily: 'DM Sans',
             fontSize: 18,
             fontWeight: FontWeight.normal,
-            color: AppColors.jobsObsidian.withOpacity(0.6),
+            color: AppColors.jobsObsidian.withValues(alpha: 0.6),
             height: 1.4,
           ),
         ),
@@ -144,7 +134,7 @@ class _InsightCard extends StatelessWidget {
                   fontFamily: 'DM Sans',
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.jobsObsidian.withOpacity(0.5),
+                  color: AppColors.jobsObsidian.withValues(alpha: 0.5),
                   letterSpacing: 1.0,
                 ),
               ),

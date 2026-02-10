@@ -20,7 +20,6 @@ class SleepScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: AppSpacing.spacing16),
-              
               const Text(
                 'Sleep',
                 style: TextStyle(
@@ -38,13 +37,11 @@ class SleepScreen extends StatelessWidget {
                 style: TextStyle(
                   fontFamily: 'DM Sans',
                   fontSize: 16,
-                  color: AppColors.jobsObsidian.withOpacity(0.6),
+                  color: AppColors.jobsObsidian.withValues(alpha: 0.6),
                   height: 1.4,
                 ),
               ),
-              
               const SizedBox(height: AppSpacing.spacing32),
-              
               const Text(
                 'Wind Down',
                 style: TextStyle(
@@ -55,14 +52,11 @@ class SleepScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: AppSpacing.spacing16),
-              
               ...SampleData.breathingExercises.map((exercise) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _BreathingCard(exercise: exercise),
-              )),
-              
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: _BreathingCard(exercise: exercise),
+                  )),
               const SizedBox(height: AppSpacing.spacing24),
-              
               const Text(
                 'Sleep Stories',
                 style: TextStyle(
@@ -73,7 +67,6 @@ class SleepScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: AppSpacing.spacing16),
-              
               SizedBox(
                 height: 180,
                 child: ListView.builder(
@@ -82,15 +75,16 @@ class SleepScreen extends StatelessWidget {
                   itemBuilder: (context, index) {
                     final story = SampleData.sleepStories[index];
                     return Padding(
-                      padding: EdgeInsets.only(right: index < SampleData.sleepStories.length - 1 ? 16 : 0),
+                      padding: EdgeInsets.only(
+                          right: index < SampleData.sleepStories.length - 1
+                              ? 16
+                              : 0),
                       child: _SleepStoryCard(story: story),
                     );
                   },
                 ),
               ),
-              
               const SizedBox(height: AppSpacing.spacing32),
-              
               const Text(
                 'Soundscapes',
                 style: TextStyle(
@@ -101,19 +95,20 @@ class SleepScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: AppSpacing.spacing16),
-              
               Row(
                 children: SampleData.soundscapes.map((soundscape) {
                   final index = SampleData.soundscapes.indexOf(soundscape);
                   return Expanded(
                     child: Padding(
-                      padding: EdgeInsets.only(right: index < SampleData.soundscapes.length - 1 ? 12 : 0),
+                      padding: EdgeInsets.only(
+                          right: index < SampleData.soundscapes.length - 1
+                              ? 12
+                              : 0),
                       child: _SoundscapeCard(soundscape: soundscape),
                     ),
                   );
                 }).toList(),
               ),
-              
               const SizedBox(height: AppSpacing.spacing24),
             ],
           ),
@@ -137,7 +132,8 @@ class _BreathingCard extends StatelessWidget {
             content: Text('Starting ${exercise.title}...'),
             backgroundColor: AppColors.jobsSage,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           ),
         );
       },
@@ -153,7 +149,7 @@ class _BreathingCard extends StatelessWidget {
               width: 56,
               height: 56,
               decoration: BoxDecoration(
-                color: AppColors.accentBlueDark.withOpacity(0.15),
+                color: AppColors.accentBlueDark.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: const Center(
@@ -180,7 +176,7 @@ class _BreathingCard extends StatelessWidget {
                     style: TextStyle(
                       fontFamily: 'DM Sans',
                       fontSize: 13,
-                      color: AppColors.jobsObsidian.withOpacity(0.5),
+                      color: AppColors.jobsObsidian.withValues(alpha: 0.5),
                     ),
                   ),
                 ],
@@ -192,7 +188,7 @@ class _BreathingCard extends StatelessWidget {
                 fontFamily: 'DM Sans',
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
-                color: AppColors.jobsObsidian.withOpacity(0.5),
+                color: AppColors.jobsObsidian.withValues(alpha: 0.5),
               ),
             ),
           ],
@@ -221,7 +217,8 @@ class _SleepStoryCard extends StatelessWidget {
               content: Text('Playing ${story.title}...'),
               backgroundColor: AppColors.jobsSage,
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
             ),
           );
         }
@@ -251,7 +248,7 @@ class _SleepStoryCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
@@ -281,7 +278,7 @@ class _SleepStoryCard extends StatelessWidget {
               style: TextStyle(
                 fontFamily: 'DM Sans',
                 fontSize: 12,
-                color: Colors.white.withOpacity(0.6),
+                color: Colors.white.withValues(alpha: 0.6),
               ),
             ),
           ],
@@ -310,7 +307,8 @@ class _SoundscapeCard extends StatelessWidget {
               content: Text('Playing ${soundscape.title}...'),
               backgroundColor: AppColors.jobsSage,
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
             ),
           );
         }

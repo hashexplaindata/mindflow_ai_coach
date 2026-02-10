@@ -37,7 +37,7 @@ class GoalCard extends StatelessWidget {
 
   String _getEstimatedCompletion() {
     if (goal.isComplete) return 'Completed!';
-    
+
     final remaining = goal.targetValue - goal.currentValue;
     switch (goal.type) {
       case GoalType.streakDays:
@@ -59,7 +59,7 @@ class GoalCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -82,13 +82,17 @@ class GoalCard extends StatelessWidget {
                       height: 48,
                       decoration: BoxDecoration(
                         color: goal.isComplete
-                            ? AppColors.successGreen.withOpacity(0.15)
-                            : _getProgressColor().withOpacity(0.15),
+                            ? AppColors.successGreen.withValues(alpha: 0.15)
+                            : _getProgressColor().withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: Icon(
-                        goal.isComplete ? Icons.check_circle_rounded : _getIcon(),
-                        color: goal.isComplete ? AppColors.successGreen : _getProgressColor(),
+                        goal.isComplete
+                            ? Icons.check_circle_rounded
+                            : _getIcon(),
+                        color: goal.isComplete
+                            ? AppColors.successGreen
+                            : _getProgressColor(),
                         size: 24,
                       ),
                     ),
@@ -112,7 +116,8 @@ class GoalCard extends StatelessWidget {
                             style: TextStyle(
                               fontFamily: 'DM Sans',
                               fontSize: 13,
-                              color: AppColors.jobsObsidian.withOpacity(0.6),
+                              color:
+                                  AppColors.jobsObsidian.withValues(alpha: 0.6),
                             ),
                           ),
                         ],
@@ -121,9 +126,10 @@ class GoalCard extends StatelessWidget {
                     if (goal.isComplete && showCelebration) ...[
                       const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
-                          color: AppColors.successGreen.withOpacity(0.15),
+                          color: AppColors.successGreen.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: const Row(
@@ -155,7 +161,8 @@ class GoalCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(6),
                   child: LinearProgressIndicator(
                     value: goal.progressPercent,
-                    backgroundColor: AppColors.jobsObsidian.withOpacity(0.08),
+                    backgroundColor:
+                        AppColors.jobsObsidian.withValues(alpha: 0.08),
                     valueColor: AlwaysStoppedAnimation(_getProgressColor()),
                     minHeight: 8,
                   ),
@@ -178,7 +185,7 @@ class GoalCard extends StatelessWidget {
                       style: TextStyle(
                         fontFamily: 'DM Sans',
                         fontSize: 13,
-                        color: AppColors.jobsObsidian.withOpacity(0.5),
+                        color: AppColors.jobsObsidian.withValues(alpha: 0.5),
                       ),
                     ),
                   ],
@@ -235,7 +242,7 @@ class GoalTemplateCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppColors.jobsObsidian.withOpacity(0.08),
+          color: AppColors.jobsObsidian.withValues(alpha: 0.08),
         ),
       ),
       child: Material(
@@ -251,7 +258,7 @@ class GoalTemplateCard extends StatelessWidget {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: AppColors.jobsSage.withOpacity(0.15),
+                    color: AppColors.jobsSage.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -280,7 +287,7 @@ class GoalTemplateCard extends StatelessWidget {
                         style: TextStyle(
                           fontFamily: 'DM Sans',
                           fontSize: 12,
-                          color: AppColors.jobsObsidian.withOpacity(0.6),
+                          color: AppColors.jobsObsidian.withValues(alpha: 0.6),
                         ),
                       ),
                     ],
@@ -333,7 +340,7 @@ class CompactGoalCard extends StatelessWidget {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: AppColors.jobsSage.withOpacity(0.15),
+                      color: AppColors.jobsSage.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: const Icon(
@@ -362,7 +369,8 @@ class CompactGoalCard extends StatelessWidget {
                           style: TextStyle(
                             fontFamily: 'DM Sans',
                             fontSize: 13,
-                            color: AppColors.jobsObsidian.withOpacity(0.6),
+                            color:
+                                AppColors.jobsObsidian.withValues(alpha: 0.6),
                           ),
                         ),
                       ],
@@ -416,7 +424,7 @@ class CompactGoalCard extends StatelessWidget {
                           fontWeight: FontWeight.w500,
                           color: goal!.isComplete
                               ? AppColors.successGreen
-                              : AppColors.jobsObsidian.withOpacity(0.6),
+                              : AppColors.jobsObsidian.withValues(alpha: 0.6),
                         ),
                       ),
                     ),
@@ -452,9 +460,12 @@ class CompactGoalCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(4),
                   child: LinearProgressIndicator(
                     value: goal!.progressPercent,
-                    backgroundColor: AppColors.jobsObsidian.withOpacity(0.08),
+                    backgroundColor:
+                        AppColors.jobsObsidian.withValues(alpha: 0.08),
                     valueColor: AlwaysStoppedAnimation(
-                      goal!.isComplete ? AppColors.successGreen : AppColors.jobsSage,
+                      goal!.isComplete
+                          ? AppColors.successGreen
+                          : AppColors.jobsSage,
                     ),
                     minHeight: 6,
                   ),
@@ -465,7 +476,7 @@ class CompactGoalCard extends StatelessWidget {
                   style: TextStyle(
                     fontFamily: 'DM Sans',
                     fontSize: 13,
-                    color: AppColors.jobsObsidian.withOpacity(0.6),
+                    color: AppColors.jobsObsidian.withValues(alpha: 0.6),
                   ),
                 ),
               ],

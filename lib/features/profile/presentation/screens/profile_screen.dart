@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
-import 'package:provider/provider.dart';
+import 'package:provider/provider.dart' hide Consumer;
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/theme/theme_provider.dart';
@@ -11,19 +12,19 @@ import '../../../coach/presentation/screens/goals_screen.dart';
 import '../../../coach/presentation/widgets/goal_card.dart';
 import '../../../coach/domain/models/wellness_goal.dart';
 
-class ProfileScreen extends StatefulWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<UserProvider>().refreshProgress();
+      ref.read(userProvider.notifier).refreshProgress();
     });
   }
 
@@ -31,13 +32,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
-        child: Consumer<UserProvider>(
-          builder: (context, userProvider, child) {
-            if (userProvider.isLoading && !userProvider.isInitialized) {
+        child: Builder(
+          builder: (context) {
+            final userState = ref.watch(userProvider);
+            // Check if loading and not initialized (implicit logic from old provider)
+            if (userState.isLoading && userState.userId == null) {
               return const Center(
                 child: CircularProgressIndicator(
                   valueColor: AlwaysStoppedAnimation(AppColors.jobsSage),
@@ -46,7 +49,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             }
 
             return RefreshIndicator(
-              onRefresh: () => userProvider.refreshProgress(),
+              onRefresh: () =>
+                  ref.read(userProvider.notifier).refreshProgress(),
               color: AppColors.jobsSage,
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
@@ -54,15 +58,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: Column(
                   children: [
                     const SizedBox(height: AppSpacing.spacing16),
-                    
                     Container(
                       width: 100,
                       height: 100,
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
-                            AppColors.jobsSage.withOpacity(0.3),
-                            AppColors.jobsSage.withOpacity(0.15),
+                            AppColors.jobsSage.withValues(alpha: 0.3),
+                            AppColors.jobsSage.withValues(alpha: 0.15),
                           ],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
@@ -75,9 +78,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         color: AppColors.jobsSage,
                       ),
                     ),
-                    
                     const SizedBox(height: AppSpacing.spacing16),
-                    
                     Text(
                       'Mindful User',
                       style: TextStyle(
@@ -87,21 +88,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         color: theme.colorScheme.onSurface,
                       ),
                     ),
-                    
                     const SizedBox(height: AppSpacing.spacing8),
-                    
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
-                        color: userProvider.isSubscribed
-                            ? AppColors.primaryOrange.withOpacity(0.15)
-                            : AppColors.jobsSage.withOpacity(0.15),
+                        color: userState.isSubscribed
+                            ? AppColors.primaryOrange.withValues(alpha: 0.15)
+                            : AppColors.jobsSage.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          if (userProvider.isSubscribed) ...[
+                          if (userState.isSubscribed) ...[
                             const Icon(
                               Icons.star_rounded,
                               size: 16,
@@ -110,12 +110,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             const SizedBox(width: 6),
                           ],
                           Text(
-                            userProvider.isSubscribed ? 'Premium' : 'Free Plan',
+                            userState.isSubscribed ? 'Premium' : 'Free Plan',
                             style: TextStyle(
                               fontFamily: 'DM Sans',
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
-                              color: userProvider.isSubscribed
+                              color: userState.isSubscribed
                                   ? AppColors.primaryOrange
                                   : AppColors.jobsSage,
                             ),
@@ -123,14 +123,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ],
                       ),
                     ),
-                    
                     const SizedBox(height: AppSpacing.spacing32),
-                    
                     Row(
                       children: [
                         Expanded(
                           child: _StatCard(
-                            value: '${userProvider.totalMinutes}',
+                            value: '${userState.totalMinutes}',
                             label: 'Minutes',
                             icon: Icons.timer_outlined,
                           ),
@@ -138,44 +136,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: _StatCard(
-                            value: '${userProvider.currentStreak}',
+                            value: '${userState.currentStreak}',
                             label: 'Day Streak',
                             icon: Icons.local_fire_department_rounded,
-                            isHighlighted: userProvider.currentStreak > 0,
+                            isHighlighted: userState.currentStreak > 0,
                           ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: _StatCard(
-                            value: '${userProvider.sessionsCompleted}',
+                            value: '${userState.sessionsCompleted}',
                             label: 'Sessions',
                             icon: Icons.self_improvement_rounded,
                           ),
                         ),
                       ],
                     ),
-                    
                     const SizedBox(height: AppSpacing.spacing24),
-                    
-                    if (userProvider.userId != null)
+                    if (userState.userId != null)
                       _GoalsSummarySection(
-                        userId: userProvider.userId!,
+                        userId: userState.userId!,
                         onNavigateToGoals: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (context) => GoalsScreen(
-                                userId: userProvider.userId!,
+                                userId: userState.userId!,
                               ),
                             ),
                           );
                         },
                       ),
-                    
                     const SizedBox(height: AppSpacing.spacing24),
-                    
                     Container(
                       decoration: BoxDecoration(
-                        color: isDark ? AppColors.cardBackgroundDark : Colors.white,
+                        color: isDark
+                            ? AppColors.cardBackgroundDark
+                            : Colors.white,
                         borderRadius: BorderRadius.circular(24),
                       ),
                       child: Column(
@@ -188,19 +184,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             },
                           ),
                           _Divider(isDark: isDark),
-                          Consumer<ThemeProvider>(
-                            builder: (context, themeProvider, _) {
+                          Consumer(
+                            builder: (context, ref, _) {
+                              final themeMode = ref.watch(themeProvider);
+                              final isDarkMode = themeMode == ThemeMode.dark;
                               return _SettingsItem(
-                                icon: themeProvider.isDarkMode
+                                icon: isDarkMode
                                     ? Icons.dark_mode_outlined
                                     : Icons.light_mode_outlined,
                                 title: 'Dark Mode',
                                 trailing: Switch.adaptive(
-                                  value: themeProvider.isDarkMode,
-                                  onChanged: (_) => themeProvider.toggleTheme(),
+                                  value: isDarkMode,
+                                  onChanged: (_) => ref
+                                      .read(themeProvider.notifier)
+                                      .toggleTheme(),
                                   activeColor: AppColors.jobsSage,
                                 ),
-                                onTap: () => themeProvider.toggleTheme(),
+                                onTap: () => ref
+                                    .read(themeProvider.notifier)
+                                    .toggleTheme(),
                               );
                             },
                           ),
@@ -216,11 +218,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           _SettingsItem(
                             icon: Icons.workspace_premium_outlined,
                             title: 'Subscription',
-                            trailing: userProvider.isSubscribed
+                            trailing: userState.isSubscribed
                                 ? Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10, vertical: 4),
                                     decoration: BoxDecoration(
-                                      color: AppColors.jobsSage.withOpacity(0.15),
+                                      color: AppColors.jobsSage
+                                          .withValues(alpha: 0.15),
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: const Text(
@@ -235,9 +239,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     ),
                                   )
                                 : Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10, vertical: 4),
                                     decoration: BoxDecoration(
-                                      color: AppColors.primaryOrange.withOpacity(0.15),
+                                      color: AppColors.primaryOrange
+                                          .withValues(alpha: 0.15),
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: const Text(
@@ -254,9 +260,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             onTap: () {
                               Navigator.of(context).push(
                                 PageRouteBuilder(
-                                  pageBuilder: (context, animation, secondaryAnimation) =>
+                                  pageBuilder: (context, animation,
+                                          secondaryAnimation) =>
                                       const SubscriptionScreen(),
-                                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                  transitionsBuilder: (context, animation,
+                                      secondaryAnimation, child) {
                                     return SlideTransition(
                                       position: Tween<Offset>(
                                         begin: const Offset(0, 1),
@@ -268,7 +276,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       child: child,
                                     );
                                   },
-                                  transitionDuration: const Duration(milliseconds: 300),
+                                  transitionDuration:
+                                      const Duration(milliseconds: 300),
                                 ),
                               );
                             },
@@ -276,12 +285,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ],
                       ),
                     ),
-                    
                     const SizedBox(height: AppSpacing.spacing24),
-                    
                     Container(
                       decoration: BoxDecoration(
-                        color: isDark ? AppColors.cardBackgroundDark : Colors.white,
+                        color: isDark
+                            ? AppColors.cardBackgroundDark
+                            : Colors.white,
                         borderRadius: BorderRadius.circular(24),
                       ),
                       child: Column(
@@ -312,9 +321,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ],
                       ),
                     ),
-                    
                     const SizedBox(height: AppSpacing.spacing24),
-                    
                     SizedBox(
                       width: double.infinity,
                       child: TextButton(
@@ -324,7 +331,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               content: const Text('Logged out'),
                               backgroundColor: AppColors.jobsSage,
                               behavior: SnackBarBehavior.floating,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16)),
                             ),
                           );
                         },
@@ -342,7 +350,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ),
                     ),
-                    
                     const SizedBox(height: AppSpacing.spacing24),
                   ],
                 ),
@@ -402,7 +409,9 @@ class _StatCard extends StatelessWidget {
               fontFamily: 'DM Sans',
               fontSize: 28,
               fontWeight: FontWeight.bold,
-              color: isHighlighted ? AppColors.primaryOrange : AppColors.jobsObsidian,
+              color: isHighlighted
+                  ? AppColors.primaryOrange
+                  : AppColors.jobsObsidian,
             ),
           ),
           const SizedBox(height: 4),
@@ -412,7 +421,7 @@ class _StatCard extends StatelessWidget {
               fontFamily: 'DM Sans',
               fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: AppColors.jobsObsidian.withOpacity(0.5),
+              color: AppColors.jobsObsidian.withValues(alpha: 0.5),
             ),
           ),
         ],
@@ -438,7 +447,7 @@ class _SettingsItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textColor = theme.colorScheme.onSurface;
-    
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(24),
@@ -449,7 +458,7 @@ class _SettingsItem extends StatelessWidget {
             Icon(
               icon,
               size: 24,
-              color: textColor.withOpacity(0.6),
+              color: textColor.withValues(alpha: 0.6),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -467,7 +476,7 @@ class _SettingsItem extends StatelessWidget {
             if (trailing == null)
               Icon(
                 Icons.chevron_right_rounded,
-                color: textColor.withOpacity(0.3),
+                color: textColor.withValues(alpha: 0.3),
               ),
           ],
         ),
@@ -478,7 +487,7 @@ class _SettingsItem extends StatelessWidget {
 
 class _Divider extends StatelessWidget {
   final bool isDark;
-  
+
   const _Divider({this.isDark = false});
 
   @override
@@ -486,9 +495,9 @@ class _Divider extends StatelessWidget {
     return Container(
       height: 1,
       margin: const EdgeInsets.symmetric(horizontal: 20),
-      color: isDark 
-          ? AppColors.jobsObsidianDark.withOpacity(0.1)
-          : AppColors.jobsObsidian.withOpacity(0.05),
+      color: isDark
+          ? AppColors.jobsObsidianDark.withValues(alpha: 0.1)
+          : AppColors.jobsObsidian.withValues(alpha: 0.05),
     );
   }
 }
@@ -521,9 +530,11 @@ class _GoalsSummarySectionState extends State<_GoalsSummarySection> {
     try {
       final response = await _fetchGoals();
       if (response != null) {
-        final activeGoals = response.where((g) => g.status == GoalStatus.active).toList();
-        final completedGoals = response.where((g) => g.status == GoalStatus.completed).toList();
-        
+        final activeGoals =
+            response.where((g) => g.status == GoalStatus.active).toList();
+        final completedGoals =
+            response.where((g) => g.status == GoalStatus.completed).toList();
+
         if (mounted) {
           setState(() {
             _activeGoal = activeGoals.isNotEmpty ? activeGoals.first : null;
@@ -600,7 +611,8 @@ class _GoalsSummarySectionState extends State<_GoalsSummarySection> {
               ),
               if (_completedCount > 0)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: AppColors.successGreen.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(12),

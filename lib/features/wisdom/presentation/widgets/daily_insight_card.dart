@@ -24,7 +24,7 @@ class DailyInsightCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: AppColors.jobsObsidian.withOpacity(0.04),
+              color: AppColors.jobsObsidian.withValues(alpha: 0.04),
               blurRadius: 12,
               offset: const Offset(0, 3),
             ),
@@ -36,7 +36,7 @@ class DailyInsightCard extends StatelessWidget {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: AppColors.accentPurple.withOpacity(0.2),
+                color: AppColors.accentPurple.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Center(
@@ -46,9 +46,7 @@ class DailyInsightCard extends StatelessWidget {
                 ),
               ),
             ),
-
             const SizedBox(width: 14),
-
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -59,7 +57,7 @@ class DailyInsightCard extends StatelessWidget {
                       fontFamily: 'DM Sans',
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.jobsObsidian.withOpacity(0.5),
+                      color: AppColors.jobsObsidian.withValues(alpha: 0.5),
                       letterSpacing: 0.5,
                     ),
                   ),
@@ -79,12 +77,10 @@ class DailyInsightCard extends StatelessWidget {
                 ],
               ),
             ),
-
             const SizedBox(width: 8),
-
             Icon(
               Icons.arrow_forward_ios_rounded,
-              color: AppColors.jobsObsidian.withOpacity(0.3),
+              color: AppColors.jobsObsidian.withValues(alpha: 0.3),
               size: 14,
             ),
           ],
@@ -113,7 +109,7 @@ class MiniWisdomCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: backgroundColor ?? AppColors.jobsSage.withOpacity(0.1),
+          color: backgroundColor ?? AppColors.jobsSage.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Column(
@@ -137,9 +133,7 @@ class MiniWisdomCard extends StatelessWidget {
                 ),
               ],
             ),
-
             const SizedBox(height: 12),
-
             Text(
               wisdom.content,
               maxLines: 3,
@@ -148,11 +142,10 @@ class MiniWisdomCard extends StatelessWidget {
                 fontFamily: 'DM Sans',
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: AppColors.jobsObsidian.withOpacity(0.85),
+                color: AppColors.jobsObsidian.withValues(alpha: 0.85),
                 height: 1.4,
               ),
             ),
-
             if (wisdom.author != null) ...[
               const SizedBox(height: 8),
               Text(
@@ -161,7 +154,7 @@ class MiniWisdomCard extends StatelessWidget {
                   fontFamily: 'DM Sans',
                   fontSize: 12,
                   fontStyle: FontStyle.italic,
-                  color: AppColors.jobsObsidian.withOpacity(0.5),
+                  color: AppColors.jobsObsidian.withValues(alpha: 0.5),
                 ),
               ),
             ],

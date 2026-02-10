@@ -34,7 +34,7 @@ class WisdomCard extends StatelessWidget {
           gradient: LinearGradient(
             colors: [
               AppColors.jobsSage,
-              AppColors.jobsSage.withOpacity(0.85),
+              AppColors.jobsSage.withValues(alpha: 0.85),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -42,7 +42,7 @@ class WisdomCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(32),
           boxShadow: [
             BoxShadow(
-              color: AppColors.jobsSage.withOpacity(0.3),
+              color: AppColors.jobsSage.withValues(alpha: 0.3),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
@@ -55,9 +55,10 @@ class WisdomCard extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Row(
@@ -74,7 +75,7 @@ class WisdomCard extends StatelessWidget {
                           fontFamily: 'DM Sans',
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
-                          color: Colors.white.withOpacity(0.9),
+                          color: Colors.white.withValues(alpha: 0.9),
                           letterSpacing: 1.2,
                         ),
                       ),
@@ -96,9 +97,7 @@ class WisdomCard extends StatelessWidget {
                 ],
               ],
             ),
-
             SizedBox(height: isCompact ? 16 : 24),
-
             Text(
               wisdom.content,
               style: TextStyle(
@@ -110,7 +109,6 @@ class WisdomCard extends StatelessWidget {
                 letterSpacing: -0.3,
               ),
             ),
-
             if (wisdom.author != null) ...[
               SizedBox(height: isCompact ? 12 : 20),
               Row(
@@ -119,7 +117,7 @@ class WisdomCard extends StatelessWidget {
                     width: 24,
                     height: 2,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.5),
+                      color: Colors.white.withValues(alpha: 0.5),
                       borderRadius: BorderRadius.circular(1),
                     ),
                   ),
@@ -130,22 +128,22 @@ class WisdomCard extends StatelessWidget {
                       fontFamily: 'DM Sans',
                       fontSize: isCompact ? 13 : 15,
                       fontWeight: FontWeight.w500,
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white.withValues(alpha: 0.8),
                       fontStyle: FontStyle.italic,
                     ),
                   ),
                 ],
               ),
             ],
-
             if (!isCompact) ...[
               const SizedBox(height: 24),
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.15),
+                      color: Colors.white.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
@@ -162,7 +160,7 @@ class WisdomCard extends StatelessWidget {
                             fontFamily: 'DM Sans',
                             fontSize: 11,
                             fontWeight: FontWeight.w500,
-                            color: Colors.white.withOpacity(0.8),
+                            color: Colors.white.withValues(alpha: 0.8),
                           ),
                         ),
                       ],
@@ -198,7 +196,7 @@ class _ActionButton extends StatelessWidget {
         width: 36,
         height: 36,
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.15),
+          color: Colors.white.withValues(alpha: 0.15),
           shape: BoxShape.circle,
         ),
         child: Icon(
@@ -244,7 +242,7 @@ class WisdomCardHero extends StatelessWidget {
           gradient: LinearGradient(
             colors: [
               AppColors.jobsSage,
-              AppColors.jobsSage.withOpacity(0.8),
+              AppColors.jobsSage.withValues(alpha: 0.8),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -252,7 +250,7 @@ class WisdomCardHero extends StatelessWidget {
           borderRadius: BorderRadius.circular(32),
           boxShadow: [
             BoxShadow(
-              color: AppColors.jobsSage.withOpacity(0.35),
+              color: AppColors.jobsSage.withValues(alpha: 0.35),
               blurRadius: 24,
               offset: const Offset(0, 12),
             ),
@@ -264,9 +262,10 @@ class WisdomCardHero extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Row(
@@ -283,7 +282,7 @@ class WisdomCardHero extends StatelessWidget {
                           fontFamily: 'DM Sans',
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
-                          color: Colors.white.withOpacity(0.9),
+                          color: Colors.white.withValues(alpha: 0.9),
                           letterSpacing: 1.2,
                         ),
                       ),
@@ -299,15 +298,13 @@ class WisdomCardHero extends StatelessWidget {
                     },
                     child: Icon(
                       isFavorite ? Icons.favorite : Icons.favorite_border,
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withValues(alpha: 0.9),
                       size: 22,
                     ),
                   ),
               ],
             ),
-
             const SizedBox(height: 24),
-
             Text(
               wisdom.content,
               style: const TextStyle(
@@ -319,7 +316,6 @@ class WisdomCardHero extends StatelessWidget {
                 letterSpacing: -0.3,
               ),
             ),
-
             if (wisdom.author != null) ...[
               const SizedBox(height: 20),
               Row(
@@ -328,7 +324,7 @@ class WisdomCardHero extends StatelessWidget {
                     width: 24,
                     height: 2,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.5),
+                      color: Colors.white.withValues(alpha: 0.5),
                       borderRadius: BorderRadius.circular(1),
                     ),
                   ),
@@ -339,16 +335,14 @@ class WisdomCardHero extends StatelessWidget {
                       fontFamily: 'DM Sans',
                       fontSize: 15,
                       fontWeight: FontWeight.w500,
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white.withValues(alpha: 0.8),
                       fontStyle: FontStyle.italic,
                     ),
                   ),
                 ],
               ),
             ],
-
             const SizedBox(height: 24),
-
             Row(
               children: [
                 if (onResonates != null)
@@ -407,12 +401,11 @@ class _FeedbackButton extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected 
-              ? Colors.white 
-              : Colors.white.withOpacity(0.15),
+          color:
+              isSelected ? Colors.white : Colors.white.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: Colors.white.withOpacity(0.3),
+            color: Colors.white.withValues(alpha: 0.3),
             width: 1,
           ),
         ),
@@ -423,9 +416,9 @@ class _FeedbackButton extends StatelessWidget {
             Icon(
               icon,
               size: 16,
-              color: isSelected 
-                  ? AppColors.jobsSage 
-                  : Colors.white.withOpacity(0.9),
+              color: isSelected
+                  ? AppColors.jobsSage
+                  : Colors.white.withValues(alpha: 0.9),
             ),
             const SizedBox(width: 6),
             Text(
@@ -434,9 +427,9 @@ class _FeedbackButton extends StatelessWidget {
                 fontFamily: 'DM Sans',
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: isSelected 
-                    ? AppColors.jobsSage 
-                    : Colors.white.withOpacity(0.9),
+                color: isSelected
+                    ? AppColors.jobsSage
+                    : Colors.white.withValues(alpha: 0.9),
               ),
             ),
           ],

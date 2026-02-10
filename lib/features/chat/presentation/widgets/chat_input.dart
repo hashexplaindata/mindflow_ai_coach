@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_text_styles.dart';
+import '../../../../core/behavioral/behavioral_observer.dart';
 
 class ChatInput extends StatefulWidget {
   const ChatInput({
@@ -21,11 +22,14 @@ class ChatInput extends StatefulWidget {
   State<ChatInput> createState() => _ChatInputState();
 }
 
-class _ChatInputState extends State<ChatInput> with SingleTickerProviderStateMixin {
+class _ChatInputState extends State<ChatInput>
+    with SingleTickerProviderStateMixin {
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
+  final BehavioralObserver _behavioralObserver = BehavioralObserver();
   bool _hasText = false;
   bool _isFocused = false;
+  String _previousText = '';
 
   @override
   void initState() {
@@ -44,7 +48,19 @@ class _ChatInputState extends State<ChatInput> with SingleTickerProviderStateMix
   }
 
   void _onTextChanged() {
-    final hasText = _controller.text.trim().isNotEmpty;
+    final currentText = _controller.text;
+    final hasText = currentText.trim().isNotEmpty;
+    
+    // Behavioral tracking
+    if (currentText.length > _previousText.length) {
+      // Character added
+      _behavioralObserver.recordKeystroke(isBackspace: false);
+    } else if (currentText.length < _previousText.length) {
+      // Character deleted (backspace)
+      _behavioralObserver.recordKeystroke(isBackspace: true);
+    }
+    _previousText = currentText;
+    
     if (hasText != _hasText) {
       setState(() {
         _hasText = hasText;
@@ -63,8 +79,14 @@ class _ChatInputState extends State<ChatInput> with SingleTickerProviderStateMix
     final text = _controller.text.trim();
     if (text.isEmpty || !widget.enabled) return;
 
+    // Complete behavioral tracking
+    _behavioralObserver.recordMessageComplete();
+    final cognitiveLoad = _behavioralObserver.inferCognitiveLoad();
+    debugPrint('ChatInput: Cognitive load = ${(cognitiveLoad * 100).toStringAsFixed(1)}%');
+    
     widget.onSend(text);
     _controller.clear();
+    _previousText = '';
     _focusNode.requestFocus();
   }
 
@@ -76,7 +98,7 @@ class _ChatInputState extends State<ChatInput> with SingleTickerProviderStateMix
         color: AppColors.cardBackground,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 16,
             offset: const Offset(0, -4),
           ),
@@ -88,12 +110,12 @@ class _ChatInputState extends State<ChatInput> with SingleTickerProviderStateMix
           duration: const Duration(milliseconds: 200),
           decoration: BoxDecoration(
             color: _isFocused
-                ? AppColors.jobsSage.withOpacity(0.05)
+                ? AppColors.jobsSage.withValues(alpha: 0.05)
                 : AppColors.neutralLight,
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
               color: _isFocused
-                  ? AppColors.jobsSage.withOpacity(0.4)
+                  ? AppColors.jobsSage.withValues(alpha: 0.4)
                   : Colors.transparent,
               width: 1.5,
             ),

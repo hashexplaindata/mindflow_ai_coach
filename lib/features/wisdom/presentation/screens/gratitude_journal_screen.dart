@@ -58,7 +58,8 @@ class _GratitudeJournalScreenState extends State<GratitudeJournalScreen> {
                             style: TextStyle(
                               fontFamily: 'DM Sans',
                               fontSize: 16,
-                              color: AppColors.jobsObsidian.withOpacity(0.6),
+                              color:
+                                  AppColors.jobsObsidian.withValues(alpha: 0.6),
                             ),
                           ),
                         ],
@@ -66,7 +67,6 @@ class _GratitudeJournalScreenState extends State<GratitudeJournalScreen> {
                     ),
                   ),
                 ),
-
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.all(AppSpacing.screenPadding),
@@ -77,12 +77,11 @@ class _GratitudeJournalScreenState extends State<GratitudeJournalScreen> {
                           count: weeklyCount,
                           goal: 7,
                         ),
-
                         const SizedBox(height: 24),
-
                         GratitudePromptCard(
                           prompt: wisdomProvider.gratitudePrompt,
-                          hasWrittenToday: wisdomProvider.hasWrittenGratitudeToday,
+                          hasWrittenToday:
+                              wisdomProvider.hasWrittenGratitudeToday,
                           onSubmit: (content) {
                             wisdomProvider.addGratitudeEntry(
                               content: content,
@@ -96,9 +95,7 @@ class _GratitudeJournalScreenState extends State<GratitudeJournalScreen> {
                             );
                           },
                         ),
-
                         const SizedBox(height: 32),
-
                         Row(
                           children: [
                             const Text(
@@ -116,7 +113,8 @@ class _GratitudeJournalScreenState extends State<GratitudeJournalScreen> {
                               style: TextStyle(
                                 fontFamily: 'DM Sans',
                                 fontSize: 14,
-                                color: AppColors.jobsObsidian.withOpacity(0.5),
+                                color: AppColors.jobsObsidian
+                                    .withValues(alpha: 0.5),
                               ),
                             ),
                           ],
@@ -125,7 +123,6 @@ class _GratitudeJournalScreenState extends State<GratitudeJournalScreen> {
                     ),
                   ),
                 ),
-
                 if (entries.isEmpty)
                   SliverFillRemaining(
                     hasScrollBody: false,
@@ -137,7 +134,8 @@ class _GratitudeJournalScreenState extends State<GratitudeJournalScreen> {
                             width: 80,
                             height: 80,
                             decoration: BoxDecoration(
-                              color: AppColors.accentYellow.withOpacity(0.2),
+                              color:
+                                  AppColors.accentYellow.withValues(alpha: 0.2),
                               shape: BoxShape.circle,
                             ),
                             child: const Center(
@@ -154,7 +152,8 @@ class _GratitudeJournalScreenState extends State<GratitudeJournalScreen> {
                               fontFamily: 'DM Sans',
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
-                              color: AppColors.jobsObsidian.withOpacity(0.7),
+                              color:
+                                  AppColors.jobsObsidian.withValues(alpha: 0.7),
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -163,7 +162,8 @@ class _GratitudeJournalScreenState extends State<GratitudeJournalScreen> {
                             style: TextStyle(
                               fontFamily: 'DM Sans',
                               fontSize: 14,
-                              color: AppColors.jobsObsidian.withOpacity(0.5),
+                              color:
+                                  AppColors.jobsObsidian.withValues(alpha: 0.5),
                             ),
                           ),
                           const SizedBox(height: 100),
@@ -183,14 +183,14 @@ class _GratitudeJournalScreenState extends State<GratitudeJournalScreen> {
                           ),
                           child: _GratitudeEntryCard(
                             entry: entry,
-                            onDelete: () => _confirmDelete(context, entry, wisdomProvider),
+                            onDelete: () =>
+                                _confirmDelete(context, entry, wisdomProvider),
                           ),
                         );
                       },
                       childCount: entries.length,
                     ),
                   ),
-
                 const SliverToBoxAdapter(
                   child: SizedBox(height: 40),
                 ),
@@ -211,7 +211,8 @@ class _GratitudeJournalScreenState extends State<GratitudeJournalScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Entry'),
-        content: const Text('Are you sure you want to delete this gratitude entry?'),
+        content:
+            const Text('Are you sure you want to delete this gratitude entry?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -251,8 +252,8 @@ class _WeeklyProgress extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.accentYellow.withOpacity(0.3),
-            AppColors.accentYellow.withOpacity(0.1),
+            AppColors.accentYellow.withValues(alpha: 0.3),
+            AppColors.accentYellow.withValues(alpha: 0.1),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -275,7 +276,7 @@ class _WeeklyProgress extends StatelessWidget {
                   fontFamily: 'DM Sans',
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.jobsObsidian.withOpacity(0.8),
+                  color: AppColors.jobsObsidian.withValues(alpha: 0.8),
                 ),
               ),
               const Spacer(),
@@ -295,7 +296,7 @@ class _WeeklyProgress extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
             child: LinearProgressIndicator(
               value: progress,
-              backgroundColor: Colors.white.withOpacity(0.5),
+              backgroundColor: Colors.white.withValues(alpha: 0.5),
               valueColor: const AlwaysStoppedAnimation(AppColors.accentYellow),
               minHeight: 8,
             ),
@@ -308,7 +309,7 @@ class _WeeklyProgress extends StatelessWidget {
             style: TextStyle(
               fontFamily: 'DM Sans',
               fontSize: 13,
-              color: AppColors.jobsObsidian.withOpacity(0.6),
+              color: AppColors.jobsObsidian.withValues(alpha: 0.6),
             ),
           ),
         ],
@@ -335,7 +336,7 @@ class _GratitudeEntryCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.jobsObsidian.withOpacity(0.04),
+            color: AppColors.jobsObsidian.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -347,9 +348,10 @@ class _GratitudeEntryCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
-                  color: AppColors.accentYellow.withOpacity(0.2),
+                  color: AppColors.accentYellow.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(

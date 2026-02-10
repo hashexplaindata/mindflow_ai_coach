@@ -35,8 +35,29 @@ class _HabitsScreenState extends State<HabitsScreen> {
 
   String _getDateString() {
     final now = DateTime.now();
-    final weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final weekdays = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday'
+    ];
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
     return '${weekdays[now.weekday - 1]}, ${months[now.month - 1]} ${now.day}';
   }
 
@@ -94,7 +115,8 @@ class _HabitsScreenState extends State<HabitsScreen> {
                                     style: TextStyle(
                                       fontFamily: 'DM Sans',
                                       fontSize: 14,
-                                      color: AppColors.jobsObsidian.withOpacity(0.5),
+                                      color: AppColors.jobsObsidian
+                                          .withValues(alpha: 0.5),
                                     ),
                                   ),
                                 ],
@@ -136,7 +158,8 @@ class _HabitsScreenState extends State<HabitsScreen> {
                   if (rituals.isEmpty)
                     SliverToBoxAdapter(
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenPadding),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.screenPadding),
                         child: _EmptyState(
                           onAddHabit: () {
                             Navigator.of(context).push(
@@ -165,7 +188,8 @@ class _HabitsScreenState extends State<HabitsScreen> {
                               onHabitTap: (habit) {
                                 Navigator.of(context).push(
                                   MaterialPageRoute(
-                                    builder: (_) => HabitDetailScreen(habit: habit),
+                                    builder: (_) =>
+                                        HabitDetailScreen(habit: habit),
                                   ),
                                 );
                               },
@@ -207,7 +231,7 @@ class _TodayProgressCard extends StatelessWidget {
         gradient: LinearGradient(
           colors: [
             AppColors.jobsSage,
-            AppColors.jobsSage.withOpacity(0.8),
+            AppColors.jobsSage.withValues(alpha: 0.8),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -215,7 +239,7 @@ class _TodayProgressCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(32),
         boxShadow: [
           BoxShadow(
-            color: AppColors.jobsSage.withOpacity(0.3),
+            color: AppColors.jobsSage.withValues(alpha: 0.3),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -236,7 +260,7 @@ class _TodayProgressCard extends StatelessWidget {
                       fontFamily: 'DM Sans',
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white.withValues(alpha: 0.8),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -256,7 +280,7 @@ class _TodayProgressCard extends StatelessWidget {
                     style: TextStyle(
                       fontFamily: 'DM Sans',
                       fontSize: 14,
-                      color: Colors.white.withOpacity(0.7),
+                      color: Colors.white.withValues(alpha: 0.7),
                     ),
                   ),
                 ],
@@ -265,7 +289,7 @@ class _TodayProgressCard extends StatelessWidget {
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
                 child: Center(
@@ -287,7 +311,7 @@ class _TodayProgressCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
             child: LinearProgressIndicator(
               value: progress,
-              backgroundColor: Colors.white.withOpacity(0.2),
+              backgroundColor: Colors.white.withValues(alpha: 0.2),
               valueColor: const AlwaysStoppedAnimation(Colors.white),
               minHeight: 8,
             ),
@@ -335,8 +359,8 @@ class _RitualSection extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 color: ritual.isComplete
-                    ? AppColors.jobsSage.withOpacity(0.15)
-                    : AppColors.jobsObsidian.withOpacity(0.05),
+                    ? AppColors.jobsSage.withValues(alpha: 0.15)
+                    : AppColors.jobsObsidian.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Text(
@@ -347,7 +371,7 @@ class _RitualSection extends StatelessWidget {
                   fontWeight: FontWeight.w600,
                   color: ritual.isComplete
                       ? AppColors.jobsSage
-                      : AppColors.jobsObsidian.withOpacity(0.6),
+                      : AppColors.jobsObsidian.withValues(alpha: 0.6),
                 ),
               ),
             ),
@@ -360,7 +384,7 @@ class _RitualSection extends StatelessWidget {
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: AppColors.jobsObsidian.withOpacity(0.05),
+                color: AppColors.jobsObsidian.withValues(alpha: 0.05),
                 blurRadius: 10,
                 offset: const Offset(0, 2),
               ),
@@ -382,7 +406,7 @@ class _RitualSection extends StatelessWidget {
                       height: 1,
                       indent: 60,
                       endIndent: 16,
-                      color: AppColors.jobsObsidian.withOpacity(0.05),
+                      color: AppColors.jobsObsidian.withValues(alpha: 0.05),
                     ),
                 ],
               );

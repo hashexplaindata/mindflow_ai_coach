@@ -55,7 +55,7 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
     );
 
     await context.read<HabitProvider>().updateHabit(updatedHabit);
-    
+
     setState(() {
       _habit = updatedHabit;
       _isEditing = false;
@@ -80,7 +80,7 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
           'Are you sure you want to delete "${_habit.name}"? This action cannot be undone.',
           style: TextStyle(
             fontFamily: 'DM Sans',
-            color: AppColors.jobsObsidian.withOpacity(0.7),
+            color: AppColors.jobsObsidian.withValues(alpha: 0.7),
           ),
         ),
         actions: [
@@ -90,7 +90,7 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
               'Cancel',
               style: TextStyle(
                 fontFamily: 'DM Sans',
-                color: AppColors.jobsObsidian.withOpacity(0.6),
+                color: AppColors.jobsObsidian.withValues(alpha: 0.6),
               ),
             ),
           ),
@@ -148,7 +148,8 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
               child: GestureDetector(
                 onTap: _saveChanges,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   decoration: BoxDecoration(
                     color: AppColors.jobsObsidian,
                     borderRadius: BorderRadius.circular(20),
@@ -167,12 +168,15 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
             )
           else ...[
             IconButton(
-              icon: const Icon(Icons.edit_rounded, color: AppColors.jobsObsidian),
+              icon:
+                  const Icon(Icons.edit_rounded, color: AppColors.jobsObsidian),
               onPressed: () => setState(() => _isEditing = true),
             ),
             PopupMenuButton(
-              icon: const Icon(Icons.more_vert_rounded, color: AppColors.jobsObsidian),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              icon: const Icon(Icons.more_vert_rounded,
+                  color: AppColors.jobsObsidian),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
               itemBuilder: (context) => [
                 const PopupMenuItem(
                   value: 'delete',
@@ -241,7 +245,7 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: AppColors.jobsObsidian.withOpacity(0.05),
+                color: AppColors.jobsObsidian.withValues(alpha: 0.05),
                 blurRadius: 10,
                 offset: const Offset(0, 2),
               ),
@@ -274,7 +278,7 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: AppColors.jobsObsidian.withOpacity(0.05),
+                color: AppColors.jobsObsidian.withValues(alpha: 0.05),
                 blurRadius: 10,
                 offset: const Offset(0, 2),
               ),
@@ -301,7 +305,7 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: AppColors.jobsObsidian.withOpacity(0.05),
+                color: AppColors.jobsObsidian.withValues(alpha: 0.05),
                 blurRadius: 10,
                 offset: const Offset(0, 2),
               ),
@@ -318,7 +322,7 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
                       width: 56,
                       height: 56,
                       decoration: BoxDecoration(
-                        color: AppColors.jobsSage.withOpacity(0.1),
+                        color: AppColors.jobsSage.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Center(
@@ -345,7 +349,7 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
                           fontFamily: 'DM Sans',
                           fontSize: 18,
                           fontWeight: FontWeight.w500,
-                          color: AppColors.jobsObsidian.withOpacity(0.3),
+                          color: AppColors.jobsObsidian.withValues(alpha: 0.3),
                         ),
                         border: InputBorder.none,
                         contentPadding: EdgeInsets.zero,
@@ -410,7 +414,7 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: AppColors.jobsObsidian.withOpacity(0.1),
+                  color: AppColors.jobsObsidian.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -440,8 +444,8 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
                       height: 52,
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? AppColors.jobsSage.withOpacity(0.2)
-                            : AppColors.jobsObsidian.withOpacity(0.05),
+                            ? AppColors.jobsSage.withValues(alpha: 0.2)
+                            : AppColors.jobsObsidian.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(16),
                         border: isSelected
                             ? Border.all(color: AppColors.jobsSage, width: 2)
@@ -476,7 +480,7 @@ class _HabitHeader extends StatelessWidget {
         gradient: LinearGradient(
           colors: [
             AppColors.jobsSage,
-            AppColors.jobsSage.withOpacity(0.8),
+            AppColors.jobsSage.withValues(alpha: 0.8),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -484,7 +488,7 @@ class _HabitHeader extends StatelessWidget {
         borderRadius: BorderRadius.circular(32),
         boxShadow: [
           BoxShadow(
-            color: AppColors.jobsSage.withOpacity(0.3),
+            color: AppColors.jobsSage.withValues(alpha: 0.3),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -496,7 +500,7 @@ class _HabitHeader extends StatelessWidget {
             width: 72,
             height: 72,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Center(
@@ -522,9 +526,10 @@ class _HabitHeader extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
@@ -541,7 +546,7 @@ class _HabitHeader extends StatelessWidget {
                           fontFamily: 'DM Sans',
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
-                          color: Colors.white.withOpacity(0.9),
+                          color: Colors.white.withValues(alpha: 0.9),
                         ),
                       ),
                     ],
@@ -609,7 +614,7 @@ class _StatCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: AppColors.jobsObsidian.withOpacity(0.05),
+            color: AppColors.jobsObsidian.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -635,7 +640,7 @@ class _StatCard extends StatelessWidget {
             style: TextStyle(
               fontFamily: 'DM Sans',
               fontSize: 12,
-              color: AppColors.jobsObsidian.withOpacity(0.5),
+              color: AppColors.jobsObsidian.withValues(alpha: 0.5),
             ),
           ),
         ],
@@ -662,7 +667,7 @@ class _CategorySelector extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: AppColors.jobsObsidian.withOpacity(0.05),
+            color: AppColors.jobsObsidian.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -699,7 +704,7 @@ class _CategorySelector extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                         color: isSelected
                             ? Colors.white
-                            : AppColors.jobsObsidian.withOpacity(0.6),
+                            : AppColors.jobsObsidian.withValues(alpha: 0.6),
                       ),
                     ),
                   ],
@@ -733,7 +738,7 @@ class _DaySelector extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: AppColors.jobsObsidian.withOpacity(0.05),
+            color: AppColors.jobsObsidian.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -772,7 +777,7 @@ class _DaySelector extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                     color: isSelected
                         ? Colors.white
-                        : AppColors.jobsObsidian.withOpacity(0.4),
+                        : AppColors.jobsObsidian.withValues(alpha: 0.4),
                   ),
                 ),
               ),

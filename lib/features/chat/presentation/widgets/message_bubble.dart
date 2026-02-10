@@ -45,7 +45,7 @@ class MessageBubble extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: isUser
                         ? AppColors.cardBackground
-                        : AppColors.jobsSage.withOpacity(0.12),
+                        : AppColors.jobsSage.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.only(
                       topLeft: const Radius.circular(20),
                       topRight: const Radius.circular(20),
@@ -55,15 +55,16 @@ class MessageBubble extends StatelessWidget {
                     boxShadow: [
                       BoxShadow(
                         color: isUser
-                            ? Colors.black.withOpacity(0.05)
-                            : AppColors.jobsSage.withOpacity(0.15),
+                            ? Colors.black.withValues(alpha: 0.05)
+                            : AppColors.jobsSage.withValues(alpha: 0.15),
                         blurRadius: 10,
                         offset: const Offset(0, 2),
                       ),
                     ],
                     border: isUser
                         ? Border.all(
-                            color: AppColors.neutralMedium.withOpacity(0.5),
+                            color:
+                                AppColors.neutralMedium.withValues(alpha: 0.5),
                             width: 1,
                           )
                         : null,
@@ -100,7 +101,7 @@ class MessageBubble extends StatelessWidget {
               child: Text(
                 _formatTimestamp(message.timestamp),
                 style: AppTextStyles.chatTimestamp.copyWith(
-                  color: AppColors.textSecondary.withOpacity(0.6),
+                  color: AppColors.textSecondary.withValues(alpha: 0.6),
                 ),
               ),
             ),
@@ -144,7 +145,7 @@ class _MessageContent extends StatelessWidget {
               height: 1.5,
             )
           : AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.jobsObsidian.withOpacity(0.9),
+              color: AppColors.jobsObsidian.withValues(alpha: 0.9),
               height: 1.5,
             ),
     );
@@ -193,7 +194,7 @@ class CoachAvatar extends StatelessWidget {
         gradient: LinearGradient(
           colors: [
             AppColors.jobsSage,
-            AppColors.jobsSage.withOpacity(0.8),
+            AppColors.jobsSage.withValues(alpha: 0.8),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -201,7 +202,7 @@ class CoachAvatar extends StatelessWidget {
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: AppColors.jobsSage.withOpacity(0.3),
+            color: AppColors.jobsSage.withValues(alpha: 0.3),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -264,7 +265,7 @@ class StreamingMessageBubble extends StatelessWidget {
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               decoration: BoxDecoration(
-                color: AppColors.jobsSage.withOpacity(0.12),
+                color: AppColors.jobsSage.withValues(alpha: 0.12),
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(20),
                   topRight: Radius.circular(20),
@@ -273,7 +274,7 @@ class StreamingMessageBubble extends StatelessWidget {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.jobsSage.withOpacity(0.15),
+                    color: AppColors.jobsSage.withValues(alpha: 0.15),
                     blurRadius: 10,
                     offset: const Offset(0, 2),
                   ),
@@ -293,7 +294,8 @@ class StreamingMessageBubble extends StatelessWidget {
                           child: Text(
                             content,
                             style: AppTextStyles.bodyMedium.copyWith(
-                              color: AppColors.jobsObsidian.withOpacity(0.9),
+                              color:
+                                  AppColors.jobsObsidian.withValues(alpha: 0.9),
                               height: 1.5,
                             ),
                           ),

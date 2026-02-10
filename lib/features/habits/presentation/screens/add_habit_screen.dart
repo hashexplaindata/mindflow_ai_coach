@@ -33,7 +33,8 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
           content: const Text('Please enter a habit name'),
           backgroundColor: AppColors.primaryOrangeDark,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       );
       return;
@@ -92,9 +93,12 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
             child: GestureDetector(
               onTap: _isCreating ? null : _createHabit,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 decoration: BoxDecoration(
-                  color: _isCreating ? AppColors.jobsObsidian.withOpacity(0.3) : AppColors.jobsObsidian,
+                  color: _isCreating
+                      ? AppColors.jobsObsidian.withValues(alpha: 0.3)
+                      : AppColors.jobsObsidian,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: _isCreating
@@ -132,7 +136,7 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.jobsObsidian.withOpacity(0.05),
+                    color: AppColors.jobsObsidian.withValues(alpha: 0.05),
                     blurRadius: 10,
                     offset: const Offset(0, 2),
                   ),
@@ -149,7 +153,7 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
                           width: 56,
                           height: 56,
                           decoration: BoxDecoration(
-                            color: AppColors.jobsSage.withOpacity(0.1),
+                            color: AppColors.jobsSage.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Center(
@@ -176,7 +180,8 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
                               fontFamily: 'DM Sans',
                               fontSize: 18,
                               fontWeight: FontWeight.w500,
-                              color: AppColors.jobsObsidian.withOpacity(0.3),
+                              color:
+                                  AppColors.jobsObsidian.withValues(alpha: 0.3),
                             ),
                             border: InputBorder.none,
                             contentPadding: EdgeInsets.zero,
@@ -265,7 +270,7 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: AppColors.jobsObsidian.withOpacity(0.1),
+                  color: AppColors.jobsObsidian.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -295,8 +300,8 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
                       height: 52,
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? AppColors.jobsSage.withOpacity(0.2)
-                            : AppColors.jobsObsidian.withOpacity(0.05),
+                            ? AppColors.jobsSage.withValues(alpha: 0.2)
+                            : AppColors.jobsObsidian.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(16),
                         border: isSelected
                             ? Border.all(color: AppColors.jobsSage, width: 2)
@@ -336,7 +341,7 @@ class _CategorySelector extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: AppColors.jobsObsidian.withOpacity(0.05),
+            color: AppColors.jobsObsidian.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -402,7 +407,9 @@ class _CategoryChip extends StatelessWidget {
                   fontFamily: 'DM Sans',
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: isSelected ? Colors.white : AppColors.jobsObsidian.withOpacity(0.6),
+                  color: isSelected
+                      ? Colors.white
+                      : AppColors.jobsObsidian.withValues(alpha: 0.6),
                 ),
               ),
             ],
@@ -433,7 +440,7 @@ class _DaySelector extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: AppColors.jobsObsidian.withOpacity(0.05),
+            color: AppColors.jobsObsidian.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -470,7 +477,9 @@ class _DaySelector extends StatelessWidget {
                     fontFamily: 'DM Sans',
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: isSelected ? Colors.white : AppColors.jobsObsidian.withOpacity(0.4),
+                    color: isSelected
+                        ? Colors.white
+                        : AppColors.jobsObsidian.withValues(alpha: 0.4),
                   ),
                 ),
               ),
@@ -506,7 +515,7 @@ class _SuggestionsList extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.jobsObsidian.withOpacity(0.03),
+                  color: AppColors.jobsObsidian.withValues(alpha: 0.03),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),

@@ -18,7 +18,7 @@ class BottomNavBar extends StatelessWidget {
         color: AppColors.jobsCream,
         boxShadow: [
           BoxShadow(
-            color: AppColors.jobsObsidian.withOpacity(0.05),
+            color: AppColors.jobsObsidian.withValues(alpha: 0.05),
             blurRadius: 20,
             offset: const Offset(0, -5),
           ),
@@ -90,7 +90,9 @@ class _NavItem extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.jobsSage.withOpacity(0.15) : Colors.transparent,
+          color: isSelected
+              ? AppColors.jobsSage.withValues(alpha: 0.15)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(24),
         ),
         child: Column(
@@ -99,7 +101,9 @@ class _NavItem extends StatelessWidget {
             Icon(
               icon,
               size: 24,
-              color: isSelected ? AppColors.jobsSage : AppColors.jobsObsidian.withOpacity(0.4),
+              color: isSelected
+                  ? AppColors.jobsSage
+                  : AppColors.jobsObsidian.withValues(alpha: 0.4),
             ),
             const SizedBox(height: 4),
             Text(
@@ -108,7 +112,9 @@ class _NavItem extends StatelessWidget {
                 fontFamily: 'DM Sans',
                 fontSize: 12,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: isSelected ? AppColors.jobsSage : AppColors.jobsObsidian.withOpacity(0.4),
+                color: isSelected
+                    ? AppColors.jobsSage
+                    : AppColors.jobsObsidian.withValues(alpha: 0.4),
               ),
             ),
           ],

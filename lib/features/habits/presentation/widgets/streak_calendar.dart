@@ -77,8 +77,18 @@ class _StreakCalendarState extends State<StreakCalendar> {
 
   Widget _buildHeader() {
     final monthNames = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December'
     ];
 
     final isAtCurrentMonth = _focusedMonth.year == _today.year &&
@@ -106,7 +116,7 @@ class _StreakCalendarState extends State<StreakCalendar> {
           onPressed: isAtCurrentMonth ? null : _nextMonth,
           icon: const Icon(Icons.chevron_right_rounded),
           color: isAtCurrentMonth
-              ? AppColors.jobsObsidian.withOpacity(0.3)
+              ? AppColors.jobsObsidian.withValues(alpha: 0.3)
               : AppColors.jobsObsidian,
           iconSize: 28,
         ),
@@ -128,7 +138,7 @@ class _StreakCalendarState extends State<StreakCalendar> {
                     fontFamily: 'DM Sans',
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.jobsObsidian.withOpacity(0.4),
+                    color: AppColors.jobsObsidian.withValues(alpha: 0.4),
                   ),
                 ),
               ))
@@ -137,8 +147,10 @@ class _StreakCalendarState extends State<StreakCalendar> {
   }
 
   Widget _buildCalendarGrid() {
-    final firstDayOfMonth = DateTime(_focusedMonth.year, _focusedMonth.month, 1);
-    final daysInMonth = DateTime(_focusedMonth.year, _focusedMonth.month + 1, 0).day;
+    final firstDayOfMonth =
+        DateTime(_focusedMonth.year, _focusedMonth.month, 1);
+    final daysInMonth =
+        DateTime(_focusedMonth.year, _focusedMonth.month + 1, 0).day;
     final startingWeekday = firstDayOfMonth.weekday % 7;
 
     final days = <Widget>[];
@@ -174,7 +186,7 @@ class _StreakCalendarState extends State<StreakCalendar> {
           color: isCompleted
               ? AppColors.jobsSage
               : isToday
-                  ? AppColors.jobsSage.withOpacity(0.15)
+                  ? AppColors.jobsSage.withValues(alpha: 0.15)
                   : Colors.transparent,
           shape: BoxShape.circle,
         ),
@@ -184,9 +196,10 @@ class _StreakCalendarState extends State<StreakCalendar> {
             style: TextStyle(
               fontFamily: 'DM Sans',
               fontSize: 14,
-              fontWeight: isToday || isCompleted ? FontWeight.w600 : FontWeight.normal,
+              fontWeight:
+                  isToday || isCompleted ? FontWeight.w600 : FontWeight.normal,
               color: isFuture
-                  ? AppColors.jobsObsidian.withOpacity(0.2)
+                  ? AppColors.jobsObsidian.withValues(alpha: 0.2)
                   : isCompleted
                       ? Colors.white
                       : AppColors.jobsObsidian,
@@ -217,7 +230,7 @@ class StreakHeatmap extends StatelessWidget {
   Widget build(BuildContext context) {
     final today = DateTime.now();
     final startDate = today.subtract(Duration(days: weeksToShow * 7 - 1));
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -240,7 +253,7 @@ class StreakHeatmap extends StatelessWidget {
                   style: TextStyle(
                     fontFamily: 'DM Sans',
                     fontSize: 11,
-                    color: AppColors.jobsObsidian.withOpacity(0.5),
+                    color: AppColors.jobsObsidian.withValues(alpha: 0.5),
                   ),
                 ),
                 const SizedBox(width: 4),
@@ -251,7 +264,7 @@ class StreakHeatmap extends StatelessWidget {
                   style: TextStyle(
                     fontFamily: 'DM Sans',
                     fontSize: 11,
-                    color: AppColors.jobsObsidian.withOpacity(0.5),
+                    color: AppColors.jobsObsidian.withValues(alpha: 0.5),
                   ),
                 ),
               ],
@@ -267,7 +280,8 @@ class StreakHeatmap extends StatelessWidget {
               return Expanded(
                 child: Column(
                   children: List.generate(7, (dayIndex) {
-                    final date = startDate.add(Duration(days: weekIndex * 7 + dayIndex));
+                    final date =
+                        startDate.add(Duration(days: weekIndex * 7 + dayIndex));
                     if (date.isAfter(today)) {
                       return const SizedBox(height: 12, width: 12);
                     }
@@ -279,7 +293,7 @@ class StreakHeatmap extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: _isCompleted(date)
                               ? AppColors.jobsSage
-                              : AppColors.jobsSage.withOpacity(0.1),
+                              : AppColors.jobsSage.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -301,7 +315,7 @@ class StreakHeatmap extends StatelessWidget {
           width: 10,
           height: 10,
           decoration: BoxDecoration(
-            color: AppColors.jobsSage.withOpacity(0.1),
+            color: AppColors.jobsSage.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(2),
           ),
         ),
@@ -310,7 +324,7 @@ class StreakHeatmap extends StatelessWidget {
           width: 10,
           height: 10,
           decoration: BoxDecoration(
-            color: AppColors.jobsSage.withOpacity(0.4),
+            color: AppColors.jobsSage.withValues(alpha: 0.4),
             borderRadius: BorderRadius.circular(2),
           ),
         ),
@@ -319,7 +333,7 @@ class StreakHeatmap extends StatelessWidget {
           width: 10,
           height: 10,
           decoration: BoxDecoration(
-            color: AppColors.jobsSage.withOpacity(0.7),
+            color: AppColors.jobsSage.withValues(alpha: 0.7),
             borderRadius: BorderRadius.circular(2),
           ),
         ),

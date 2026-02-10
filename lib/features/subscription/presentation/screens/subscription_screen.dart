@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/services/api_service.dart';
 import '../../../auth/presentation/providers/user_provider.dart';
 
-class SubscriptionScreen extends StatefulWidget {
+class SubscriptionScreen extends ConsumerStatefulWidget {
   const SubscriptionScreen({super.key});
 
   @override
-  State<SubscriptionScreen> createState() => _SubscriptionScreenState();
+  ConsumerState<SubscriptionScreen> createState() => _SubscriptionScreenState();
 }
 
-class _SubscriptionScreenState extends State<SubscriptionScreen> {
+class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
   bool _isAnnual = true;
   bool _isLoading = true;
   bool _isSubscribing = false;
@@ -33,10 +33,10 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     try {
       final apiService = ApiService();
       final products = await apiService.getProducts();
-      
+
       setState(() {
         _products = products;
-        
+
         for (final product in products) {
           final prices = product['prices'] as List? ?? [];
           for (final price in prices) {
@@ -44,7 +44,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
             final interval = recurring?['interval'];
             final unitAmount = price['unit_amount'] as int? ?? 0;
             final priceStr = '\$${(unitAmount / 100).toStringAsFixed(2)}';
-            
+
             if (interval == 'month') {
               _monthlyPriceId = price['id'];
               _monthlyPrice = priceStr;
@@ -91,17 +91,22 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [AppColors.primaryOrange, AppColors.primaryOrangeDark],
+                          colors: [
+                            AppColors.primaryOrange,
+                            AppColors.primaryOrangeDark
+                          ],
                         ),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: const [
-                          Icon(Icons.workspace_premium, size: 16, color: Colors.white),
+                          Icon(Icons.workspace_premium,
+                              size: 16, color: Colors.white),
                           SizedBox(width: 4),
                           Text(
                             'PREMIUM',
@@ -119,9 +124,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                     const SizedBox(width: 48),
                   ],
                 ),
-                
                 const SizedBox(height: AppSpacing.spacing32),
-                
                 const Text(
                   'Unlock Your\nFull Potential',
                   style: TextStyle(
@@ -133,9 +136,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                     letterSpacing: -0.5,
                   ),
                 ),
-                
                 const SizedBox(height: AppSpacing.spacing32),
-                
                 const Text(
                   'FREE FEATURES',
                   style: TextStyle(
@@ -147,7 +148,6 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.spacing16),
-                
                 _FeatureItem(
                   icon: Icons.check_circle,
                   text: 'Basic meditation sessions',
@@ -163,9 +163,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                   text: 'Progress tracking',
                   isIncluded: true,
                 ),
-                
                 const SizedBox(height: AppSpacing.spacing24),
-                
                 const Text(
                   'PREMIUM FEATURES',
                   style: TextStyle(
@@ -177,7 +175,6 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.spacing16),
-                
                 _FeatureItem(
                   icon: Icons.star,
                   text: 'All meditation sessions',
@@ -208,9 +205,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                   isIncluded: false,
                   isPremium: true,
                 ),
-                
                 const SizedBox(height: AppSpacing.spacing32),
-                
                 if (_isLoading)
                   const Center(child: CircularProgressIndicator())
                 else
@@ -238,13 +233,12 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                       ),
                     ],
                   ),
-                
                 const SizedBox(height: AppSpacing.spacing24),
-                
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: _isSubscribing ? null : () => _handleSubscribe(context),
+                    onPressed:
+                        _isSubscribing ? null : () => _handleSubscribe(context),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.jobsObsidian,
                       foregroundColor: AppColors.jobsCream,
@@ -259,7 +253,8 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                             height: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation(AppColors.jobsCream),
+                              valueColor:
+                                  AlwaysStoppedAnimation(AppColors.jobsCream),
                             ),
                           )
                         : const Text(
@@ -272,20 +267,17 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                           ),
                   ),
                 ),
-                
                 const SizedBox(height: AppSpacing.spacing16),
-                
                 Center(
                   child: Text(
                     'Cancel anytime. No commitments.',
                     style: TextStyle(
                       fontFamily: 'DM Sans',
                       fontSize: 13,
-                      color: AppColors.jobsObsidian.withOpacity(0.5),
+                      color: AppColors.jobsObsidian.withValues(alpha: 0.5),
                     ),
                   ),
                 ),
-                
                 const SizedBox(height: AppSpacing.spacing24),
               ],
             ),
@@ -297,14 +289,15 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
   void _handleSubscribe(BuildContext context) async {
     final priceId = _isAnnual ? _annualPriceId : _monthlyPriceId;
-    
+
     if (priceId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('No pricing available. Please try again later.'),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),
       );
       return;
@@ -313,23 +306,23 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     setState(() => _isSubscribing = true);
 
     try {
-      final userProvider = context.read<UserProvider>();
+      final userState = ref.read(userProvider);
       final apiService = ApiService();
-      
+
       final checkoutUrl = await apiService.createCheckoutSession(
         priceId: priceId,
-        userId: userProvider.userId,
-        email: userProvider.email,
+        userId: userState.userId ?? '',
+        email: userState.email ?? '',
       );
 
       if (checkoutUrl != null) {
         final uri = Uri.parse(checkoutUrl);
         if (await canLaunchUrl(uri)) {
           await launchUrl(uri, mode: LaunchMode.externalApplication);
-          
+
           await Future.delayed(const Duration(seconds: 2));
-          await userProvider.refreshSubscriptionStatus();
-          
+          await ref.read(userProvider.notifier).refreshSubscriptionStatus();
+
           if (mounted) {
             Navigator.of(context).pop();
           }
@@ -345,7 +338,8 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
             content: Text('Error: ${e.toString()}'),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           ),
         );
       }
@@ -387,7 +381,7 @@ class _FeatureItem extends StatelessWidget {
             style: TextStyle(
               fontFamily: 'DM Sans',
               fontSize: 15,
-              color: AppColors.jobsObsidian.withOpacity(0.8),
+              color: AppColors.jobsObsidian.withValues(alpha: 0.8),
             ),
           ),
         ],
@@ -423,10 +417,12 @@ class _PricingCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected ? AppColors.jobsObsidian : Colors.white,
           borderRadius: BorderRadius.circular(24),
-          border: isSelected ? null : Border.all(
-            color: AppColors.jobsObsidian.withOpacity(0.1),
-            width: 2,
-          ),
+          border: isSelected
+              ? null
+              : Border.all(
+                  color: AppColors.jobsObsidian.withValues(alpha: 0.1),
+                  width: 2,
+                ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -435,9 +431,9 @@ class _PricingCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: isSelected 
-                    ? AppColors.primaryOrange 
-                    : AppColors.primaryOrange.withOpacity(0.15),
+                  color: isSelected
+                      ? AppColors.primaryOrange
+                      : AppColors.primaryOrange.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -458,7 +454,9 @@ class _PricingCard extends StatelessWidget {
                 fontFamily: 'DM Sans',
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: isSelected ? Colors.white.withOpacity(0.7) : AppColors.jobsObsidian.withOpacity(0.6),
+                color: isSelected
+                    ? Colors.white.withValues(alpha: 0.7)
+                    : AppColors.jobsObsidian.withValues(alpha: 0.6),
               ),
             ),
             const SizedBox(height: 8),
@@ -482,7 +480,9 @@ class _PricingCard extends StatelessWidget {
                     style: TextStyle(
                       fontFamily: 'DM Sans',
                       fontSize: 12,
-                      color: isSelected ? Colors.white.withOpacity(0.6) : AppColors.jobsObsidian.withOpacity(0.5),
+                      color: isSelected
+                          ? Colors.white.withValues(alpha: 0.6)
+                          : AppColors.jobsObsidian.withValues(alpha: 0.5),
                     ),
                   ),
                 ),

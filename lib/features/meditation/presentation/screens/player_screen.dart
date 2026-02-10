@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:math' as math;
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
@@ -13,16 +13,17 @@ import '../../data/binaural_audio_service.dart';
 import '../widgets/breathing_indicator.dart';
 import '../widgets/ambient_sound_picker.dart';
 
-class PlayerScreen extends StatefulWidget {
+class PlayerScreen extends ConsumerStatefulWidget {
   final MeditationSession meditation;
 
   const PlayerScreen({super.key, required this.meditation});
 
   @override
-  State<PlayerScreen> createState() => _PlayerScreenState();
+  ConsumerState<PlayerScreen> createState() => _PlayerScreenState();
 }
 
-class _PlayerScreenState extends State<PlayerScreen> with TickerProviderStateMixin {
+class _PlayerScreenState extends ConsumerState<PlayerScreen>
+    with TickerProviderStateMixin {
   bool _isPlaying = false;
   late int _remainingSeconds;
   late int _totalSeconds;
@@ -33,11 +34,11 @@ class _PlayerScreenState extends State<PlayerScreen> with TickerProviderStateMix
   late AnimationController _promptFadeController;
   late Animation<double> _promptFadeAnimation;
   bool _isLoggingSession = false;
-  
+
   GuidedContent? _guidedContent;
   GuidedPrompt? _currentPrompt;
   String _displayedPromptText = '';
-  
+
   final AmbientSoundService _ambientSoundService = AmbientSoundService();
   final BinauralAudioService _binauralAudioService = BinauralAudioService();
 
@@ -46,29 +47,29 @@ class _PlayerScreenState extends State<PlayerScreen> with TickerProviderStateMix
     super.initState();
     _totalSeconds = widget.meditation.durationMinutes * 60;
     _remainingSeconds = _totalSeconds;
-    
+
     _guidedContent = GuidedMeditationScripts.getScript(widget.meditation.id);
-    
+
     _progressController = AnimationController(
       vsync: this,
       duration: Duration(seconds: _totalSeconds),
     );
-    
+
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
     )..repeat(reverse: true);
-    
+
     _promptFadeController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600),
     );
-    
+
     _promptFadeAnimation = CurvedAnimation(
       parent: _promptFadeController,
       curve: Curves.easeInOut,
     );
-    
+
     if (_guidedContent != null && _guidedContent!.prompts.isNotEmpty) {
       _currentPrompt = _guidedContent!.prompts.first;
       _displayedPromptText = _currentPrompt!.text;
@@ -89,9 +90,9 @@ class _PlayerScreenState extends State<PlayerScreen> with TickerProviderStateMix
 
   void _updateCurrentPrompt() {
     if (_guidedContent == null) return;
-    
+
     final newPrompt = _guidedContent!.getPromptAt(_elapsedSeconds);
-    
+
     if (newPrompt != null && newPrompt != _currentPrompt) {
       _promptFadeController.reverse().then((_) {
         if (mounted) {
@@ -111,9 +112,23 @@ class _PlayerScreenState extends State<PlayerScreen> with TickerProviderStateMix
     });
 
     if (_isPlaying) {
+      // Auto-start binaural audio based on meditation category if not already playing
+      if (!_binauralAudioService.isPlaying) {
+        final brainwaveType =
+            _getBrainwaveForCategory(widget.meditation.category);
+        if (brainwaveType != BrainwaveType.none) {
+          _binauralAudioService.startBinauralBeat(
+            type: brainwaveType,
+            volume: 0.3,
+          );
+        }
+      } else {
+        _binauralAudioService.resume();
+      }
+
       _ambientSoundService.resume();
-      _binauralAudioService.resume();
-      _progressController.forward(from: 1 - (_remainingSeconds / _totalSeconds));
+      _progressController.forward(
+          from: 1 - (_remainingSeconds / _totalSeconds));
       _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
         if (_remainingSeconds > 0) {
           setState(() {
@@ -137,21 +152,37 @@ class _PlayerScreenState extends State<PlayerScreen> with TickerProviderStateMix
     }
   }
 
+  /// Get the recommended brainwave type for a meditation category
+  BrainwaveType _getBrainwaveForCategory(MeditationCategory category) {
+    switch (category) {
+      case MeditationCategory.sleep:
+        return BrainwaveType.delta; // Deep sleep waves (2Hz)
+      case MeditationCategory.stress:
+      case MeditationCategory.anxiety:
+        return BrainwaveType.alpha; // Relaxation waves (10Hz)
+      case MeditationCategory.focus:
+        return BrainwaveType.beta; // Focus/concentration waves (15Hz)
+      case MeditationCategory.relationships:
+      case MeditationCategory.selfEsteem:
+        return BrainwaveType.theta; // Meditation/processing waves (6Hz)
+    }
+  }
+
   Future<void> _completeSession() async {
     if (_isLoggingSession) return;
-    
+
     await _ambientSoundService.stop();
     await _binauralAudioService.stop();
-    
+
     setState(() {
       _isLoggingSession = true;
     });
 
     final completedSeconds = _totalSeconds - _remainingSeconds;
-    
+
     try {
-      final userProvider = context.read<UserProvider>();
-      await userProvider.logMeditationSession(
+      final userNotifier = ref.read(userProvider.notifier);
+      await userNotifier.logMeditationSession(
         widget.meditation.id,
         completedSeconds,
       );
@@ -179,7 +210,7 @@ class _PlayerScreenState extends State<PlayerScreen> with TickerProviderStateMix
 
   void _showCompletionDialog() {
     final completedMinutes = (_totalSeconds - _remainingSeconds) ~/ 60;
-    
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -205,7 +236,7 @@ class _PlayerScreenState extends State<PlayerScreen> with TickerProviderStateMix
                         gradient: LinearGradient(
                           colors: [
                             AppColors.jobsSage,
-                            AppColors.jobsSage.withOpacity(0.7),
+                            AppColors.jobsSage.withValues(alpha: 0.7),
                           ],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
@@ -238,14 +269,14 @@ class _PlayerScreenState extends State<PlayerScreen> with TickerProviderStateMix
                 style: TextStyle(
                   fontFamily: 'DM Sans',
                   fontSize: 16,
-                  color: AppColors.jobsObsidian.withOpacity(0.7),
+                  color: AppColors.jobsObsidian.withValues(alpha: 0.7),
                   height: 1.4,
                 ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
               Text(
-                completedMinutes > 0 
+                completedMinutes > 0
                     ? '+$completedMinutes minutes added to your journey'
                     : 'Every moment of mindfulness counts!',
                 style: const TextStyle(
@@ -327,9 +358,10 @@ class _PlayerScreenState extends State<PlayerScreen> with TickerProviderStateMix
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
-                      color: AppColors.jobsSage.withOpacity(0.15),
+                      color: AppColors.jobsSage.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
@@ -361,24 +393,22 @@ class _PlayerScreenState extends State<PlayerScreen> with TickerProviderStateMix
                     const SizedBox(width: 48),
                 ],
               ),
-              
               const SizedBox(height: AppSpacing.spacing24),
-              
               if (hasGuidedContent) ...[
                 BreathingIndicator(
                   currentPromptType: _currentPrompt?.type,
                   isPlaying: _isPlaying,
                 ),
                 const SizedBox(height: AppSpacing.spacing32),
-                
                 SizedBox(
                   height: 100,
                   child: FadeTransition(
                     opacity: _promptFadeAnimation,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 16),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.7),
+                        color: Colors.white.withValues(alpha: 0.7),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Center(
@@ -388,7 +418,8 @@ class _PlayerScreenState extends State<PlayerScreen> with TickerProviderStateMix
                             fontFamily: 'DM Sans',
                             fontSize: 20,
                             fontWeight: FontWeight.w500,
-                            color: AppColors.jobsObsidian.withOpacity(0.85),
+                            color:
+                                AppColors.jobsObsidian.withValues(alpha: 0.85),
                             height: 1.4,
                           ),
                           textAlign: TextAlign.center,
@@ -399,13 +430,14 @@ class _PlayerScreenState extends State<PlayerScreen> with TickerProviderStateMix
                 ),
                 const SizedBox(height: AppSpacing.spacing24),
               ],
-              
               Expanded(
                 child: Center(
                   child: AnimatedBuilder(
                     animation: _pulseController,
                     builder: (context, child) {
-                      final scale = _isPlaying ? 1.0 + (_pulseController.value * 0.015) : 1.0;
+                      final scale = _isPlaying
+                          ? 1.0 + (_pulseController.value * 0.015)
+                          : 1.0;
                       return Transform.scale(
                         scale: scale,
                         child: SizedBox(
@@ -436,7 +468,8 @@ class _PlayerScreenState extends State<PlayerScreen> with TickerProviderStateMix
                                     style: TextStyle(
                                       fontFamily: 'DM Sans',
                                       fontSize: 14,
-                                      color: AppColors.jobsObsidian.withOpacity(0.5),
+                                      color: AppColors.jobsObsidian
+                                          .withValues(alpha: 0.5),
                                     ),
                                   ),
                                 ],
@@ -449,7 +482,6 @@ class _PlayerScreenState extends State<PlayerScreen> with TickerProviderStateMix
                   ),
                 ),
               ),
-              
               Text(
                 widget.meditation.title,
                 style: const TextStyle(
@@ -469,7 +501,7 @@ class _PlayerScreenState extends State<PlayerScreen> with TickerProviderStateMix
                     style: TextStyle(
                       fontFamily: 'DM Sans',
                       fontSize: 16,
-                      color: AppColors.jobsObsidian.withOpacity(0.6),
+                      color: AppColors.jobsObsidian.withValues(alpha: 0.6),
                       height: 1.5,
                     ),
                     textAlign: TextAlign.center,
@@ -477,9 +509,7 @@ class _PlayerScreenState extends State<PlayerScreen> with TickerProviderStateMix
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-              
               const SizedBox(height: AppSpacing.spacing16),
-              
               AmbientSoundPicker(
                 onSoundChanged: (soundType) {
                   if (_isPlaying && soundType != AmbientSoundType.none) {
@@ -492,15 +522,13 @@ class _PlayerScreenState extends State<PlayerScreen> with TickerProviderStateMix
                   }
                 },
               ),
-              
               const SizedBox(height: AppSpacing.spacing24),
-              
               _isLoggingSession
                   ? Container(
                       width: 80,
                       height: 80,
                       decoration: BoxDecoration(
-                        color: AppColors.jobsObsidian.withOpacity(0.1),
+                        color: AppColors.jobsObsidian.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: const Center(
@@ -509,7 +537,8 @@ class _PlayerScreenState extends State<PlayerScreen> with TickerProviderStateMix
                           height: 32,
                           child: CircularProgressIndicator(
                             strokeWidth: 3,
-                            valueColor: AlwaysStoppedAnimation(AppColors.jobsSage),
+                            valueColor:
+                                AlwaysStoppedAnimation(AppColors.jobsSage),
                           ),
                         ),
                       ),
@@ -525,32 +554,32 @@ class _PlayerScreenState extends State<PlayerScreen> with TickerProviderStateMix
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.jobsObsidian.withOpacity(_isPlaying ? 0.4 : 0.3),
+                              color: AppColors.jobsObsidian
+                                  .withValues(alpha: _isPlaying ? 0.4 : 0.3),
                               blurRadius: _isPlaying ? 30 : 20,
                               offset: const Offset(0, 10),
                             ),
                           ],
                         ),
                         child: Icon(
-                          _isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                          _isPlaying
+                              ? Icons.pause_rounded
+                              : Icons.play_arrow_rounded,
                           color: AppColors.jobsCream,
                           size: 40,
                         ),
                       ),
                     ),
-              
               const SizedBox(height: AppSpacing.spacing24),
-              
               if (!_isPlaying && !hasStarted && hasGuidedContent)
                 Text(
                   'Tap play to begin your guided meditation',
                   style: TextStyle(
                     fontFamily: 'DM Sans',
                     fontSize: 14,
-                    color: AppColors.jobsObsidian.withOpacity(0.5),
+                    color: AppColors.jobsObsidian.withValues(alpha: 0.5),
                   ),
                 ),
-              
               const SizedBox(height: AppSpacing.spacing24),
             ],
           ),
@@ -575,7 +604,7 @@ class _ProgressRingPainter extends CustomPainter {
     final radius = (size.width - strokeWidth) / 2;
 
     final trackPaint = Paint()
-      ..color = AppColors.jobsSage.withOpacity(0.15)
+      ..color = AppColors.jobsSage.withValues(alpha: 0.15)
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;

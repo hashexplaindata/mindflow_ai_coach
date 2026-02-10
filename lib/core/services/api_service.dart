@@ -9,12 +9,28 @@ class ApiService {
 
   String get _baseUrl {
     if (kIsWeb) {
-      return '';
+      return ''; // Indicates no backend on web for this MVP
     }
     return 'http://localhost:3000';
   }
 
+  bool get _shouldMock {
+    // FORCE MOCK FOR MOBILE MVP
+    // Server backend is not reachable from mobile without deployment/network config.
+    // We rely on local persistence and RevenueCat for MVP.
+    return true; 
+  }
+
   Future<Map<String, dynamic>> createUser(String id, String email) async {
+    if (_shouldMock) {
+      // Mock successful user creation
+      return {
+        'id': id,
+        'email': email,
+        'createdAt': DateTime.now().toIso8601String()
+      };
+    }
+
     final response = await http.post(
       Uri.parse('$_baseUrl/api/users'),
       headers: {'Content-Type': 'application/json'},
@@ -29,6 +45,11 @@ class ApiService {
   }
 
   Future<List<Map<String, dynamic>>> getProducts() async {
+    if (_shouldMock) {
+      // Mock products
+      return [];
+    }
+
     final response = await http.get(Uri.parse('$_baseUrl/api/products'));
 
     if (response.statusCode == 200) {
@@ -46,6 +67,10 @@ class ApiService {
     String? successUrl,
     String? cancelUrl,
   }) async {
+    if (_shouldMock) {
+      return null;
+    }
+
     final response = await http.post(
       Uri.parse('$_baseUrl/api/checkout'),
       headers: {'Content-Type': 'application/json'},
@@ -67,6 +92,11 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> getSubscription(String userId) async {
+    if (_shouldMock) {
+      // Mock no active subscription for free user
+      return {'status': 'none'};
+    }
+
     final response = await http.get(
       Uri.parse('$_baseUrl/api/subscription/$userId'),
     );
@@ -83,6 +113,10 @@ class ApiService {
     required String meditationId,
     required int durationSeconds,
   }) async {
+    if (_shouldMock) {
+      return; // Successfully "logged" locally
+    }
+
     final response = await http.post(
       Uri.parse('$_baseUrl/api/sessions'),
       headers: {'Content-Type': 'application/json'},
@@ -99,6 +133,15 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> getProgress(String userId) async {
+    if (_shouldMock) {
+      // Return empty progress, reliance is on local storage in UserProvider
+      return {
+        'totalMinutes': 0,
+        'currentStreak': 0,
+        'sessionsCompleted': 0,
+      };
+    }
+
     final response = await http.get(
       Uri.parse('$_baseUrl/api/progress/$userId'),
     );

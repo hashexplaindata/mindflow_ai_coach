@@ -1,4 +1,7 @@
 import 'dart:async';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
+/// RevenueCat Service for MindFlow AI Coach
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
@@ -28,11 +31,6 @@ class RevenueCatService {
   bool _isPro = false;
   bool _isInitialized = false;
 
-  // API Keys
-  // In production, these should be environment variables, but for this contest sprint
-  // we are using the provided test key directly as requested.
-  static const String _apiKey = 'test_XzdgbSXDiEZMaRkMNMSVmQtqVFG';
-
   // Product identifiers
   static const String entitlementId = 'pro';
 
@@ -50,18 +48,27 @@ class RevenueCatService {
     if (_isInitialized) return;
 
     try {
-      await Purchases.setLogLevel(LogLevel.debug);
-
-      PurchasesConfiguration configuration;
+      String? apiKey;
       if (defaultTargetPlatform == TargetPlatform.android) {
-        configuration = PurchasesConfiguration(_apiKey);
+        apiKey = dotenv.env['REVENUECAT_ANDROID_KEY'];
       } else if (defaultTargetPlatform == TargetPlatform.iOS) {
-        configuration = PurchasesConfiguration(_apiKey);
+        apiKey = dotenv.env['REVENUECAT_IOS_KEY'];
       } else {
         // Desktop/Web not supported for this sprint
+        debugPrint('RevenueCat: Web/Desktop not supported');
         _isInitialized = true;
         return;
       }
+
+      await Purchases.setLogLevel(LogLevel.debug);
+
+      if (apiKey == null || apiKey.isEmpty) {
+        debugPrint('RevenueCat: API key not found in .env');
+        _isInitialized = true;
+        return;
+      }
+
+      final configuration = PurchasesConfiguration(apiKey);
 
       await Purchases.configure(configuration);
 
@@ -101,6 +108,8 @@ class RevenueCatService {
 
   /// Check Pro status (fresh from server)
   Future<bool> checkProStatus() async {
+    if (kIsWeb) return _isPro; // Mock for web
+
     try {
       final customerInfo = await Purchases.getCustomerInfo();
       _updateProStatus(customerInfo);
@@ -114,6 +123,12 @@ class RevenueCatService {
   /// Display the Paywall
   /// Returns true if the user purchased or restored Pro
   Future<bool> showPaywall() async {
+    if (kIsWeb) {
+      debugPrint('RevenueCat: Paywall not supported on web');
+      // Mock successful purchase for testing web flow if needed, or just return false
+      return false;
+    }
+
     try {
       // Use the Paywall UI SDK to present the paywall
       // This automatically handles purchasing and restoring
@@ -135,6 +150,8 @@ class RevenueCatService {
 
   /// Show Customer Center (Self-Service Portal)
   Future<void> showCustomerCenter() async {
+    if (kIsWeb) return;
+
     try {
       // await RevenueCatUI.presentCustomerCenter();
       debugPrint('Customer Center not available in this SDK version');
@@ -145,6 +162,8 @@ class RevenueCatService {
 
   /// Purchase Pro subscription (Manual flow - use showPaywall instead)
   Future<bool> purchasePackage(Package package) async {
+    if (kIsWeb) return false;
+
     try {
       final customerInfo = await Purchases.purchasePackage(package);
       _updateProStatus(customerInfo);
@@ -157,6 +176,8 @@ class RevenueCatService {
 
   /// Restore previous purchases
   Future<bool> restorePurchases() async {
+    if (kIsWeb) return false;
+
     try {
       final customerInfo = await Purchases.restorePurchases();
       _updateProStatus(customerInfo);
@@ -169,6 +190,11 @@ class RevenueCatService {
 
   /// Set user identifier for cross-platform sync
   Future<void> setUserId(String userId) async {
+    if (kIsWeb) {
+      debugPrint('RevenueCat: Web mock login as $userId');
+      return;
+    }
+
     try {
       await Purchases.logIn(userId);
       await checkProStatus();
@@ -180,6 +206,11 @@ class RevenueCatService {
 
   /// Clear user on logout
   Future<void> logout() async {
+    if (kIsWeb) {
+      _setIsPro(false);
+      return;
+    }
+
     try {
       await Purchases.logOut();
       _setIsPro(false);

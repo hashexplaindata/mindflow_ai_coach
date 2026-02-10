@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:mindflow_ai_coach/features/coach/domain/models/coach.dart';
 
 import '../../../onboarding/domain/models/nlp_profile.dart';
 import '../../domain/models/message.dart';
@@ -32,6 +33,9 @@ class ChatProvider extends ChangeNotifier {
   bool _isSending = false;
   String? _errorMessage;
   NLPProfile _userProfile = NLPProfile.defaultProfile;
+  
+  // Active Coach
+  Coach _activeCoach = Coach.defaultCoach;
 
   // User ID (set after auth)
   String _userId = 'demo_user';
@@ -50,6 +54,7 @@ class ChatProvider extends ChangeNotifier {
   bool get isSending => _isSending;
   String? get errorMessage => _errorMessage;
   NLPProfile get userProfile => _userProfile;
+  Coach get activeCoach => _activeCoach;
   bool get hasMessages => _messages.isNotEmpty;
   int get currentStreak => _currentStreak;
   int get totalSessions => _totalSessions;
@@ -57,11 +62,19 @@ class ChatProvider extends ChangeNotifier {
   /// Initialize the provider
   Future<void> initialize() async {
     await _geminiService.initialize();
+    _geminiService.setActiveCoach(_activeCoach);
   }
 
   /// Set user ID (call after auth)
   void setUserId(String userId) {
     _userId = userId;
+  }
+
+  /// Set the active coach
+  void setActiveCoach(Coach coach) {
+    _activeCoach = coach;
+    _geminiService.setActiveCoach(coach);
+    notifyListeners();
   }
 
   /// Set user's NLP profile

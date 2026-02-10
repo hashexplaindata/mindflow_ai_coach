@@ -72,7 +72,7 @@ class _FlowStreakRingState extends State<FlowStreakRing>
               progress: _animation.value,
               strokeWidth: widget.strokeWidth,
               ringColor: AppColors.jobsSage,
-              trackColor: AppColors.jobsSage.withOpacity(0.15),
+              trackColor: AppColors.jobsSage.withValues(alpha: 0.15),
             ),
             child: Center(
               child: Column(
@@ -95,7 +95,7 @@ class _FlowStreakRingState extends State<FlowStreakRing>
                       fontFamily: 'DM Sans',
                       fontSize: widget.size * 0.09,
                       fontWeight: FontWeight.w500,
-                      color: AppColors.jobsObsidian.withOpacity(0.6),
+                      color: AppColors.jobsObsidian.withValues(alpha: 0.6),
                       letterSpacing: 0.5,
                     ),
                   ),

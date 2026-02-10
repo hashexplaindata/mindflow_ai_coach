@@ -1,0 +1,11 @@
+# MindFlow AI Coach Environment Variables
+# Copy this file to .env and fill in your values
+# NEVER commit .env to git!
+
+# Gemini API Key (from Google AI Studio)
+# Required for: Chat provider, Wisdom generation, Milton Model responses
+GEMINI_API_KEY=AIzaSyDHll6GvyVyREKdnZkJTf8SkUTUUuKjqA8
+
+# RevenueCat API Keys
+REVENUECAT_IOS_KEY=test_ZRouZRryZALmEgvIgepEIyCEoJs
+REVENUECAT_ANDROID_KEY=test_ZRouZRryZALmEgvIgepEIyCEoJs

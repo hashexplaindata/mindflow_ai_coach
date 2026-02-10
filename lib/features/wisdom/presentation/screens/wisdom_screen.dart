@@ -61,7 +61,8 @@ class _WisdomScreenState extends State<WisdomScreen>
                       onPressed: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (context) => const GratitudeJournalScreen(),
+                            builder: (context) =>
+                                const GratitudeJournalScreen(),
                           ),
                         );
                       },
@@ -90,7 +91,6 @@ class _WisdomScreenState extends State<WisdomScreen>
                     ),
                   ),
                 ),
-
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.all(AppSpacing.screenPadding),
@@ -100,20 +100,20 @@ class _WisdomScreenState extends State<WisdomScreen>
                         if (todaysWisdom != null) ...[
                           WisdomCard(
                             wisdom: todaysWisdom,
-                            isFavorite: wisdomProvider.isFavorite(todaysWisdom.id),
+                            isFavorite:
+                                wisdomProvider.isFavorite(todaysWisdom.id),
                             onFavoriteToggle: () {
                               wisdomProvider.toggleFavorite(todaysWisdom.id);
                               HapticFeedback.lightImpact();
                             },
                             onShare: () => _shareWisdom(todaysWisdom),
                           ),
-
                           const SizedBox(height: 32),
                         ],
-
                         GratitudePromptCard(
                           prompt: wisdomProvider.gratitudePrompt,
-                          hasWrittenToday: wisdomProvider.hasWrittenGratitudeToday,
+                          hasWrittenToday:
+                              wisdomProvider.hasWrittenGratitudeToday,
                           onSubmit: (content) {
                             wisdomProvider.addGratitudeEntry(
                               content: content,
@@ -127,9 +127,7 @@ class _WisdomScreenState extends State<WisdomScreen>
                             );
                           },
                         ),
-
                         const SizedBox(height: 32),
-
                         Row(
                           children: [
                             const Text(
@@ -146,7 +144,8 @@ class _WisdomScreenState extends State<WisdomScreen>
                               TextButton.icon(
                                 onPressed: () => _showFavorites(context),
                                 icon: const Icon(Icons.favorite, size: 16),
-                                label: Text('${wisdomProvider.favoriteIds.length} saved'),
+                                label: Text(
+                                    '${wisdomProvider.favoriteIds.length} saved'),
                               ),
                           ],
                         ),
@@ -154,13 +153,13 @@ class _WisdomScreenState extends State<WisdomScreen>
                     ),
                   ),
                 ),
-
                 SliverToBoxAdapter(
                   child: TabBar(
                     controller: _tabController,
                     isScrollable: true,
                     labelColor: AppColors.jobsObsidian,
-                    unselectedLabelColor: AppColors.jobsObsidian.withOpacity(0.4),
+                    unselectedLabelColor:
+                        AppColors.jobsObsidian.withValues(alpha: 0.4),
                     labelStyle: const TextStyle(
                       fontFamily: 'DM Sans',
                       fontSize: 14,
@@ -182,13 +181,13 @@ class _WisdomScreenState extends State<WisdomScreen>
                     ],
                   ),
                 ),
-
                 SliverFillRemaining(
                   child: TabBarView(
                     controller: _tabController,
                     children: [
                       _WisdomList(
-                        items: WisdomContent.getWisdomByTone(WisdomTone.motivation),
+                        items: WisdomContent.getWisdomByTone(
+                            WisdomTone.motivation),
                         wisdomProvider: wisdomProvider,
                       ),
                       _WisdomList(
@@ -196,13 +195,15 @@ class _WisdomScreenState extends State<WisdomScreen>
                         wisdomProvider: wisdomProvider,
                       ),
                       _WisdomList(
-                        items: WisdomContent.getWisdomByTone(WisdomTone.mindfulness),
+                        items: WisdomContent.getWisdomByTone(
+                            WisdomTone.mindfulness),
                         wisdomProvider: wisdomProvider,
                       ),
                       _WisdomList(
                         items: [
                           ...WisdomContent.getWisdomByTone(WisdomTone.growth),
-                          ...WisdomContent.getWisdomByTone(WisdomTone.gratitude),
+                          ...WisdomContent.getWisdomByTone(
+                              WisdomTone.gratitude),
                         ],
                         wisdomProvider: wisdomProvider,
                       ),
@@ -257,7 +258,7 @@ class _WisdomScreenState extends State<WisdomScreen>
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: AppColors.jobsObsidian.withOpacity(0.2),
+                        color: AppColors.jobsObsidian.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -286,7 +287,8 @@ class _WisdomScreenState extends State<WisdomScreen>
                             style: TextStyle(
                               fontFamily: 'DM Sans',
                               fontSize: 14,
-                              color: AppColors.jobsObsidian.withOpacity(0.5),
+                              color:
+                                  AppColors.jobsObsidian.withValues(alpha: 0.5),
                             ),
                           ),
                         ],

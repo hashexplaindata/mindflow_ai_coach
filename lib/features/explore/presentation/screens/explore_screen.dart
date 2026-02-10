@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../auth/presentation/providers/user_provider.dart';
@@ -9,16 +10,16 @@ import '../../../meditation/domain/models/sample_data.dart';
 import '../../../meditation/presentation/screens/player_screen.dart';
 import '../../../subscription/presentation/screens/subscription_screen.dart';
 
-class ExploreScreen extends StatefulWidget {
+class ExploreScreen extends ConsumerStatefulWidget {
   final MeditationCategory? initialCategory;
 
   const ExploreScreen({super.key, this.initialCategory});
 
   @override
-  State<ExploreScreen> createState() => _ExploreScreenState();
+  ConsumerState<ExploreScreen> createState() => _ExploreScreenState();
 }
 
-class _ExploreScreenState extends State<ExploreScreen> {
+class _ExploreScreenState extends ConsumerState<ExploreScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   MeditationCategory? _selectedCategory;
@@ -46,14 +47,16 @@ class _ExploreScreenState extends State<ExploreScreen> {
     return SampleData.allMeditations.where((m) {
       return m.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           m.description.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          m.category.displayName.toLowerCase().contains(_searchQuery.toLowerCase());
+          m.category.displayName
+              .toLowerCase()
+              .contains(_searchQuery.toLowerCase());
     }).toList();
   }
 
   void _handleMeditationTap(MeditationSession meditation) {
-    final userProvider = context.read<UserProvider>();
-    
-    if (meditation.isPremium && !userProvider.isSubscribed) {
+    final userState = ref.read(userProvider);
+
+    if (meditation.isPremium && !userState.isSubscribed) {
       Navigator.of(context).push(
         PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) =>
@@ -147,7 +150,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         borderRadius: BorderRadius.circular(32),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.jobsObsidian.withOpacity(0.05),
+                            color:
+                                AppColors.jobsObsidian.withValues(alpha: 0.05),
                             blurRadius: 10,
                             offset: const Offset(0, 2),
                           ),
@@ -165,11 +169,13 @@ class _ExploreScreenState extends State<ExploreScreen> {
                           hintText: 'Search meditations...',
                           hintStyle: TextStyle(
                             fontFamily: 'DM Sans',
-                            color: AppColors.jobsObsidian.withOpacity(0.4),
+                            color:
+                                AppColors.jobsObsidian.withValues(alpha: 0.4),
                           ),
                           prefixIcon: Icon(
                             Icons.search_rounded,
-                            color: AppColors.jobsObsidian.withOpacity(0.4),
+                            color:
+                                AppColors.jobsObsidian.withValues(alpha: 0.4),
                           ),
                           suffixIcon: _searchQuery.isNotEmpty
                               ? GestureDetector(
@@ -182,7 +188,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                   },
                                   child: Icon(
                                     Icons.close_rounded,
-                                    color: AppColors.jobsObsidian.withOpacity(0.4),
+                                    color: AppColors.jobsObsidian
+                                        .withValues(alpha: 0.4),
                                   ),
                                 )
                               : null,
@@ -200,7 +207,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
             ),
             if (_searchQuery.isNotEmpty) ...[
               SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenPadding),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.screenPadding),
                 sliver: SliverToBoxAdapter(
                   child: Row(
                     children: [
@@ -215,9 +223,10 @@ class _ExploreScreenState extends State<ExploreScreen> {
                       ),
                       const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: AppColors.jobsSage.withOpacity(0.15),
+                          color: AppColors.jobsSage.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
@@ -246,7 +255,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
                               Icon(
                                 Icons.search_off_rounded,
                                 size: 64,
-                                color: AppColors.jobsObsidian.withOpacity(0.2),
+                                color: AppColors.jobsObsidian
+                                    .withValues(alpha: 0.2),
                               ),
                               const SizedBox(height: 16),
                               Text(
@@ -255,7 +265,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                   fontFamily: 'DM Sans',
                                   fontSize: 18,
                                   fontWeight: FontWeight.w600,
-                                  color: AppColors.jobsObsidian.withOpacity(0.5),
+                                  color: AppColors.jobsObsidian
+                                      .withValues(alpha: 0.5),
                                 ),
                               ),
                               const SizedBox(height: 8),
@@ -264,7 +275,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                 style: TextStyle(
                                   fontFamily: 'DM Sans',
                                   fontSize: 14,
-                                  color: AppColors.jobsObsidian.withOpacity(0.4),
+                                  color: AppColors.jobsObsidian
+                                      .withValues(alpha: 0.4),
                                 ),
                               ),
                             ],
@@ -273,7 +285,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
                       ),
                     )
                   : SliverPadding(
-                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenPadding),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.screenPadding),
                       sliver: SliverList(
                         delegate: SliverChildBuilderDelegate(
                           (context, index) {
@@ -295,7 +308,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
                     final category = MeditationCategory.values[index];
-                    final meditations = SampleData.getMeditationsByCategory(category);
+                    final meditations =
+                        SampleData.getMeditationsByCategory(category);
                     return _CategorySection(
                       category: category,
                       meditations: meditations,
@@ -333,7 +347,8 @@ class _CategorySection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenPadding),
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.screenPadding),
             child: Row(
               children: [
                 Text(
@@ -358,11 +373,13 @@ class _CategorySection extends StatelessWidget {
             height: 160,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenPadding),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.screenPadding),
               itemCount: meditations.length,
               itemBuilder: (context, index) {
                 return Padding(
-                  padding: EdgeInsets.only(right: index < meditations.length - 1 ? 16 : 0),
+                  padding: EdgeInsets.only(
+                      right: index < meditations.length - 1 ? 16 : 0),
                   child: _MeditationCard(
                     meditation: meditations[index],
                     onTap: () => onMeditationTap(meditations[index]),
@@ -377,7 +394,7 @@ class _CategorySection extends StatelessWidget {
   }
 }
 
-class _MeditationCard extends StatelessWidget {
+class _MeditationCard extends ConsumerWidget {
   final MeditationSession meditation;
   final VoidCallback onTap;
 
@@ -387,114 +404,113 @@ class _MeditationCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    return Consumer<UserProvider>(
-      builder: (context, userProvider, child) {
-        final isLocked = meditation.isPremium && !userProvider.isSubscribed;
-        
-        return GestureDetector(
-          onTap: onTap,
-          child: Container(
-            width: 200,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.jobsObsidian.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userState = ref.watch(userProvider);
+    final isLocked = meditation.isPremium && !userState.isSubscribed;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 200,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.jobsObsidian.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.jobsSage.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        meditation.formattedDuration,
-                        style: const TextStyle(
-                          fontFamily: 'DM Sans',
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.jobsSage,
-                        ),
-                      ),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.jobsSage.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    meditation.formattedDuration,
+                    style: const TextStyle(
+                      fontFamily: 'DM Sans',
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.jobsSage,
                     ),
-                    const Spacer(),
-                    if (isLocked)
-                      Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryOrange.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(
-                          Icons.lock_rounded,
-                          size: 14,
-                          color: AppColors.primaryOrange,
-                        ),
-                      )
-                    else if (meditation.isPremium)
-                      Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: AppColors.jobsSage.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(
-                          Icons.star_rounded,
-                          size: 14,
-                          color: AppColors.jobsSage,
-                        ),
-                      ),
-                  ],
+                  ),
                 ),
                 const Spacer(),
-                Text(
-                  meditation.title,
-                  style: TextStyle(
-                    fontFamily: 'DM Sans',
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: isLocked
-                        ? AppColors.jobsObsidian.withOpacity(0.5)
-                        : AppColors.jobsObsidian,
-                    height: 1.3,
+                if (isLocked)
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryOrange.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.lock_rounded,
+                      size: 14,
+                      color: AppColors.primaryOrange,
+                    ),
+                  )
+                else if (meditation.isPremium)
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: AppColors.jobsSage.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.star_rounded,
+                      size: 14,
+                      color: AppColors.jobsSage,
+                    ),
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  meditation.description,
-                  style: TextStyle(
-                    fontFamily: 'DM Sans',
-                    fontSize: 12,
-                    color: AppColors.jobsObsidian.withOpacity(isLocked ? 0.3 : 0.5),
-                    height: 1.3,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
               ],
             ),
-          ),
-        );
-      },
+            const Spacer(),
+            Text(
+              meditation.title,
+              style: TextStyle(
+                fontFamily: 'DM Sans',
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: isLocked
+                    ? AppColors.jobsObsidian.withValues(alpha: 0.5)
+                    : AppColors.jobsObsidian,
+                height: 1.3,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              meditation.description,
+              style: TextStyle(
+                fontFamily: 'DM Sans',
+                fontSize: 12,
+                color: AppColors.jobsObsidian
+                    .withValues(alpha: isLocked ? 0.3 : 0.5),
+                height: 1.3,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
 
-class _MeditationListTile extends StatelessWidget {
+class _MeditationListTile extends ConsumerWidget {
   final MeditationSession meditation;
   final VoidCallback onTap;
 
@@ -504,101 +520,99 @@ class _MeditationListTile extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    return Consumer<UserProvider>(
-      builder: (context, userProvider, child) {
-        final isLocked = meditation.isPremium && !userProvider.isSubscribed;
-        
-        return GestureDetector(
-          onTap: onTap,
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.jobsObsidian.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userState = ref.watch(userProvider);
+    final isLocked = meditation.isPremium && !userState.isSubscribed;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.jobsObsidian.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
             ),
-            child: Row(
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: AppColors.jobsSage.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Center(
-                    child: Text(
-                      meditation.category.icon,
-                      style: const TextStyle(fontSize: 20),
-                    ),
-                  ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: AppColors.jobsSage.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Center(
+                child: Text(
+                  meditation.category.icon,
+                  style: const TextStyle(fontSize: 20),
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        meditation.title,
-                        style: TextStyle(
-                          fontFamily: 'DM Sans',
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: isLocked
-                              ? AppColors.jobsObsidian.withOpacity(0.5)
-                              : AppColors.jobsObsidian,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '${meditation.category.displayName} • ${meditation.formattedDuration}',
-                        style: TextStyle(
-                          fontFamily: 'DM Sans',
-                          fontSize: 13,
-                          color: AppColors.jobsObsidian.withOpacity(isLocked ? 0.3 : 0.5),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (isLocked)
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryOrange.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(
-                      Icons.lock_rounded,
-                      size: 16,
-                      color: AppColors.primaryOrange,
-                    ),
-                  )
-                else if (meditation.isPremium)
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.jobsSage.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(
-                      Icons.star_rounded,
-                      size: 16,
-                      color: AppColors.jobsSage,
-                    ),
-                  ),
-              ],
+              ),
             ),
-          ),
-        );
-      },
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    meditation.title,
+                    style: TextStyle(
+                      fontFamily: 'DM Sans',
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: isLocked
+                          ? AppColors.jobsObsidian.withValues(alpha: 0.5)
+                          : AppColors.jobsObsidian,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${meditation.category.displayName} • ${meditation.formattedDuration}',
+                    style: TextStyle(
+                      fontFamily: 'DM Sans',
+                      fontSize: 13,
+                      color: AppColors.jobsObsidian
+                          .withValues(alpha: isLocked ? 0.3 : 0.5),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (isLocked)
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryOrange.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.lock_rounded,
+                  size: 16,
+                  color: AppColors.primaryOrange,
+                ),
+              )
+            else if (meditation.isPremium)
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.jobsSage.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.star_rounded,
+                  size: 16,
+                  color: AppColors.jobsSage,
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }

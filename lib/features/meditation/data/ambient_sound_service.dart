@@ -1,7 +1,6 @@
 import 'dart:async';
-import 'dart:html' as html;
-import 'dart:typed_data';
-import 'dart:web_audio';
+import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/foundation.dart';
 
 enum AmbientSoundType {
   none,
@@ -16,13 +15,13 @@ class AmbientSound {
   final AmbientSoundType type;
   final String name;
   final String icon;
-  final String? audioUrl;
+  final String? assetPath;
 
   const AmbientSound({
     required this.type,
     required this.name,
     required this.icon,
-    this.audioUrl,
+    this.assetPath,
   });
 }
 
@@ -31,11 +30,8 @@ class AmbientSoundService {
   factory AmbientSoundService() => _instance;
   AmbientSoundService._internal();
 
-  html.AudioElement? _audioElement;
-  AudioContext? _audioContext;
-  AudioBufferSourceNode? _noiseSource;
-  GainNode? _gainNode;
-  
+  AudioPlayer? _audioPlayer;
+
   AmbientSoundType _currentSound = AmbientSoundType.none;
   double _volume = 0.5;
   bool _isPlaying = false;
@@ -50,30 +46,31 @@ class AmbientSoundService {
       type: AmbientSoundType.rain,
       name: 'Rain',
       icon: '🌧️',
-      audioUrl: 'https://actions.google.com/sounds/v1/ambiences/rain_on_roof.ogg',
+      assetPath: 'assets/audio/rain.mp3',
     ),
     AmbientSound(
       type: AmbientSoundType.ocean,
       name: 'Ocean',
       icon: '🌊',
-      audioUrl: 'https://actions.google.com/sounds/v1/ambiences/ocean_waves_crashing_on_rock_beach.ogg',
+      assetPath: 'assets/audio/ocean.mp3',
     ),
     AmbientSound(
       type: AmbientSoundType.forest,
       name: 'Forest',
       icon: '🌲',
-      audioUrl: 'https://actions.google.com/sounds/v1/ambiences/forest_with_small_birds.ogg',
+      assetPath: 'assets/audio/forest.mp3',
     ),
     AmbientSound(
       type: AmbientSoundType.whiteNoise,
       name: 'White Noise',
       icon: '📻',
+      // Placeholder - no audio file yet
     ),
     AmbientSound(
       type: AmbientSoundType.fireplace,
       name: 'Fireplace',
       icon: '🔥',
-      audioUrl: 'https://actions.google.com/sounds/v1/ambiences/fireplace_with_crackling_sounds.ogg',
+      // Placeholder - no audio file yet
     ),
   ];
 
@@ -83,7 +80,7 @@ class AmbientSoundService {
 
   Future<void> play(AmbientSoundType soundType) async {
     await stop();
-    
+
     if (soundType == AmbientSoundType.none) {
       _currentSound = soundType;
       return;
@@ -91,121 +88,72 @@ class AmbientSoundService {
 
     _currentSound = soundType;
 
-    if (soundType == AmbientSoundType.whiteNoise) {
-      await _playWhiteNoise();
-    } else {
-      await _playAudioUrl(soundType);
+    if (soundType == AmbientSoundType.whiteNoise || 
+        soundType == AmbientSoundType.fireplace) {
+      debugPrint('AmbientSoundService: $soundType not implemented yet');
+      _isPlaying = false;
+      return;
     }
+
+    await _playLocalAudio(soundType);
   }
 
-  Future<void> _playAudioUrl(AmbientSoundType soundType) async {
+  Future<void> _playLocalAudio(AmbientSoundType soundType) async {
     final sound = availableSounds.firstWhere((s) => s.type == soundType);
-    if (sound.audioUrl == null) return;
+    if (sound.assetPath == null) {
+      debugPrint('AmbientSoundService: No asset path for $soundType');
+      return;
+    }
 
-    _audioElement = html.AudioElement(sound.audioUrl);
-    _audioElement!.loop = true;
-    _audioElement!.volume = _volume;
-    
     try {
-      await _audioElement!.play();
+      debugPrint('AmbientSoundService: Playing ${sound.assetPath}');
+      _audioPlayer = AudioPlayer();
+      await _audioPlayer!.setReleaseMode(ReleaseMode.loop);
+      await _audioPlayer!.setVolume(_volume);
+      
+      // Use AssetSource for local files
+      await _audioPlayer!.play(AssetSource(sound.assetPath!.replaceFirst('assets/', '')));
+      
       _isPlaying = true;
+      debugPrint('AmbientSoundService: Successfully started playing $soundType');
     } catch (e) {
-      print('Error playing audio: $e');
+      debugPrint('AmbientSoundService: Error playing audio: $e');
       _isPlaying = false;
     }
   }
 
-  Future<void> _playWhiteNoise() async {
-    try {
-      _audioContext = AudioContext();
-      
-      final sampleRate = _audioContext!.sampleRate!.toInt();
-      final bufferSize = sampleRate * 2;
-      final buffer = _audioContext!.createBuffer(1, bufferSize, sampleRate);
-      final channelData = buffer.getChannelData(0);
-      
-      for (var i = 0; i < bufferSize; i++) {
-        channelData[i] = (html.window.crypto!.getRandomValues(Uint8List(1)) as Uint8List)[0] / 128.0 - 1.0;
-      }
-      
-      _gainNode = _audioContext!.createGain();
-      _gainNode!.gain!.value = _volume * 0.3;
-      _gainNode!.connectNode(_audioContext!.destination!);
-      
-      _noiseSource = _audioContext!.createBufferSource();
-      _noiseSource!.buffer = buffer;
-      _noiseSource!.loop = true;
-      _noiseSource!.connectNode(_gainNode!);
-      _noiseSource!.start(0);
-      
-      _isPlaying = true;
-    } catch (e) {
-      print('Error playing white noise: $e');
-      _isPlaying = false;
-    }
-  }
-
-  void pause() {
-    if (_audioElement != null) {
-      _audioElement!.pause();
-    }
-    if (_audioContext != null && _audioContext!.state == 'running') {
-      _audioContext!.suspend();
+  Future<void> pause() async {
+    if (_audioPlayer != null) {
+      await _audioPlayer!.pause();
     }
     _isPlaying = false;
   }
 
-  void resume() {
+  Future<void> resume() async {
     if (_currentSound == AmbientSoundType.none) return;
-    
-    if (_audioElement != null) {
-      _audioElement!.play();
-      _isPlaying = true;
-    }
-    if (_audioContext != null && _audioContext!.state == 'suspended') {
-      _audioContext!.resume();
+
+    if (_audioPlayer != null) {
+      await _audioPlayer!.resume();
       _isPlaying = true;
     }
   }
 
   Future<void> stop() async {
-    if (_audioElement != null) {
-      _audioElement!.pause();
-      _audioElement!.currentTime = 0;
-      _audioElement = null;
+    if (_audioPlayer != null) {
+      await _audioPlayer!.stop();
+      await _audioPlayer!.dispose();
+      _audioPlayer = null;
     }
-    
-    if (_noiseSource != null) {
-      try {
-        _noiseSource!.stop(0);
-      } catch (e) {
-      }
-      _noiseSource!.disconnect();
-      _noiseSource = null;
-    }
-    
-    if (_gainNode != null) {
-      _gainNode!.disconnect();
-      _gainNode = null;
-    }
-    
-    if (_audioContext != null) {
-      await _audioContext!.close();
-      _audioContext = null;
-    }
-    
+
     _isPlaying = false;
+    _currentSound = AmbientSoundType.none;
   }
 
-  void setVolume(double newVolume) {
+  Future<void> setVolume(double newVolume) async {
     _volume = newVolume.clamp(0.0, 1.0);
-    
-    if (_audioElement != null) {
-      _audioElement!.volume = _volume;
-    }
-    
-    if (_gainNode != null) {
-      _gainNode!.gain!.value = _volume * 0.3;
+
+    if (_audioPlayer != null) {
+      await _audioPlayer!.setVolume(_volume);
     }
   }
 

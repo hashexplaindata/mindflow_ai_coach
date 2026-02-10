@@ -68,7 +68,7 @@ class _TypingIndicatorState extends State<TypingIndicator>
                   margin: const EdgeInsets.symmetric(horizontal: 3),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: AppColors.jobsSage.withOpacity(0.7),
+                    color: AppColors.jobsSage.withValues(alpha: 0.7),
                   ),
                 ),
               );
@@ -102,7 +102,7 @@ class TypingIndicatorBubble extends StatelessWidget {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.jobsSage.withOpacity(0.3),
+                  color: AppColors.jobsSage.withValues(alpha: 0.3),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -118,7 +118,7 @@ class TypingIndicatorBubble extends StatelessWidget {
           const SizedBox(width: AppSpacing.spacing8),
           Container(
             decoration: BoxDecoration(
-              color: AppColors.jobsSage.withOpacity(0.12),
+              color: AppColors.jobsSage.withValues(alpha: 0.12),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(20),
                 topRight: Radius.circular(20),

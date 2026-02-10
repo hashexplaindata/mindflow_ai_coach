@@ -14,7 +14,6 @@ class JobsTheme {
       useMaterial3: true,
       brightness: Brightness.light,
       fontFamily: _fontFamily,
-
       colorScheme: const ColorScheme.light(
         primary: AppColors.jobsSage,
         onPrimary: AppColors.jobsCream,
@@ -28,12 +27,10 @@ class JobsTheme {
         onSurface: AppColors.jobsObsidian,
         surfaceContainerHighest: AppColors.jobsCream,
         outline: Colors.transparent,
-        error: Color(0xFFDC3545),
+        error: const Color(0xFFDC3545),
         onError: AppColors.jobsCream,
       ),
-
       scaffoldBackgroundColor: AppColors.jobsCream,
-
       appBarTheme: AppBarTheme(
         backgroundColor: AppColors.jobsCream,
         foregroundColor: AppColors.jobsObsidian,
@@ -41,7 +38,7 @@ class JobsTheme {
         scrolledUnderElevation: 0,
         centerTitle: true,
         systemOverlayStyle: SystemUiOverlayStyle.dark,
-        titleTextStyle: TextStyle(
+        titleTextStyle: const TextStyle(
           fontFamily: _fontFamily,
           fontSize: 20,
           fontWeight: FontWeight.w600,
@@ -54,17 +51,15 @@ class JobsTheme {
           size: 24,
         ),
       ),
-
-      cardTheme: CardThemeData(
+      cardTheme: const CardThemeData(
         color: AppColors.jobsCream,
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(_radius)),
           side: BorderSide.none,
         ),
-        margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        margin: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       ),
-
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.jobsObsidian,
@@ -77,7 +72,7 @@ class JobsTheme {
             borderRadius: BorderRadius.circular(_radius),
             side: BorderSide.none,
           ),
-          textStyle: TextStyle(
+          textStyle: const TextStyle(
             fontFamily: _fontFamily,
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -86,7 +81,6 @@ class JobsTheme {
           ),
         ),
       ),
-
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.jobsObsidian,
@@ -96,7 +90,7 @@ class JobsTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(_radius),
           ),
-          textStyle: TextStyle(
+          textStyle: const TextStyle(
             fontFamily: _fontFamily,
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -105,11 +99,10 @@ class JobsTheme {
           ),
         ),
       ),
-
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: AppColors.jobsSage,
-          textStyle: TextStyle(
+          textStyle: const TextStyle(
             fontFamily: _fontFamily,
             fontSize: 14,
             fontWeight: FontWeight.w600,
@@ -119,7 +112,6 @@ class JobsTheme {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         ),
       ),
-
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: Colors.white,
@@ -145,9 +137,9 @@ class JobsTheme {
           fontSize: 16,
           fontWeight: FontWeight.normal,
           height: _lineHeight,
-          color: AppColors.jobsObsidian.withOpacity(0.4),
+          color: AppColors.jobsObsidian.withValues(alpha: 0.4),
         ),
-        labelStyle: TextStyle(
+        labelStyle: const TextStyle(
           fontFamily: _fontFamily,
           fontSize: 14,
           fontWeight: FontWeight.w500,
@@ -155,7 +147,6 @@ class JobsTheme {
           color: AppColors.jobsObsidian,
         ),
       ),
-
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: AppColors.jobsSage,
         foregroundColor: AppColors.jobsCream,
@@ -164,11 +155,10 @@ class JobsTheme {
           borderRadius: BorderRadius.circular(_radius),
         ),
       ),
-
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: AppColors.jobsCream,
         selectedItemColor: AppColors.jobsObsidian,
-        unselectedItemColor: AppColors.jobsObsidian.withOpacity(0.4),
+        unselectedItemColor: AppColors.jobsObsidian.withValues(alpha: 0.4),
         type: BottomNavigationBarType.fixed,
         elevation: 0,
         selectedLabelStyle: TextStyle(
@@ -184,12 +174,11 @@ class JobsTheme {
           height: _lineHeight,
         ),
       ),
-
-      dialogTheme: DialogThemeData(
+      dialogTheme: const DialogThemeData(
         backgroundColor: AppColors.jobsCream,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(_radius),
+          borderRadius: BorderRadius.all(Radius.circular(_radius)),
         ),
         titleTextStyle: TextStyle(
           fontFamily: _fontFamily,
@@ -206,8 +195,7 @@ class JobsTheme {
           color: AppColors.jobsObsidian,
         ),
       ),
-
-      snackBarTheme: SnackBarThemeData(
+      snackBarTheme: const SnackBarThemeData(
         backgroundColor: AppColors.jobsObsidian,
         contentTextStyle: TextStyle(
           fontFamily: _fontFamily,
@@ -217,25 +205,22 @@ class JobsTheme {
           color: AppColors.jobsCream,
         ),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(_radius),
+          borderRadius: BorderRadius.all(Radius.circular(_radius)),
         ),
         behavior: SnackBarBehavior.floating,
       ),
-
       progressIndicatorTheme: const ProgressIndicatorThemeData(
         color: AppColors.jobsSage,
-        linearTrackColor: Color(0xFFE5E5E0),
-        circularTrackColor: Color(0xFFE5E5E0),
+        linearTrackColor: const Color(0xFFE5E5E0),
+        circularTrackColor: const Color(0xFFE5E5E0),
       ),
-
       dividerTheme: DividerThemeData(
-        color: AppColors.jobsObsidian.withOpacity(0.1),
+        color: AppColors.jobsObsidian.withValues(alpha: 0.1),
         thickness: 1,
         space: 32,
       ),
-
       chipTheme: ChipThemeData(
-        backgroundColor: AppColors.jobsSage.withOpacity(0.15),
+        backgroundColor: AppColors.jobsSage.withValues(alpha: 0.15),
         selectedColor: AppColors.jobsSage,
         labelStyle: TextStyle(
           fontFamily: _fontFamily,
@@ -249,8 +234,7 @@ class JobsTheme {
         ),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       ),
-
-      textTheme: TextTheme(
+      textTheme: const TextTheme(
         displayLarge: TextStyle(
           fontFamily: _fontFamily,
           fontSize: 32,
@@ -369,7 +353,6 @@ class JobsTheme {
       useMaterial3: true,
       brightness: Brightness.dark,
       fontFamily: _fontFamily,
-
       colorScheme: const ColorScheme.dark(
         primary: AppColors.jobsSageDark,
         onPrimary: AppColors.jobsCreamDark,
@@ -383,12 +366,10 @@ class JobsTheme {
         onSurface: AppColors.jobsObsidianDark,
         surfaceContainerHighest: AppColors.surfaceDark,
         outline: Colors.transparent,
-        error: Color(0xFFCF6679),
+        error: const Color(0xFFCF6679),
         onError: AppColors.jobsCreamDark,
       ),
-
       scaffoldBackgroundColor: AppColors.jobsCreamDark,
-
       appBarTheme: AppBarTheme(
         backgroundColor: AppColors.jobsCreamDark,
         foregroundColor: AppColors.jobsObsidianDark,
@@ -396,7 +377,7 @@ class JobsTheme {
         scrolledUnderElevation: 0,
         centerTitle: true,
         systemOverlayStyle: SystemUiOverlayStyle.light,
-        titleTextStyle: TextStyle(
+        titleTextStyle: const TextStyle(
           fontFamily: _fontFamily,
           fontSize: 20,
           fontWeight: FontWeight.w600,
@@ -409,17 +390,15 @@ class JobsTheme {
           size: 24,
         ),
       ),
-
-      cardTheme: CardThemeData(
+      cardTheme: const CardThemeData(
         color: AppColors.cardBackgroundDark,
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(_radius)),
           side: BorderSide.none,
         ),
-        margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        margin: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       ),
-
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.jobsObsidianDark,
@@ -432,7 +411,7 @@ class JobsTheme {
             borderRadius: BorderRadius.circular(_radius),
             side: BorderSide.none,
           ),
-          textStyle: TextStyle(
+          textStyle: const TextStyle(
             fontFamily: _fontFamily,
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -441,7 +420,6 @@ class JobsTheme {
           ),
         ),
       ),
-
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.surfaceDark,
@@ -463,14 +441,13 @@ class JobsTheme {
           fontSize: 16,
           fontWeight: FontWeight.normal,
           height: _lineHeight,
-          color: AppColors.jobsObsidianDark.withOpacity(0.4),
+          color: AppColors.jobsObsidianDark.withValues(alpha: 0.4),
         ),
       ),
-
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: AppColors.jobsCreamDark,
         selectedItemColor: AppColors.jobsObsidianDark,
-        unselectedItemColor: AppColors.jobsObsidianDark.withOpacity(0.4),
+        unselectedItemColor: AppColors.jobsObsidianDark.withValues(alpha: 0.4),
         type: BottomNavigationBarType.fixed,
         elevation: 0,
         selectedLabelStyle: TextStyle(
@@ -486,12 +463,11 @@ class JobsTheme {
           height: _lineHeight,
         ),
       ),
-
-      dialogTheme: DialogThemeData(
+      dialogTheme: const DialogThemeData(
         backgroundColor: AppColors.cardBackgroundDark,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(_radius),
+          borderRadius: BorderRadius.all(Radius.circular(_radius)),
         ),
         titleTextStyle: TextStyle(
           fontFamily: _fontFamily,
@@ -508,8 +484,7 @@ class JobsTheme {
           color: AppColors.jobsObsidianDark,
         ),
       ),
-
-      textTheme: TextTheme(
+      textTheme: const TextTheme(
         displayLarge: TextStyle(
           fontFamily: _fontFamily,
           fontSize: 32,
@@ -553,7 +528,7 @@ class JobsTheme {
 
   static List<BoxShadow> get cardShadow => [
         BoxShadow(
-          color: AppColors.jobsObsidian.withOpacity(0.04),
+          color: AppColors.jobsObsidian.withValues(alpha: 0.04),
           blurRadius: 24,
           offset: const Offset(0, 8),
         ),
@@ -561,7 +536,7 @@ class JobsTheme {
 
   static List<BoxShadow> get buttonShadow => [
         BoxShadow(
-          color: AppColors.jobsSage.withOpacity(0.2),
+          color: AppColors.jobsSage.withValues(alpha: 0.2),
           blurRadius: 16,
           offset: const Offset(0, 4),
         ),

@@ -59,10 +59,10 @@ class _SuggestionChip extends StatelessWidget {
             vertical: AppSpacing.spacing12,
           ),
           decoration: BoxDecoration(
-            color: AppColors.jobsSage.withOpacity(0.12),
+            color: AppColors.jobsSage.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: AppColors.jobsSage.withOpacity(0.3),
+              color: AppColors.jobsSage.withValues(alpha: 0.3),
               width: 1,
             ),
           ),
@@ -136,15 +136,15 @@ class _QuickActionChip extends StatelessWidget {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                AppColors.jobsSage.withOpacity(0.15),
-                AppColors.jobsSage.withOpacity(0.08),
+                AppColors.jobsSage.withValues(alpha: 0.15),
+                AppColors.jobsSage.withValues(alpha: 0.08),
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
-              color: AppColors.jobsSage.withOpacity(0.25),
+              color: AppColors.jobsSage.withValues(alpha: 0.25),
               width: 1,
             ),
           ),

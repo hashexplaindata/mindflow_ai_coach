@@ -53,7 +53,7 @@ class _GratitudePromptCardState extends State<GratitudePromptCard> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: AppColors.jobsObsidian.withOpacity(0.05),
+            color: AppColors.jobsObsidian.withValues(alpha: 0.05),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -68,7 +68,7 @@ class _GratitudePromptCardState extends State<GratitudePromptCard> {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: AppColors.accentYellow.withOpacity(0.2),
+                  color: AppColors.accentYellow.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Center(
@@ -106,7 +106,7 @@ class _GratitudePromptCardState extends State<GratitudePromptCard> {
                 Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: AppColors.successGreen.withOpacity(0.15),
+                    color: AppColors.successGreen.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -117,9 +117,7 @@ class _GratitudePromptCardState extends State<GratitudePromptCard> {
                 ),
             ],
           ),
-
           const SizedBox(height: 16),
-
           if (widget.prompt != null)
             Text(
               widget.prompt!.content,
@@ -127,13 +125,11 @@ class _GratitudePromptCardState extends State<GratitudePromptCard> {
                 fontFamily: 'DM Sans',
                 fontSize: 15,
                 fontWeight: FontWeight.w500,
-                color: AppColors.jobsObsidian.withOpacity(0.8),
+                color: AppColors.jobsObsidian.withValues(alpha: 0.8),
                 height: 1.4,
               ),
             ),
-
           const SizedBox(height: 16),
-
           GestureDetector(
             onTap: () {
               setState(() {
@@ -145,11 +141,11 @@ class _GratitudePromptCardState extends State<GratitudePromptCard> {
               duration: const Duration(milliseconds: 200),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.jobsCream.withOpacity(0.5),
+                color: AppColors.jobsCream.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                   color: _isExpanded
-                      ? AppColors.jobsSage.withOpacity(0.5)
+                      ? AppColors.jobsSage.withValues(alpha: 0.5)
                       : Colors.transparent,
                   width: 1.5,
                 ),
@@ -165,7 +161,7 @@ class _GratitudePromptCardState extends State<GratitudePromptCard> {
                       hintStyle: TextStyle(
                         fontFamily: 'DM Sans',
                         fontSize: 14,
-                        color: AppColors.jobsObsidian.withOpacity(0.4),
+                        color: AppColors.jobsObsidian.withValues(alpha: 0.4),
                       ),
                       border: InputBorder.none,
                       contentPadding: EdgeInsets.zero,
@@ -202,7 +198,8 @@ class _GratitudePromptCardState extends State<GratitudePromptCard> {
                               fontFamily: 'DM Sans',
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
-                              color: AppColors.jobsObsidian.withOpacity(0.5),
+                              color:
+                                  AppColors.jobsObsidian.withValues(alpha: 0.5),
                             ),
                           ),
                         ),

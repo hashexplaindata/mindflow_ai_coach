@@ -1,7 +1,5 @@
 import 'dart:async';
-import 'dart:js_interop';
 import 'package:flutter/foundation.dart';
-import 'package:web/web.dart' as web;
 
 enum BrainwaveType {
   none,
@@ -28,32 +26,9 @@ class Brainwave {
   });
 }
 
-@JS('window.binauralGenerator.start')
-external void _jsStart(JSNumber beatFrequency, JSNumber volume);
-
-@JS('window.binauralGenerator.stop')
-external void _jsStop();
-
-@JS('window.binauralGenerator.setVolume')
-external void _jsSetVolume(JSNumber volume);
-
-@JS('window.binauralGenerator.pause')
-external void _jsPause();
-
-@JS('window.binauralGenerator.resume')
-external void _jsResume();
-
-@JS('window.binauralGenerator.getIsPlaying')
-external JSBoolean _jsGetIsPlaying();
-
-@JS('window.binauralGenerator.dispose')
-external void _jsDispose();
-
-@JS('window.binauralGenerator')
-external JSObject? get _jsBinauralGenerator;
-
 class BinauralAudioService {
-  static final BinauralAudioService _instance = BinauralAudioService._internal();
+  static final BinauralAudioService _instance =
+      BinauralAudioService._internal();
   factory BinauralAudioService() => _instance;
   BinauralAudioService._internal();
 
@@ -110,113 +85,56 @@ class BinauralAudioService {
   double get volume => _volume;
   bool get isPlaying => _isPlaying;
 
-  bool get _isWebPlatform => kIsWeb;
-
-  bool get _isInitialized {
-    if (!_isWebPlatform) return false;
-    try {
-      return _jsBinauralGenerator != null;
-    } catch (e) {
-      return false;
-    }
-  }
-
   Future<void> startBinauralBeat({
     required BrainwaveType type,
     double volume = 0.3,
   }) async {
-    if (!_isWebPlatform) {
-      debugPrint('Binaural beats only supported on web platform');
-      return;
-    }
-
-    if (!_isInitialized) {
-      debugPrint('Binaural generator not initialized');
-      return;
-    }
-
-    if (type == BrainwaveType.none) {
-      await stop();
-      return;
-    }
-
-    final brainwave = availableBrainwaves.firstWhere((b) => b.type == type);
+    debugPrint(
+        'BinauralAudioService: startBinauralBeat called - type: $type, volume: $volume');
+    debugPrint(
+        'BinauralAudioService: Not supported on mobile platform yet');
     
-    try {
-      _jsStart(brainwave.beatFrequency.toJS, volume.toJS);
-      _currentType = type;
-      _volume = volume;
+    _currentType = type;
+    _volume = volume;
+    if (type != BrainwaveType.none) {
       _isPlaying = true;
-    } catch (e) {
-      debugPrint('Error starting binaural beat: $e');
+    } else {
       _isPlaying = false;
     }
   }
 
   Future<void> stop() async {
-    if (!_isWebPlatform || !_isInitialized) return;
-
-    try {
-      _jsStop();
-      _currentType = BrainwaveType.none;
-      _isPlaying = false;
-    } catch (e) {
-      debugPrint('Error stopping binaural beat: $e');
-    }
+    debugPrint('BinauralAudioService: stop called');
+    _currentType = BrainwaveType.none;
+    _isPlaying = false;
   }
 
   void setVolume(double newVolume) {
-    if (!_isWebPlatform || !_isInitialized) return;
-
     _volume = newVolume.clamp(0.0, 1.0);
-    
-    try {
-      _jsSetVolume(_volume.toJS);
-    } catch (e) {
-      debugPrint('Error setting volume: $e');
-    }
+    debugPrint('BinauralAudioService: volume set to $_volume');
   }
 
   void pause() {
-    if (!_isWebPlatform || !_isInitialized) return;
-
-    try {
-      _jsPause();
-      _isPlaying = false;
-    } catch (e) {
-      debugPrint('Error pausing binaural beat: $e');
-    }
+    debugPrint('BinauralAudioService: pause called');
+    _isPlaying = false;
   }
 
   void resume() {
-    if (!_isWebPlatform || !_isInitialized) return;
-    if (_currentType == BrainwaveType.none) return;
-
-    try {
-      _jsResume();
+    debugPrint('BinauralAudioService: resume called');
+    if (_currentType != BrainwaveType.none) {
       _isPlaying = true;
-    } catch (e) {
-      debugPrint('Error resuming binaural beat: $e');
     }
   }
 
   void fadeIn(Duration duration) {
-    setVolume(_volume);
+    // Stub
   }
 
   void fadeOut(Duration duration) {
-    setVolume(0);
+    // Stub
   }
 
   void dispose() {
-    if (!_isWebPlatform || !_isInitialized) return;
-
-    try {
-      _jsDispose();
-      _currentType = BrainwaveType.none;
-      _isPlaying = false;
-    } catch (e) {
-      debugPrint('Error disposing binaural generator: $e');
-    }
+    _isPlaying = false;
   }
 }

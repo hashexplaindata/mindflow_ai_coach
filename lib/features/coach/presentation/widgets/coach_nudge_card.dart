@@ -77,7 +77,7 @@ class _CoachNudgeCardState extends State<CoachNudgeCard>
       case InterventionType.streakRecovery:
         return const Color(0xFFE8F5E9);
       default:
-        return AppColors.jobsSage.withOpacity(0.15);
+        return AppColors.jobsSage.withValues(alpha: 0.15);
     }
   }
 
@@ -120,11 +120,11 @@ class _CoachNudgeCardState extends State<CoachNudgeCard>
         color: _backgroundColor,
         borderRadius: BorderRadius.circular(16),
         border: widget.intervention.isUrgent
-            ? Border.all(color: _accentColor.withOpacity(0.3), width: 1.5)
+            ? Border.all(color: _accentColor.withValues(alpha: 0.3), width: 1.5)
             : null,
         boxShadow: [
           BoxShadow(
-            color: _accentColor.withOpacity(0.1),
+            color: _accentColor.withValues(alpha: 0.1),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -161,7 +161,8 @@ class _CoachNudgeCardState extends State<CoachNudgeCard>
                           style: TextStyle(
                             fontFamily: 'DM Sans',
                             fontSize: 13,
-                            color: AppColors.jobsObsidian.withOpacity(0.6),
+                            color:
+                                AppColors.jobsObsidian.withValues(alpha: 0.6),
                             height: 1.4,
                           ),
                         ),
@@ -177,7 +178,7 @@ class _CoachNudgeCardState extends State<CoachNudgeCard>
                       child: Icon(
                         Icons.close_rounded,
                         size: 20,
-                        color: AppColors.jobsObsidian.withOpacity(0.3),
+                        color: AppColors.jobsObsidian.withValues(alpha: 0.3),
                       ),
                     ),
                   ),
@@ -204,7 +205,7 @@ class _CoachNudgeCardState extends State<CoachNudgeCard>
       width: 40,
       height: 40,
       decoration: BoxDecoration(
-        color: _accentColor.withOpacity(0.15),
+        color: _accentColor.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Center(
@@ -308,7 +309,7 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
         return FadeTransition(
           opacity: _fadeAnimation,
           child: Container(
-            color: Colors.black.withOpacity(0.5 * _fadeAnimation.value),
+            color: Colors.black.withValues(alpha: 0.5 * _fadeAnimation.value),
             child: Center(
               child: ScaleTransition(
                 scale: _scaleAnimation,
@@ -330,7 +331,7 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 24,
             offset: const Offset(0, 8),
           ),
@@ -362,7 +363,7 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
               style: TextStyle(
                 fontFamily: 'DM Sans',
                 fontSize: 16,
-                color: AppColors.jobsObsidian.withOpacity(0.7),
+                color: AppColors.jobsObsidian.withValues(alpha: 0.7),
                 height: 1.4,
               ),
             ),

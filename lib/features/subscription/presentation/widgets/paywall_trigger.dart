@@ -19,14 +19,20 @@ class PaywallTrigger extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () async {
-        final provider = context.read<SubscriptionProvider>();
-        final success = await provider.showPaywall();
-        if (success) {
-          onPurchaseSuccess?.call();
-        }
+        await show(context, onSuccess: onPurchaseSuccess);
       },
       child: child,
     );
+  }
+
+  /// Trigger paywall programmatically
+  static Future<bool> show(BuildContext context, {VoidCallback? onSuccess}) async {
+    final provider = context.read<SubscriptionProvider>();
+    final success = await provider.showPaywall();
+    if (success) {
+      onSuccess?.call();
+    }
+    return success;
   }
 }
 
@@ -44,7 +50,7 @@ class UnlockProButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primaryOrange.withOpacity(0.3),
+              color: AppColors.primaryOrange.withValues(alpha: 0.3),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),

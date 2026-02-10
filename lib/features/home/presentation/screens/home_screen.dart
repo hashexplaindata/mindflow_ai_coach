@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:provider/provider.dart' hide Consumer;
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../shared/widgets/flow_streak_ring.dart';
@@ -13,18 +14,19 @@ import '../../../explore/presentation/screens/explore_screen.dart';
 import '../../../coach/domain/models/coaching_intervention.dart';
 import '../../../coach/domain/services/proactive_coach_service.dart';
 import '../../../coach/presentation/widgets/coach_nudge_card.dart';
+import '../../../coach/presentation/screens/coach_gallery_screen.dart';
 import '../../../wisdom/presentation/providers/wisdom_provider.dart';
 import '../../../wisdom/presentation/widgets/wisdom_card.dart';
 import '../../../wisdom/presentation/screens/wisdom_screen.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends ConsumerState<HomeScreen> {
   bool _nudgeDismissed = false;
   CoachingIntervention? _currentNudge;
 
@@ -32,17 +34,17 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<UserProvider>().refreshProgress();
+      ref.read(userProvider.notifier).refreshProgress();
       _generateNudge();
     });
   }
 
   void _generateNudge() {
-    final userProvider = context.read<UserProvider>();
+    final userState = ref.read(userProvider);
     final nudge = ProactiveCoachService.getProactiveNudge(
-      currentStreak: userProvider.currentStreak,
-      totalSessions: userProvider.sessionsCompleted,
-      totalMinutes: userProvider.totalMinutes,
+      currentStreak: userState.currentStreak,
+      totalSessions: userState.sessionsCompleted,
+      totalMinutes: userState.totalMinutes,
       lastSessionDate: null,
     );
     if (mounted) {
@@ -61,7 +63,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _handleNudgeAction(CoachingIntervention nudge) {
     final category = nudge.metadata?['category'] as String?;
     MeditationCategory meditationCategory;
-    
+
     switch (category) {
       case 'focus':
         meditationCategory = MeditationCategory.focus;
@@ -78,7 +80,7 @@ class _HomeScreenState extends State<HomeScreen> {
       default:
         meditationCategory = MeditationCategory.focus;
     }
-    
+
     _navigateToCategory(context, meditationCategory);
   }
 
@@ -103,10 +105,12 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: AppColors.jobsCream,
       body: SafeArea(
-        child: Consumer<UserProvider>(
-          builder: (context, userProvider, child) {
+        child: Builder(
+          builder: (context) {
+            final userState = ref.watch(userProvider);
             return RefreshIndicator(
-              onRefresh: () => userProvider.refreshProgress(),
+              onRefresh: () =>
+                  ref.read(userProvider.notifier).refreshProgress(),
               color: AppColors.jobsSage,
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
@@ -115,7 +119,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: AppSpacing.spacing16),
-                    
                     Text(
                       _getGreeting(),
                       style: const TextStyle(
@@ -133,42 +136,46 @@ class _HomeScreenState extends State<HomeScreen> {
                       style: TextStyle(
                         fontFamily: 'DM Sans',
                         fontSize: 16,
-                        color: AppColors.jobsObsidian.withOpacity(0.6),
+                        color: AppColors.jobsObsidian.withValues(alpha: 0.6),
                         height: 1.4,
                       ),
                     ),
-                    
                     const SizedBox(height: AppSpacing.spacing24),
-                    
                     if (_currentNudge != null && !_nudgeDismissed)
                       Padding(
-                        padding: const EdgeInsets.only(bottom: AppSpacing.spacing24),
+                        padding:
+                            const EdgeInsets.only(bottom: AppSpacing.spacing24),
                         child: CoachNudgeCard(
                           intervention: _currentNudge!,
                           onAction: () => _handleNudgeAction(_currentNudge!),
                           onDismiss: _dismissNudge,
                         ),
                       ),
-                    
-                    Consumer<WisdomProvider>(
-                      builder: (context, wisdomProvider, child) {
+                    Builder(
+                      builder: (context) {
+                        final wisdomProvider = context.watch<WisdomProvider>();
                         final todaysWisdom = wisdomProvider.todaysWisdom;
-                        if (todaysWisdom == null) return const SizedBox.shrink();
+                        if (todaysWisdom == null) {
+                          return const SizedBox.shrink();
+                        }
 
                         wisdomProvider.updateUserProgress(
-                          currentStreak: userProvider.currentStreak,
+                          currentStreak: userState.currentStreak,
                           daysSinceLastSession: 0,
-                          totalSessions: userProvider.sessionsCompleted,
-                          totalMinutes: userProvider.totalMinutes,
+                          totalSessions: userState.sessionsCompleted,
+                          totalMinutes: userState.totalMinutes,
                         );
 
-                        final hasResonated = wisdomProvider.getWisdomFeedback(todaysWisdom.id);
+                        final hasResonated =
+                            wisdomProvider.getWisdomFeedback(todaysWisdom.id);
 
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: AppSpacing.spacing24),
+                          padding: const EdgeInsets.only(
+                              bottom: AppSpacing.spacing24),
                           child: WisdomCardHero(
                             wisdom: todaysWisdom,
-                            isFavorite: wisdomProvider.isFavorite(todaysWisdom.id),
+                            isFavorite:
+                                wisdomProvider.isFavorite(todaysWisdom.id),
                             hasResonated: hasResonated,
                             greeting: wisdomProvider.wisdomGreeting,
                             onFavoriteToggle: () {
@@ -176,7 +183,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               HapticFeedback.lightImpact();
                             },
                             onResonates: () {
-                              wisdomProvider.recordWisdomResonates(todaysWisdom.id);
+                              wisdomProvider
+                                  .recordWisdomResonates(todaysWisdom.id);
                               HapticFeedback.mediumImpact();
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
@@ -203,15 +211,18 @@ class _HomeScreenState extends State<HomeScreen> {
                             onTap: () {
                               Navigator.of(context).push(
                                 PageRouteBuilder(
-                                  pageBuilder: (context, animation, secondaryAnimation) =>
+                                  pageBuilder: (context, animation,
+                                          secondaryAnimation) =>
                                       const WisdomScreen(),
-                                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                  transitionsBuilder: (context, animation,
+                                      secondaryAnimation, child) {
                                     return FadeTransition(
                                       opacity: animation,
                                       child: child,
                                     );
                                   },
-                                  transitionDuration: const Duration(milliseconds: 200),
+                                  transitionDuration:
+                                      const Duration(milliseconds: 200),
                                 ),
                               );
                             },
@@ -219,32 +230,31 @@ class _HomeScreenState extends State<HomeScreen> {
                         );
                       },
                     ),
-                    
                     Center(
                       child: FlowStreakRing(
-                        streakDays: userProvider.currentStreak,
+                        streakDays: userState.currentStreak,
                         maxDays: 30,
                         size: 160,
                         strokeWidth: 12,
                       ),
                     ),
-                    
                     const SizedBox(height: AppSpacing.spacing8),
                     Center(
                       child: Column(
                         children: [
                           Text(
-                            userProvider.totalMinutes > 0
-                                ? '${userProvider.totalMinutes} minutes meditated'
+                            userState.totalMinutes > 0
+                                ? '${userState.totalMinutes} minutes meditated'
                                 : 'Start your mindfulness journey',
                             style: TextStyle(
                               fontFamily: 'DM Sans',
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
-                              color: AppColors.jobsObsidian.withOpacity(0.5),
+                              color:
+                                  AppColors.jobsObsidian.withValues(alpha: 0.5),
                             ),
                           ),
-                          if (userProvider.currentStreak > 0) ...[
+                          if (userState.currentStreak > 0) ...[
                             const SizedBox(height: 4),
                             Row(
                               mainAxisSize: MainAxisSize.min,
@@ -256,7 +266,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  '${userProvider.currentStreak} day streak!',
+                                  '${userState.currentStreak} day streak!',
                                   style: const TextStyle(
                                     fontFamily: 'DM Sans',
                                     fontSize: 14,
@@ -270,9 +280,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       ),
                     ),
-                    
                     const SizedBox(height: AppSpacing.spacing32),
-                    
                     const Text(
                       'Quick Actions',
                       style: TextStyle(
@@ -283,7 +291,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     const SizedBox(height: AppSpacing.spacing16),
-                    
                     Wrap(
                       spacing: 12,
                       runSpacing: 12,
@@ -292,31 +299,44 @@ class _HomeScreenState extends State<HomeScreen> {
                           label: 'Stress',
                           emoji: '🧘',
                           category: MeditationCategory.stress,
-                          onTap: () => _navigateToCategory(context, MeditationCategory.stress),
+                          onTap: () => _navigateToCategory(
+                              context, MeditationCategory.stress),
                         ),
                         _QuickActionChip(
                           label: 'Focus',
                           emoji: '🎯',
                           category: MeditationCategory.focus,
-                          onTap: () => _navigateToCategory(context, MeditationCategory.focus),
+                          onTap: () => _navigateToCategory(
+                              context, MeditationCategory.focus),
                         ),
                         _QuickActionChip(
                           label: 'Sleep',
                           emoji: '🌙',
                           category: MeditationCategory.sleep,
-                          onTap: () => _navigateToCategory(context, MeditationCategory.sleep),
+                          onTap: () => _navigateToCategory(
+                              context, MeditationCategory.sleep),
                         ),
                         _QuickActionChip(
                           label: 'Anxiety',
                           emoji: '🌊',
                           category: MeditationCategory.anxiety,
-                          onTap: () => _navigateToCategory(context, MeditationCategory.anxiety),
+                          onTap: () => _navigateToCategory(
+                              context, MeditationCategory.anxiety),
                         ),
                       ],
                     ),
-                    
                     const SizedBox(height: AppSpacing.spacing32),
-                    
+                    _CoachGalleryCard(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const CoachGalleryScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: AppSpacing.spacing32),
                     const Text(
                       "Today's Meditation",
                       style: TextStyle(
@@ -327,12 +347,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     const SizedBox(height: AppSpacing.spacing16),
-                    
                     if (featured != null)
                       _FeaturedMeditationCard(meditation: featured),
-                    
                     const SizedBox(height: AppSpacing.spacing32),
-                    
                     const Text(
                       'Continue Where You Left Off',
                       style: TextStyle(
@@ -343,12 +360,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     const SizedBox(height: AppSpacing.spacing16),
-                    
                     _ContinueCard(
                       meditation: SampleData.allMeditations[4],
                       progress: 0.6,
                     ),
-                    
                     const SizedBox(height: AppSpacing.spacing24),
                   ],
                 ),
@@ -372,6 +387,81 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         },
         transitionDuration: const Duration(milliseconds: 200),
+      ),
+    );
+  }
+}
+
+class _CoachGalleryCard extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _CoachGalleryCard({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: AppColors.jobsSage.withValues(alpha: 0.2)),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.jobsSage.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.jobsSage.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.people_alt_rounded,
+                color: AppColors.jobsSage,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Meet Your Coaches',
+                    style: TextStyle(
+                      fontFamily: 'DM Sans',
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.jobsObsidian,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Browse and select specialized AI guides',
+                    style: TextStyle(
+                      fontFamily: 'DM Sans',
+                      fontSize: 14,
+                      color: AppColors.jobsObsidian.withValues(alpha: 0.6),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: AppColors.jobsObsidian.withValues(alpha: 0.4),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -442,7 +532,8 @@ class _FeaturedMeditationCard extends StatelessWidget {
           PageRouteBuilder(
             pageBuilder: (context, animation, secondaryAnimation) =>
                 PlayerScreen(meditation: meditation),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
               return SlideTransition(
                 position: Tween<Offset>(
                   begin: const Offset(0, 0.1),
@@ -580,7 +671,8 @@ class _ContinueCard extends StatelessWidget {
           PageRouteBuilder(
             pageBuilder: (context, animation, secondaryAnimation) =>
                 PlayerScreen(meditation: meditation),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
               return FadeTransition(
                 opacity: animation,
                 child: child,
@@ -646,7 +738,8 @@ class _ContinueCard extends StatelessWidget {
                   LinearProgressIndicator(
                     value: progress,
                     backgroundColor: AppColors.jobsSage.withOpacity(0.15),
-                    valueColor: const AlwaysStoppedAnimation(AppColors.jobsSage),
+                    valueColor:
+                        const AlwaysStoppedAnimation(AppColors.jobsSage),
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ],
