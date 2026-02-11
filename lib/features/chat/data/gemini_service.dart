@@ -46,6 +46,16 @@ class GeminiService {
   String? _activeGoal;
   double? _goalProgress;
 
+  /// Whether deep dive (premium analysis) is unlocked
+  bool _deepDiveUnlocked = false;
+
+  /// Whether we've already inferred the user's NLP profile from their first message
+  bool _hasInferredProfile = false;
+
+  /// Callback fired when a profile is inferred from the user's first message
+  /// The caller (ChatProvider) should wire this to persist the inferred profile
+  void Function(NLPProfile)? onProfileInferred;
+
   /// Initialize the service
   Future<void> initialize() async {
     if (_isInitialized) return;
@@ -53,11 +63,20 @@ class GeminiService {
     debugPrint('GeminiService: Initialized with backend proxy');
   }
 
+  /// Set whether deep dive is unlocked (premium feature)
+  void setDeepDiveUnlocked(bool unlocked) {
+    _deepDiveUnlocked = unlocked;
+    // Regenerate prompt if we have a profile
+    if (_lastProfile != null) {
+      setUserProfile(_lastProfile!);
+    }
+  }
+
   /// Set the active coach
   void setActiveCoach(Coach coach) {
     _activeCoach = coach;
     debugPrint('GeminiService: Active coach set to ${coach.name}');
-    
+
     // Regenerate prompt if we have a profile
     if (_lastProfile != null) {
       setUserProfile(_lastProfile!);
@@ -68,7 +87,7 @@ class GeminiService {
   /// Call this when user logs in or profile changes
   void setUserProfile(NLPProfile profile) {
     _lastProfile = profile;
-    
+
     _currentSystemPrompt = NLPPromptBuilder.generateSystemPrompt(
       profile,
       coach: _activeCoach,
@@ -77,6 +96,7 @@ class GeminiService {
       totalMinutes: _totalMinutes,
       activeGoal: _activeGoal,
       goalProgress: _goalProgress,
+      deepDiveUnlocked: _deepDiveUnlocked,
     );
     debugPrint(
         'GeminiService: System prompt updated for ${profile.displayName} (Coach: ${_activeCoach?.name ?? "Default"})');
@@ -122,6 +142,7 @@ class GeminiService {
       debugPrint('GeminiService: No system prompt set, using default');
       _currentSystemPrompt = NLPPromptBuilder.generateSystemPrompt(
         NLPProfile.defaultProfile,
+        deepDiveUnlocked: _deepDiveUnlocked,
       );
     }
 
@@ -136,43 +157,56 @@ class GeminiService {
     try {
       final limitedHistory = _getLimitedHistory(chatHistory);
 
-      // Construct prompt with history manually for direct API
-      final fullPromptBuffer = StringBuffer();
-      fullPromptBuffer.writeln(_currentSystemPrompt ?? '');
-      fullPromptBuffer.writeln('\n--- CONVERSATION HISTORY ---');
-
-      for (final msg in limitedHistory) {
-        fullPromptBuffer
-            .writeln('${msg.isUser ? "USER" : "ASSISTANT"}: ${msg.content}');
+      // ── ZERO-SHOT INFERENCE: On first message, classify user's meta-programs ──
+      if (limitedHistory.isEmpty && !_hasInferredProfile) {
+        await _inferProfileFromMessage(userMessage);
       }
 
-      fullPromptBuffer.writeln('USER: $userMessage');
-      fullPromptBuffer.writeln('ASSISTANT:'); // Priming
-
       final apiKey = env.EnvConfig.geminiApiKey;
-      
+
       if (apiKey.isEmpty) {
         debugPrint('GeminiService: ERROR - API key is empty!');
         yield* _getMockResponse(userMessage, profile);
         return;
       }
-      
+
+      // Build conversation contents (chat history + new message)
+      final conversationContents = <Map<String, dynamic>>[];
+
+      for (final msg in limitedHistory) {
+        conversationContents.add({
+          "role": msg.isUser ? "user" : "model",
+          "parts": [
+            {"text": msg.content}
+          ]
+        });
+      }
+
+      // Add the current user message
+      conversationContents.add({
+        "role": "user",
+        "parts": [
+          {"text": userMessage}
+        ]
+      });
+
       final apiUrl =
-          'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?key=$apiKey';
+          'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:streamGenerateContent?key=$apiKey';
 
-      debugPrint('GeminiService: Sending direct request to Gemini API (Key length: ${apiKey.length})');
+      debugPrint(
+          'GeminiService: Sending request to Gemini 2.0 Flash (Key length: ${apiKey.length})');
 
+      // Use systemInstruction field for proper system prompt separation
       final requestBody = json.encode({
-        "contents": [
-          {
-            "parts": [
-              {"text": fullPromptBuffer.toString()}
-            ]
-          }
-        ],
+        "systemInstruction": {
+          "parts": [
+            {"text": _currentSystemPrompt ?? ''}
+          ]
+        },
+        "contents": conversationContents,
         "generationConfig": {
           "temperature": 0.7,
-          "maxOutputTokens": 800,
+          "maxOutputTokens": _deepDiveUnlocked ? 1200 : 500,
         }
       });
 
@@ -186,7 +220,8 @@ class GeminiService {
 
         if (streamedResponse.statusCode != 200) {
           final errorBody = await streamedResponse.stream.bytesToString();
-          debugPrint('GeminiService: API error ${streamedResponse.statusCode}: $errorBody');
+          debugPrint(
+              'GeminiService: API error ${streamedResponse.statusCode}: $errorBody');
 
           if (streamedResponse.statusCode == 400) {
             yield 'I\'m having trouble understanding. Could you try rephrasing? (Invalid request)';
@@ -250,7 +285,8 @@ class GeminiService {
           if (textParts.isNotEmpty) {
             // Yield the combined text with word-by-word streaming effect
             final combinedText = textParts.join('');
-            debugPrint('GeminiService: Successfully got response (${combinedText.length} chars)');
+            debugPrint(
+                'GeminiService: Successfully got response (${combinedText.length} chars)');
             final words = combinedText.split(' ');
             for (int i = 0; i < words.length; i++) {
               yield words[i];
@@ -258,7 +294,8 @@ class GeminiService {
               await Future.delayed(const Duration(milliseconds: 15));
             }
           } else {
-            debugPrint('GeminiService: No text parts found in response, using fallback');
+            debugPrint(
+                'GeminiService: No text parts found in response, using fallback');
             yield* _getMockResponse(userMessage, profile);
           }
         } catch (parseError) {
@@ -460,6 +497,163 @@ class GeminiService {
           return "Remember: even the longest journey starts with a single step. Or in your case, probably a single coffee. ☕";
       }
     }
+  }
+
+  /// Zero-shot inference: classify user's first message into NLP meta-programs
+  /// Uses a separate non-streaming Gemini call, then updates the system prompt
+  /// Hackathon Fix: Fails silently to default profile on any error
+  Future<void> _inferProfileFromMessage(String userMessage) async {
+    try {
+      final apiKey = env.EnvConfig.geminiApiKey;
+      if (apiKey.isEmpty) {
+        debugPrint('GeminiService: Skipping inference — no API key');
+        _hasInferredProfile = true;
+        return;
+      }
+
+      final inferenceUrl =
+          'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=$apiKey';
+
+      final requestBody = json.encode({
+        "contents": [
+          {
+            "parts": [
+              {"text": '${NLPPromptBuilder.inferencePrompt}$userMessage'}
+            ]
+          }
+        ],
+        "generationConfig": {
+          "temperature":
+              0.1, // Low temperature for deterministic classification
+          "maxOutputTokens": 100,
+        }
+      });
+
+      debugPrint('GeminiService: Running zero-shot personality inference...');
+
+      final response = await http.post(
+        Uri.parse(inferenceUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: requestBody,
+      );
+
+      if (response.statusCode == 200) {
+        final dynamic jsonData = json.decode(response.body);
+
+        // Extract text from Gemini response
+        String? inferenceText;
+        if (jsonData is Map<String, dynamic>) {
+          final candidates = jsonData['candidates'] as List<dynamic>?;
+          if (candidates != null && candidates.isNotEmpty) {
+            final content = candidates[0]['content'] as Map<String, dynamic>?;
+            if (content != null) {
+              final parts = content['parts'] as List<dynamic>?;
+              if (parts != null && parts.isNotEmpty) {
+                inferenceText = parts[0]['text']?.toString();
+              }
+            }
+          }
+        }
+
+        if (inferenceText != null) {
+          final inferredProfile =
+              NLPPromptBuilder.parseInferenceResponse(inferenceText);
+
+          if (inferredProfile != null) {
+            debugPrint(
+                'GeminiService: Profile inferred — ${inferredProfile.displayName}');
+            setUserProfile(inferredProfile);
+            _hasInferredProfile = true;
+            onProfileInferred?.call(inferredProfile);
+            return;
+          }
+        }
+      } else {
+        debugPrint('GeminiService: Inference API error ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('GeminiService: Inference failed (using default): $e');
+    }
+
+    // Fallback: mark as inferred so we don't retry, keep default profile
+    _hasInferredProfile = true;
+  }
+
+  // ————————————————————————————————————————————————
+  // Telemetry & Artifact Generation
+  // ————————————————————————————————————————————————
+
+  /// Generates a hidden JSON summary (Telemetry Artifact) of the recent conversation
+  /// Runs silently in the background every 3 messages
+  Future<Map<String, dynamic>?> generateTelemetrySummary(
+      List<Message> recentHistory) async {
+    try {
+      final apiKey = env.EnvConfig.geminiApiKey;
+      if (apiKey.isEmpty) return null;
+
+      final url =
+          'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=$apiKey';
+
+      // Construct the analysis prompt
+      final sb = StringBuffer();
+      sb.writeln('SYSTEM: You are a silent metacognitive observer.');
+      sb.writeln(
+          'TASK: Analyze the recent conversation and generate a telemetry artifact.');
+      sb.writeln('OUTPUT: Strictly valid JSON. No markdown. No code blocks.');
+      sb.writeln('JSON SCHEMA: {');
+      sb.writeln('  "user_mood": "string (e.g., Anxious, Motivated)",');
+      sb.writeln('  "key_insights": ["string", "string"],');
+      sb.writeln('  "breakthrough_probability": float (0.0 to 1.0),');
+      sb.writeln('  "suggested_focus": "string (optional)"');
+      sb.writeln('}');
+      sb.writeln('\nCONVERSATION HISTORY:');
+
+      for (final msg in recentHistory) {
+        sb.writeln('${msg.isUser ? "USER" : "COACH"}: ${msg.content}');
+      }
+
+      final requestBody = json.encode({
+        "contents": [
+          {
+            "parts": [
+              {"text": sb.toString()}
+            ]
+          }
+        ],
+        "generationConfig": {
+          "temperature": 0.2, // Low temp for analytical precision
+          "maxOutputTokens": 300,
+          "responseMimeType": "application/json", // Force JSON
+        }
+      });
+
+      debugPrint(
+          'GeminiService: Generating Telemetry Artifact (History: ${recentHistory.length} msgs)...');
+
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: requestBody,
+      );
+
+      if (response.statusCode == 200) {
+        final dynamic jsonData = json.decode(response.body);
+        final content =
+            jsonData['candidates']?[0]?['content']?['parts']?[0]?['text'];
+
+        if (content != null) {
+          debugPrint('GeminiService: Telemetry Artifact Generated ✅');
+          debugPrint(content); // Log the hidden artifact
+          return json.decode(content) as Map<String, dynamic>;
+        }
+      } else {
+        debugPrint(
+            'GeminiService: Telemetry Generation Failed (${response.statusCode})');
+      }
+    } catch (e) {
+      debugPrint('GeminiService: Telemetry Error: $e');
+    }
+    return null;
   }
 
   /// Cancel any ongoing request

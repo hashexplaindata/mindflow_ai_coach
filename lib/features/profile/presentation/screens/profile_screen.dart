@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:provider/provider.dart' show WatchContext;
 import 'package:http/http.dart' as http;
-import 'package:provider/provider.dart' hide Consumer;
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/theme/theme_provider.dart';
@@ -11,6 +11,8 @@ import '../../../subscription/presentation/screens/subscription_screen.dart';
 import '../../../coach/presentation/screens/goals_screen.dart';
 import '../../../coach/presentation/widgets/goal_card.dart';
 import '../../../coach/domain/models/wellness_goal.dart';
+import '../../../chat/presentation/providers/chat_provider.dart';
+import '../widgets/mindset_card.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -124,6 +126,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ),
                     ),
                     const SizedBox(height: AppSpacing.spacing32),
+
+                    // — Mindset Card (Inferred NLP Profile)
+                    const _MindsetSection(),
+                    const SizedBox(height: AppSpacing.spacing32),
+
                     Row(
                       children: [
                         Expanded(
@@ -614,7 +621,7 @@ class _GoalsSummarySectionState extends State<_GoalsSummarySection> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppColors.successGreen.withOpacity(0.15),
+                    color: AppColors.successGreen.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
@@ -647,6 +654,27 @@ class _GoalsSummarySectionState extends State<_GoalsSummarySection> {
           onTap: widget.onNavigateToGoals,
           onViewAll: widget.onNavigateToGoals,
         ),
+      ],
+    );
+  }
+}
+
+class _MindsetSection extends StatelessWidget {
+  const _MindsetSection();
+
+  @override
+  Widget build(BuildContext context) {
+    // Watch standard provider (not Riverpod)
+    final chatProvider = context.watch<ChatProvider>();
+
+    if (!chatProvider.isProfileInferred) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      children: [
+        MindsetCard(profile: chatProvider.userProfile),
+        const SizedBox(height: AppSpacing.spacing32),
       ],
     );
   }

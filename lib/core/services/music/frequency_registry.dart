@@ -153,6 +153,6 @@ class FrequencyDefinition {
 
   bool get isRange => rangeMin != null && rangeMax != null;
   String get label => baseFrequency != null
-      ? '${baseFrequency} Hz'
-      : '${rangeMin}-${rangeMax} Hz';
+      ? '$baseFrequency Hz'
+      : '$rangeMin-$rangeMax Hz';
 }

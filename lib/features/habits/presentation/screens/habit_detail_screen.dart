@@ -6,7 +6,6 @@ import '../../domain/models/habit.dart';
 import '../../data/default_habits.dart';
 import '../providers/habit_provider.dart';
 import '../widgets/streak_calendar.dart';
-import '../widgets/habit_tile.dart';
 
 class HabitDetailScreen extends StatefulWidget {
   final Habit habit;

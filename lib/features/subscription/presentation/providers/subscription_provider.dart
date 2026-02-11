@@ -46,18 +46,22 @@ class SubscriptionProvider extends ChangeNotifier {
   }
 
   /// Initialize the subscription service
-  Future<void> _initialize() async {
-    await _revenueCatService.initialize();
-
-    // Subscribe to Pro status changes
-    _proStatusSubscription = _revenueCatService.proStatusStream.listen(
-      (isPro) {
-        _isPro = isPro;
-        notifyListeners();
-      },
-    );
-
-    _isPro = _revenueCatService.isPro;
+ Future<void> _initialize() async {
+    try {
+      await _revenueCatService.initialize();
+      // Subscribe to Pro status changes
+      _proStatusSubscription = _revenueCatService.proStatusStream.listen(
+        (isPro) {
+          _isPro = isPro;
+          notifyListeners();
+        },
+      );
+      _isPro = _revenueCatService.isPro;
+    } catch (e) {
+      debugPrint("RevenueCat Init Error: $e");
+      // Fallback for hackathon: Assume free user if error
+      _isPro = false;
+    }
     _isInitialized = true;
     notifyListeners();
   }

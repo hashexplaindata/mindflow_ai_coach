@@ -140,7 +140,7 @@ class SpringTransition extends StatelessWidget {
 class _SpringCurve extends Curve {
   final SpringSimulation simulation;
 
-  _SpringCurve(this.simulation);
+  const _SpringCurve(this.simulation);
 
   @override
   double transformInternal(double t) {

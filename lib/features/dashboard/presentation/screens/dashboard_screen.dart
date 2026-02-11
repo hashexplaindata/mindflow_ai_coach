@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
-import '../../../../core/theme/jobs_theme.dart';
 import '../../../../shared/widgets/flow_streak_ring.dart';
 import '../../../chat/presentation/screens/chat_screen.dart';
 

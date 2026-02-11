@@ -5,7 +5,6 @@ import '../../../../core/constants/app_spacing.dart';
 import '../../domain/models/habit.dart';
 import '../../domain/models/daily_ritual.dart';
 import '../providers/habit_provider.dart';
-import '../widgets/ritual_card.dart';
 import '../widgets/habit_tile.dart';
 import 'add_habit_screen.dart';
 import 'habit_detail_screen.dart';
@@ -433,7 +432,7 @@ class _EmptyState extends StatelessWidget {
         borderRadius: BorderRadius.circular(32),
         boxShadow: [
           BoxShadow(
-            color: AppColors.jobsObsidian.withOpacity(0.05),
+            color: AppColors.jobsObsidian.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -446,7 +445,7 @@ class _EmptyState extends StatelessWidget {
             width: 80,
             height: 80,
             decoration: BoxDecoration(
-              color: AppColors.jobsSage.withOpacity(0.1),
+              color: AppColors.jobsSage.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: const Center(
@@ -473,7 +472,7 @@ class _EmptyState extends StatelessWidget {
             style: TextStyle(
               fontFamily: 'DM Sans',
               fontSize: 14,
-              color: AppColors.jobsObsidian.withOpacity(0.6),
+              color: AppColors.jobsObsidian.withValues(alpha: 0.6),
               height: 1.5,
             ),
           ),

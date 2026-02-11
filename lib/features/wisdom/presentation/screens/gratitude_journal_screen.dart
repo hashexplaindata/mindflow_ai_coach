@@ -282,7 +282,7 @@ class _WeeklyProgress extends StatelessWidget {
               const Spacer(),
               Text(
                 '$count / $goal',
-                style: TextStyle(
+                style: const TextStyle(
                   fontFamily: 'DM Sans',
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -365,7 +365,7 @@ class _GratitudeEntryCard extends StatelessWidget {
                         fontFamily: 'DM Sans',
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
-                        color: AppColors.jobsObsidian.withOpacity(0.7),
+                        color: AppColors.jobsObsidian.withValues(alpha: 0.7),
                       ),
                     ),
                   ],
@@ -377,7 +377,7 @@ class _GratitudeEntryCard extends StatelessWidget {
                 style: TextStyle(
                   fontFamily: 'DM Sans',
                   fontSize: 12,
-                  color: AppColors.jobsObsidian.withOpacity(0.4),
+                  color: AppColors.jobsObsidian.withValues(alpha: 0.4),
                 ),
               ),
               if (onDelete != null) ...[
@@ -387,7 +387,7 @@ class _GratitudeEntryCard extends StatelessWidget {
                   child: Icon(
                     Icons.delete_outline,
                     size: 18,
-                    color: AppColors.jobsObsidian.withOpacity(0.3),
+                    color: AppColors.jobsObsidian.withValues(alpha: 0.3),
                   ),
                 ),
               ],

@@ -293,7 +293,7 @@ class GoalTemplateCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                Icon(
+                const Icon(
                   Icons.add_circle_outline_rounded,
                   color: AppColors.jobsSage,
                   size: 24,
@@ -428,7 +428,7 @@ class CompactGoalCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                    Text(
+                    const Text(
                       'View All',
                       style: TextStyle(
                         fontFamily: 'DM Sans',

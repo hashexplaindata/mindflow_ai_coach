@@ -1,4 +1,3 @@
-import 'dart:collection';
 
 /// **VAK (Visual/Auditory/Kinesthetic) Detection Engine**
 ///

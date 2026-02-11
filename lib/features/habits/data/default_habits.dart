@@ -63,73 +63,73 @@ class DefaultHabits {
       ];
 
   static List<HabitSuggestion> get suggestions => [
-        HabitSuggestion(
+        const HabitSuggestion(
           name: 'Drink water',
           icon: '💧',
           category: HabitCategory.morning,
           description: 'Start your day hydrated',
         ),
-        HabitSuggestion(
+        const HabitSuggestion(
           name: 'Meditate 5 minutes',
           icon: '🧘',
           category: HabitCategory.morning,
           description: 'Center yourself for the day',
         ),
-        HabitSuggestion(
+        const HabitSuggestion(
           name: 'Stretch',
           icon: '🤸',
           category: HabitCategory.morning,
           description: 'Wake up your body',
         ),
-        HabitSuggestion(
+        const HabitSuggestion(
           name: 'Morning walk',
           icon: '🚶',
           category: HabitCategory.morning,
           description: 'Get some fresh air',
         ),
-        HabitSuggestion(
+        const HabitSuggestion(
           name: 'Healthy breakfast',
           icon: '🥗',
           category: HabitCategory.morning,
           description: 'Fuel your body well',
         ),
-        HabitSuggestion(
+        const HabitSuggestion(
           name: 'Read for 15 minutes',
           icon: '📚',
           category: HabitCategory.afternoon,
           description: 'Expand your mind',
         ),
-        HabitSuggestion(
+        const HabitSuggestion(
           name: 'Take a break',
           icon: '☕',
           category: HabitCategory.afternoon,
           description: 'Recharge with a pause',
         ),
-        HabitSuggestion(
+        const HabitSuggestion(
           name: 'Gratitude journal',
           icon: '📝',
           category: HabitCategory.evening,
           description: 'Reflect on what you\'re thankful for',
         ),
-        HabitSuggestion(
+        const HabitSuggestion(
           name: 'Wind-down breathing',
           icon: '🌬️',
           category: HabitCategory.evening,
           description: 'Calm your nervous system',
         ),
-        HabitSuggestion(
+        const HabitSuggestion(
           name: 'No screens before bed',
           icon: '📵',
           category: HabitCategory.evening,
           description: 'Prepare for restful sleep',
         ),
-        HabitSuggestion(
+        const HabitSuggestion(
           name: 'Skincare routine',
           icon: '✨',
           category: HabitCategory.evening,
           description: 'Self-care before sleep',
         ),
-        HabitSuggestion(
+        const HabitSuggestion(
           name: 'Plan tomorrow',
           icon: '📋',
           category: HabitCategory.evening,

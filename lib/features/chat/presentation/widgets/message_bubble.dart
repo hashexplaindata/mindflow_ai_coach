@@ -5,7 +5,7 @@ import '../../../../core/constants/app_text_styles.dart';
 import '../../domain/models/message.dart';
 import 'typing_indicator.dart';
 
-class MessageBubble extends StatelessWidget {
+class MessageBubble extends StatefulWidget {
   const MessageBubble({
     super.key,
     required this.message,
@@ -18,94 +18,129 @@ class MessageBubble extends StatelessWidget {
   final bool showAvatar;
 
   @override
-  Widget build(BuildContext context) {
-    final isUser = message.isUser;
+  State<MessageBubble> createState() => _MessageBubbleState();
+}
 
-    return Padding(
-      padding: EdgeInsets.only(
-        left: isUser ? AppSpacing.spacing48 : AppSpacing.spacing8,
-        right: isUser ? AppSpacing.spacing8 : AppSpacing.spacing48,
-        bottom: AppSpacing.spacing12,
-      ),
-      child: Column(
-        crossAxisAlignment:
-            isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment:
-                isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              if (!isUser && showAvatar) ...[
-                const CoachAvatar(size: 32),
-                const SizedBox(width: AppSpacing.spacing8),
-              ],
-              Flexible(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: isUser
-                        ? AppColors.cardBackground
-                        : AppColors.jobsSage.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.only(
-                      topLeft: const Radius.circular(20),
-                      topRight: const Radius.circular(20),
-                      bottomLeft: Radius.circular(isUser ? 20 : 4),
-                      bottomRight: Radius.circular(isUser ? 4 : 20),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: isUser
-                            ? Colors.black.withValues(alpha: 0.05)
-                            : AppColors.jobsSage.withValues(alpha: 0.15),
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
+class _MessageBubbleState extends State<MessageBubble>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _fadeController;
+  late final Animation<double> _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _fadeController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _fadeAnimation = CurvedAnimation(
+      parent: _fadeController,
+      curve: Curves.easeIn,
+    );
+    _fadeController.forward();
+  }
+
+  @override
+  void dispose() {
+    _fadeController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isUser = widget.message.isUser;
+
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: isUser ? AppSpacing.spacing48 : AppSpacing.spacing8,
+          right: isUser ? AppSpacing.spacing8 : AppSpacing.spacing48,
+          bottom: AppSpacing.spacing12,
+        ),
+        child: Column(
+          crossAxisAlignment:
+              isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment:
+                  isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                if (!isUser && widget.showAvatar) ...[
+                  const CoachAvatar(size: 32),
+                  const SizedBox(width: AppSpacing.spacing8),
+                ],
+                Flexible(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: isUser
+                          ? AppColors.cardBackground
+                          : AppColors.jobsSage.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.only(
+                        topLeft: const Radius.circular(20),
+                        topRight: const Radius.circular(20),
+                        bottomLeft: Radius.circular(isUser ? 20 : 4),
+                        bottomRight: Radius.circular(isUser ? 4 : 20),
                       ),
-                    ],
-                    border: isUser
-                        ? Border.all(
-                            color:
-                                AppColors.neutralMedium.withValues(alpha: 0.5),
-                            width: 1,
-                          )
-                        : null,
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.spacing16,
-                    vertical: AppSpacing.spacing12,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (message.isStreaming && message.content.isEmpty)
-                        const TypingIndicator()
-                      else if (message.isLoading)
-                        const TypingIndicator()
-                      else
-                        _MessageContent(
-                          content: message.content,
-                          isUser: isUser,
+                      boxShadow: [
+                        BoxShadow(
+                          color: isUser
+                              ? Colors.black.withValues(alpha: 0.05)
+                              : AppColors.jobsSage.withValues(alpha: 0.15),
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
                         ),
-                    ],
+                      ],
+                      border: isUser
+                          ? Border.all(
+                              color: AppColors.neutralMedium
+                                  .withValues(alpha: 0.5),
+                              width: 1,
+                            )
+                          : null,
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.spacing16,
+                      vertical: AppSpacing.spacing12,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (widget.message.isStreaming &&
+                            widget.message.content.isEmpty)
+                          const TypingIndicator()
+                        else if (widget.message.isLoading)
+                          const TypingIndicator()
+                        else
+                          _MessageContent(
+                            content: widget.message.content,
+                            isUser: isUser,
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            if (widget.showTimestamp &&
+                !widget.message.isStreaming &&
+                !widget.message.isLoading)
+              Padding(
+                padding: EdgeInsets.only(
+                  top: AppSpacing.spacing4,
+                  left: isUser ? 0 : 40,
+                  right: isUser ? 0 : 0,
+                ),
+                child: Text(
+                  _formatTimestamp(widget.message.timestamp),
+                  style: AppTextStyles.chatTimestamp.copyWith(
+                    color: AppColors.textSecondary.withValues(alpha: 0.6),
                   ),
                 ),
               ),
-            ],
-          ),
-          if (showTimestamp && !message.isStreaming && !message.isLoading)
-            Padding(
-              padding: EdgeInsets.only(
-                top: AppSpacing.spacing4,
-                left: isUser ? 0 : 40,
-                right: isUser ? 0 : 0,
-              ),
-              child: Text(
-                _formatTimestamp(message.timestamp),
-                style: AppTextStyles.chatTimestamp.copyWith(
-                  color: AppColors.textSecondary.withValues(alpha: 0.6),
-                ),
-              ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }

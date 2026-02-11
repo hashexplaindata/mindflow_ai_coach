@@ -9,9 +9,9 @@ void main() {
   // Configuration for "Deep Healing & Relaxation"
   // Base: 432 Hz (Universal Healing)
   // Beat: 10 Hz (Alpha State - Calm, Relaxed)
-  final baseFreq = 432.0;
-  final beatFreq = 10.0;
-  final duration = 10; // seconds
+  const baseFreq = 432.0;
+  const beatFreq = 10.0;
+  const duration = 10; // seconds
 
   print('Generating Session:');
   print(' - Base Frequency: ${baseFreq}Hz');
@@ -25,7 +25,7 @@ void main() {
     durationSeconds: duration,
   );
 
-  final filename = 'mindflow_demo.wav';
+  const filename = 'mindflow_demo.wav';
   final file = File(filename);
   file.writeAsBytesSync(wavData);
 

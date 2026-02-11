@@ -26,8 +26,8 @@ class ProceduralAudioService {
 
   // Audio generation parameters
   final Random _random = Random();
-  int _sampleRate = 44100;
-  int _bufferSize = 4096;
+  final int _sampleRate = 44100;
+  final int _bufferSize = 4096;
 
   bool get isPlaying => _isPlaying;
   double get volume => _volume;

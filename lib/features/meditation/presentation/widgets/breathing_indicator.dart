@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../domain/models/guided_content.dart';
@@ -247,7 +246,7 @@ class _BreathingExerciseWidgetState extends State<BreathingExerciseWidget>
   void _initAnimations() {
     _controller = AnimationController(
       vsync: this,
-      duration: Duration(seconds: _inhaleDuration),
+      duration: const Duration(seconds: _inhaleDuration),
     );
 
     _scaleAnimation = Tween<double>(begin: 0.6, end: 1.0).animate(
@@ -277,7 +276,7 @@ class _BreathingExerciseWidgetState extends State<BreathingExerciseWidget>
       _currentPhase = BreathPhase.inhale;
     });
 
-    _controller.duration = Duration(seconds: _inhaleDuration);
+    _controller.duration = const Duration(seconds: _inhaleDuration);
     _controller.forward(from: 0).then((_) {
       if (!mounted || !widget.isActive) return;
 
@@ -285,14 +284,14 @@ class _BreathingExerciseWidgetState extends State<BreathingExerciseWidget>
         _currentPhase = BreathPhase.hold;
       });
 
-      Future.delayed(Duration(seconds: _holdDuration), () {
+      Future.delayed(const Duration(seconds: _holdDuration), () {
         if (!mounted || !widget.isActive) return;
 
         setState(() {
           _currentPhase = BreathPhase.exhale;
         });
 
-        _controller.duration = Duration(seconds: _exhaleDuration);
+        _controller.duration = const Duration(seconds: _exhaleDuration);
         _controller.reverse(from: 1).then((_) {
           if (!mounted || !widget.isActive) return;
 

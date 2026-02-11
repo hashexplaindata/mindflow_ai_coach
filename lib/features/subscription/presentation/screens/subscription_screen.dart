@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:provider/provider.dart' as provider;
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
-import '../../../../core/services/api_service.dart';
-import '../../../auth/presentation/providers/user_provider.dart';
+import '../providers/subscription_provider.dart';
 
 class SubscriptionScreen extends ConsumerStatefulWidget {
   const SubscriptionScreen({super.key});
@@ -15,51 +14,15 @@ class SubscriptionScreen extends ConsumerStatefulWidget {
 
 class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
   bool _isAnnual = true;
-  bool _isLoading = true;
+  final bool _isLoading =
+      false; // No API loading needed — RevenueCat handles pricing
   bool _isSubscribing = false;
-  List<Map<String, dynamic>> _products = [];
-  String? _monthlyPriceId;
-  String? _annualPriceId;
-  String _monthlyPrice = '\$9.99';
-  String _annualPrice = '\$79.99';
+  final String _monthlyPrice = '\$9.99';
+  final String _annualPrice = '\$79.99';
 
   @override
   void initState() {
     super.initState();
-    _loadProducts();
-  }
-
-  Future<void> _loadProducts() async {
-    try {
-      final apiService = ApiService();
-      final products = await apiService.getProducts();
-
-      setState(() {
-        _products = products;
-
-        for (final product in products) {
-          final prices = product['prices'] as List? ?? [];
-          for (final price in prices) {
-            final recurring = price['recurring'];
-            final interval = recurring?['interval'];
-            final unitAmount = price['unit_amount'] as int? ?? 0;
-            final priceStr = '\$${(unitAmount / 100).toStringAsFixed(2)}';
-
-            if (interval == 'month') {
-              _monthlyPriceId = price['id'];
-              _monthlyPrice = priceStr;
-            } else if (interval == 'year') {
-              _annualPriceId = price['id'];
-              _annualPrice = priceStr;
-            }
-          }
-        }
-        _isLoading = false;
-      });
-    } catch (e) {
-      debugPrint('Error loading products: $e');
-      setState(() => _isLoading = false);
-    }
   }
 
   @override
@@ -94,7 +57,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
+                        gradient: const LinearGradient(
                           colors: [
                             AppColors.primaryOrange,
                             AppColors.primaryOrangeDark
@@ -102,9 +65,9 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                         ),
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      child: Row(
+                      child: const Row(
                         mainAxisSize: MainAxisSize.min,
-                        children: const [
+                        children: [
                           Icon(Icons.workspace_premium,
                               size: 16, color: Colors.white),
                           SizedBox(width: 4),
@@ -148,17 +111,17 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.spacing16),
-                _FeatureItem(
+                const _FeatureItem(
                   icon: Icons.check_circle,
                   text: 'Basic meditation sessions',
                   isIncluded: true,
                 ),
-                _FeatureItem(
+                const _FeatureItem(
                   icon: Icons.check_circle,
                   text: 'Daily reminders',
                   isIncluded: true,
                 ),
-                _FeatureItem(
+                const _FeatureItem(
                   icon: Icons.check_circle,
                   text: 'Progress tracking',
                   isIncluded: true,
@@ -175,31 +138,31 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.spacing16),
-                _FeatureItem(
+                const _FeatureItem(
                   icon: Icons.star,
                   text: 'All meditation sessions',
                   isIncluded: false,
                   isPremium: true,
                 ),
-                _FeatureItem(
+                const _FeatureItem(
                   icon: Icons.star,
                   text: 'Sleep stories & soundscapes',
                   isIncluded: false,
                   isPremium: true,
                 ),
-                _FeatureItem(
+                const _FeatureItem(
                   icon: Icons.star,
                   text: 'Personalized recommendations',
                   isIncluded: false,
                   isPremium: true,
                 ),
-                _FeatureItem(
+                const _FeatureItem(
                   icon: Icons.star,
                   text: 'Offline downloads',
                   isIncluded: false,
                   isPremium: true,
                 ),
-                _FeatureItem(
+                const _FeatureItem(
                   icon: Icons.star,
                   text: 'Priority support',
                   isIncluded: false,
@@ -287,55 +250,24 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
     );
   }
 
+  // RevenueCat Logic - use native paywall instead of Stripe checkout
   void _handleSubscribe(BuildContext context) async {
-    final priceId = _isAnnual ? _annualPriceId : _monthlyPriceId;
-
-    if (priceId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('No pricing available. Please try again later.'),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        ),
-      );
-      return;
-    }
-
     setState(() => _isSubscribing = true);
 
     try {
-      final userState = ref.read(userProvider);
-      final apiService = ApiService();
+      final subProvider =
+          provider.Provider.of<SubscriptionProvider>(context, listen: false);
+      final success = await subProvider.showPaywall();
 
-      final checkoutUrl = await apiService.createCheckoutSession(
-        priceId: priceId,
-        userId: userState.userId ?? '',
-        email: userState.email ?? '',
-      );
-
-      if (checkoutUrl != null) {
-        final uri = Uri.parse(checkoutUrl);
-        if (await canLaunchUrl(uri)) {
-          await launchUrl(uri, mode: LaunchMode.externalApplication);
-
-          await Future.delayed(const Duration(seconds: 2));
-          await ref.read(userProvider.notifier).refreshSubscriptionStatus();
-
-          if (mounted) {
-            Navigator.of(context).pop();
-          }
-        } else {
-          throw Exception('Could not launch checkout URL');
-        }
+      if (success && mounted) {
+        Navigator.of(context).pop();
       }
     } catch (e) {
       debugPrint('Subscription error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: ${e.toString()}'),
+            content: const Text('Something went wrong. Please try again.'),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
             shape:

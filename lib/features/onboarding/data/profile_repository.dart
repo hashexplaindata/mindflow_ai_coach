@@ -1,9 +1,10 @@
 // import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import '../domain/models/nlp_profile.dart';
 
 /// User Profile Repository
 /// Handles persistence of user profile and NLP data to Firestore
-/// 
+///
 /// Firestore structure:
 /// users/{userId}/
 ///   - email: string
@@ -20,7 +21,7 @@ import '../domain/models/nlp_profile.dart';
 class UserProfileRepository {
   // TODO: Uncomment when Firebase is configured
   // final FirebaseFirestore _firestore;
-  // 
+  //
   // UserProfileRepository({FirebaseFirestore? firestore})
   //     : _firestore = firestore ?? FirebaseFirestore.instance;
 
@@ -43,11 +44,11 @@ class UserProfileRepository {
       //   'hasCompletedOnboarding': true,
       //   'updatedAt': FieldValue.serverTimestamp(),
       // }, SetOptions(merge: true));
-      
-      print('UserProfileRepository: Saved NLP profile for $userId');
-      print('Profile: ${profile.toMap()}');
+
+      debugPrint('UserProfileRepository: Saved NLP profile for $userId');
+      debugPrint('Profile: ${profile.toMap()}');
     } catch (e) {
-      print('UserProfileRepository: Error saving profile: $e');
+      debugPrint('UserProfileRepository: Error saving profile: $e');
       rethrow;
     }
   }
@@ -57,18 +58,18 @@ class UserProfileRepository {
     try {
       // TODO: Uncomment when Firebase is configured
       // final doc = await _usersCollection.doc(userId).get();
-      // 
+      //
       // if (!doc.exists) return null;
-      // 
+      //
       // final data = doc.data();
       // if (data == null || data['nlpProfile'] == null) return null;
-      // 
+      //
       // return NLPProfile.fromMap(data['nlpProfile'] as Map<String, dynamic>);
-      
+
       // For development: return default profile
       return NLPProfile.defaultProfile;
     } catch (e) {
-      print('UserProfileRepository: Error getting profile: $e');
+      debugPrint('UserProfileRepository: Error getting profile: $e');
       return null;
     }
   }
@@ -78,15 +79,15 @@ class UserProfileRepository {
     try {
       // TODO: Uncomment when Firebase is configured
       // final doc = await _usersCollection.doc(userId).get();
-      // 
+      //
       // if (!doc.exists) return false;
-      // 
+      //
       // final data = doc.data();
       // return data?['hasCompletedOnboarding'] == true;
-      
+
       return false;
     } catch (e) {
-      print('UserProfileRepository: Error checking onboarding: $e');
+      debugPrint('UserProfileRepository: Error checking onboarding: $e');
       return false;
     }
   }
@@ -106,10 +107,10 @@ class UserProfileRepository {
       //   'isPro': false,
       //   'hasCompletedOnboarding': false,
       // }, SetOptions(merge: true));
-      
-      print('UserProfileRepository: Created user profile for $userId');
+
+      debugPrint('UserProfileRepository: Created user profile for $userId');
     } catch (e) {
-      print('UserProfileRepository: Error creating profile: $e');
+      debugPrint('UserProfileRepository: Error creating profile: $e');
       rethrow;
     }
   }
@@ -125,10 +126,11 @@ class UserProfileRepository {
       //   'isPro': isPro,
       //   'updatedAt': FieldValue.serverTimestamp(),
       // });
-      
-      print('UserProfileRepository: Updated Pro status for $userId: $isPro');
+
+      debugPrint(
+          'UserProfileRepository: Updated Pro status for $userId: $isPro');
     } catch (e) {
-      print('UserProfileRepository: Error updating Pro status: $e');
+      debugPrint('UserProfileRepository: Error updating Pro status: $e');
       rethrow;
     }
   }
@@ -139,20 +141,20 @@ class UserProfileRepository {
       // TODO: Uncomment when Firebase is configured
       // final today = DateTime.now();
       // final dateStr = '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
-      // 
+      //
       // final doc = await _usersCollection
       //     .doc(userId)
       //     .collection('dailyChats')
       //     .doc(dateStr)
       //     .get();
-      // 
+      //
       // if (!doc.exists) return 0;
-      // 
+      //
       // return (doc.data()?['count'] as int?) ?? 0;
-      
+
       return 0;
     } catch (e) {
-      print('UserProfileRepository: Error getting daily chat count: $e');
+      debugPrint('UserProfileRepository: Error getting daily chat count: $e');
       return 0;
     }
   }
@@ -163,7 +165,7 @@ class UserProfileRepository {
       // TODO: Uncomment when Firebase is configured
       // final today = DateTime.now();
       // final dateStr = '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
-      // 
+      //
       // await _usersCollection
       //     .doc(userId)
       //     .collection('dailyChats')
@@ -172,10 +174,11 @@ class UserProfileRepository {
       //       'count': FieldValue.increment(1),
       //       'lastUpdated': FieldValue.serverTimestamp(),
       //     }, SetOptions(merge: true));
-      
-      print('UserProfileRepository: Incremented daily chat count for $userId');
+
+      debugPrint(
+          'UserProfileRepository: Incremented daily chat count for $userId');
     } catch (e) {
-      print('UserProfileRepository: Error incrementing chat count: $e');
+      debugPrint('UserProfileRepository: Error incrementing chat count: $e');
       rethrow;
     }
   }

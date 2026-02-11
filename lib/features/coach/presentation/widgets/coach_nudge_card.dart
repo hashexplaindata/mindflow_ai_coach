@@ -146,7 +146,7 @@ class _CoachNudgeCardState extends State<CoachNudgeCard>
                     children: [
                       Text(
                         widget.intervention.message,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontFamily: 'DM Sans',
                           fontSize: 15,
                           fontWeight: FontWeight.w600,

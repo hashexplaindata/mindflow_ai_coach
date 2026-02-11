@@ -124,7 +124,7 @@ class MiniWisdomCard extends StatelessWidget {
                 const SizedBox(width: 8),
                 Text(
                   wisdom.tone.displayName,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontFamily: 'DM Sans',
                     fontSize: 12,
                     fontWeight: FontWeight.w600,

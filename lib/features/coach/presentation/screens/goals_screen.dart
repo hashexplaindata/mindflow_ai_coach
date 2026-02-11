@@ -4,7 +4,6 @@ import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
-import '../../../../core/config/env_config.dart';
 import '../../domain/models/wellness_goal.dart';
 import '../widgets/goal_card.dart';
 
@@ -22,6 +21,9 @@ class GoalsScreen extends StatefulWidget {
 
 class _GoalsScreenState extends State<GoalsScreen>
     with SingleTickerProviderStateMixin {
+  // Hackathon Fix: Dummy URL to prevent crash
+  final String apiBaseUrl = "";
+
   late TabController _tabController;
   List<WellnessGoal> _activeGoals = [];
   List<WellnessGoal> _completedGoals = [];

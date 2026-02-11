@@ -265,7 +265,7 @@ class _TabButton extends StatelessWidget {
               size: 16,
               color: isSelected
                   ? AppColors.jobsSage
-                  : AppColors.jobsObsidian.withOpacity(0.5),
+                  : AppColors.jobsObsidian.withValues(alpha: 0.5),
             ),
             const SizedBox(width: 6),
             Text(
@@ -276,7 +276,7 @@ class _TabButton extends StatelessWidget {
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                 color: isSelected
                     ? AppColors.jobsSage
-                    : AppColors.jobsObsidian.withOpacity(0.6),
+                    : AppColors.jobsObsidian.withValues(alpha: 0.6),
               ),
             ),
           ],

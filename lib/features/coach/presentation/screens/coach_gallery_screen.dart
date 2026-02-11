@@ -22,7 +22,8 @@ class CoachGalleryScreen extends StatelessWidget {
         elevation: 0,
         title: Text(
           'Choose Your Coach',
-          style: AppTextStyles.headingSmall.copyWith(color: AppColors.jobsObsidian),
+          style: AppTextStyles.headingSmall
+              .copyWith(color: AppColors.jobsObsidian),
         ),
         iconTheme: const IconThemeData(color: AppColors.jobsObsidian),
       ),
@@ -109,13 +110,14 @@ class _CoachCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
           ],
           border: isLocked
-              ? Border.all(color: AppColors.neutralMedium.withOpacity(0.3))
+              ? Border.all(
+                  color: AppColors.neutralMedium.withValues(alpha: 0.3))
               : Border.all(color: Colors.transparent),
         ),
         child: Row(
@@ -125,7 +127,7 @@ class _CoachCard extends StatelessWidget {
               width: 64,
               height: 64,
               decoration: BoxDecoration(
-                color: AppColors.jobsSage.withOpacity(0.2),
+                color: AppColors.jobsSage.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
               child: Center(

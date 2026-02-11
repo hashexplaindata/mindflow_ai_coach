@@ -90,22 +90,20 @@ class MindFlowTheme {
 
   static ThemeData get lightTheme => ThemeData(
         useMaterial3: true,
-        colorScheme: ColorScheme.light(
-          primary: sage,
-          onPrimary: cream,
-          secondary: sageLight,
-          onSecondary: obsidian,
-          surface: cream,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFFFAFAFA),
+          brightness: Brightness.light,
+          surface: const Color(0xFFFAFAFA),
           onSurface: obsidian,
-          error: warmRed,
-          onError: cream,
+          primary: sage, // Keep brand color as primary overriding seed
+          onPrimary: cream,
         ),
-        scaffoldBackgroundColor: cream,
+        scaffoldBackgroundColor: const Color(0xFFFAFAFA),
         cardColor: creamLight,
         dividerColor: obsidian.withValues(alpha: 0.1),
 
         // Typography
-        textTheme: TextTheme(
+        textTheme: const TextTheme(
           displayLarge: TextStyle(
             fontSize: fontDisplay,
             fontWeight: weightSemiBold,
@@ -181,13 +179,115 @@ class MindFlowTheme {
 
         // App bar (invisible, content-first)
         appBarTheme: const AppBarTheme(
-          backgroundColor: cream,
+          backgroundColor: Color(0xFFFAFAFA),
           elevation: 0,
           centerTitle: false,
           titleTextStyle: TextStyle(
             fontSize: fontXLarge,
             fontWeight: weightMedium,
             color: obsidian,
+          ),
+        ),
+      );
+
+  static ThemeData get darkTheme => ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF1A1A1A),
+          brightness: Brightness.dark,
+          surface: const Color(0xFF1A1A1A),
+          onSurface: const Color(0xFFFAFAFA),
+          primary: sage, // Keep brand color
+          onPrimary: cream,
+        ),
+        scaffoldBackgroundColor: const Color(0xFF1A1A1A),
+        cardColor: const Color(0xFF2A2A2A),
+        dividerColor: Colors.white.withValues(alpha: 0.1),
+
+        // Typography using standard off-white for dark mode
+        textTheme: const TextTheme(
+          displayLarge: TextStyle(
+            fontSize: fontDisplay,
+            fontWeight: weightSemiBold,
+            color: Color(0xFFFAFAFA),
+            height: 1.1,
+          ),
+          displayMedium: TextStyle(
+            fontSize: fontXXLarge,
+            fontWeight: weightSemiBold,
+            color: Color(0xFFFAFAFA),
+            height: 1.2,
+          ),
+          headlineLarge: TextStyle(
+            fontSize: fontXLarge,
+            fontWeight: weightMedium,
+            color: Color(0xFFFAFAFA),
+            height: 1.3,
+          ),
+          headlineMedium: TextStyle(
+            fontSize: fontLarge,
+            fontWeight: weightMedium,
+            color: Color(0xFFFAFAFA),
+            height: 1.4,
+          ),
+          bodyLarge: TextStyle(
+            fontSize: fontMedium,
+            fontWeight: weightRegular,
+            color: Color(0xFFFAFAFA),
+            height: 1.5,
+          ),
+          bodyMedium: TextStyle(
+            fontSize: fontMedium,
+            fontWeight: weightRegular,
+            color: Color(0xFFE0E0E0),
+            height: 1.5,
+          ),
+          bodySmall: TextStyle(
+            fontSize: fontSmall,
+            fontWeight: weightRegular,
+            color: Color(0xFFBDBDBD),
+            height: 1.4,
+          ),
+        ),
+
+        // Dark Mode Buttons
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: sage,
+            foregroundColor: cream,
+            padding: const EdgeInsets.symmetric(
+              horizontal: spacing24,
+              vertical: spacing16,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(radius16),
+            ),
+            elevation: 0,
+          ),
+        ),
+
+        // Dark Mode Cards
+        cardTheme: CardThemeData(
+          color: const Color(0xFF2D2D2D), // Slightly lighter than background
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(radius16),
+            side: BorderSide(
+              color: Colors.white.withValues(alpha: 0.08),
+              width: 1,
+            ),
+          ),
+        ),
+
+        // App bar
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF1A1A1A),
+          elevation: 0,
+          centerTitle: false,
+          titleTextStyle: TextStyle(
+            fontSize: fontXLarge,
+            fontWeight: weightMedium,
+            color: Color(0xFFFAFAFA),
           ),
         ),
       );

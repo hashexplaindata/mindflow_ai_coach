@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_text_styles.dart';
-import '../../../../core/behavioral/behavioral_observer.dart';
 
 class ChatInput extends StatefulWidget {
   const ChatInput({
@@ -26,10 +25,9 @@ class _ChatInputState extends State<ChatInput>
     with SingleTickerProviderStateMixin {
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
-  final BehavioralObserver _behavioralObserver = BehavioralObserver();
+  // BehavioralObserver removed (legacy code)
   bool _hasText = false;
   bool _isFocused = false;
-  String _previousText = '';
 
   @override
   void initState() {
@@ -50,17 +48,7 @@ class _ChatInputState extends State<ChatInput>
   void _onTextChanged() {
     final currentText = _controller.text;
     final hasText = currentText.trim().isNotEmpty;
-    
-    // Behavioral tracking
-    if (currentText.length > _previousText.length) {
-      // Character added
-      _behavioralObserver.recordKeystroke(isBackspace: false);
-    } else if (currentText.length < _previousText.length) {
-      // Character deleted (backspace)
-      _behavioralObserver.recordKeystroke(isBackspace: true);
-    }
-    _previousText = currentText;
-    
+
     if (hasText != _hasText) {
       setState(() {
         _hasText = hasText;
@@ -79,14 +67,8 @@ class _ChatInputState extends State<ChatInput>
     final text = _controller.text.trim();
     if (text.isEmpty || !widget.enabled) return;
 
-    // Complete behavioral tracking
-    _behavioralObserver.recordMessageComplete();
-    final cognitiveLoad = _behavioralObserver.inferCognitiveLoad();
-    debugPrint('ChatInput: Cognitive load = ${(cognitiveLoad * 100).toStringAsFixed(1)}%');
-    
     widget.onSend(text);
     _controller.clear();
-    _previousText = '';
     _focusNode.requestFocus();
   }
 
@@ -173,7 +155,7 @@ class _ChatInputState extends State<ChatInput>
                           width: 40,
                           height: 40,
                           alignment: Alignment.center,
-                          child: Icon(
+                          child: const Icon(
                             Icons.arrow_upward_rounded,
                             color: Colors.white,
                             size: 22,

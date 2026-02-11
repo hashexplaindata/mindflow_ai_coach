@@ -8,10 +8,11 @@ import '../../domain/models/chat_session.dart';
 import '../../domain/models/conversation_context.dart';
 import '../../data/chat_repository.dart';
 import '../../data/gemini_service.dart';
+import '../../../subscription/data/revenuecat_service.dart';
 
 /// Chat Provider for MindFlow AI Coach
 /// Manages chat state using ChangeNotifier pattern
-/// 
+///
 /// Per @Architect rules:
 /// - NO setState in widgets—use ref.watch(provider) equivalent
 /// - Handle ALL loading/error states
@@ -20,8 +21,8 @@ class ChatProvider extends ChangeNotifier {
   ChatProvider({
     ChatRepository? repository,
     GeminiService? geminiService,
-  }) : _repository = repository ?? ChatRepository(),
-       _geminiService = geminiService ?? GeminiService();
+  })  : _repository = repository ?? ChatRepository(),
+        _geminiService = geminiService ?? GeminiService();
 
   final ChatRepository _repository;
   final GeminiService _geminiService;
@@ -33,7 +34,8 @@ class ChatProvider extends ChangeNotifier {
   bool _isSending = false;
   String? _errorMessage;
   NLPProfile _userProfile = NLPProfile.defaultProfile;
-  
+  bool _isProfileInferred = false;
+
   // Active Coach
   Coach _activeCoach = Coach.defaultCoach;
 
@@ -47,6 +49,12 @@ class ChatProvider extends ChangeNotifier {
   String? _activeGoal;
   double? _goalProgress;
 
+  // Logical Home State
+  String? _currentFocus;
+
+  // Telemetry State
+  int _messagesSinceLastSummary = 0;
+
   // Getters
   ChatSession? get currentSession => _currentSession;
   List<Message> get messages => List.unmodifiable(_messages);
@@ -54,15 +62,28 @@ class ChatProvider extends ChangeNotifier {
   bool get isSending => _isSending;
   String? get errorMessage => _errorMessage;
   NLPProfile get userProfile => _userProfile;
+  bool get isProfileInferred => _isProfileInferred;
   Coach get activeCoach => _activeCoach;
   bool get hasMessages => _messages.isNotEmpty;
   int get currentStreak => _currentStreak;
   int get totalSessions => _totalSessions;
 
+  // Focus Getter
+  String? get currentFocus => _currentFocus;
+
   /// Initialize the provider
   Future<void> initialize() async {
     await _geminiService.initialize();
     _geminiService.setActiveCoach(_activeCoach);
+
+    // Wire zero-shot inference callback so inferred profile persists in provider
+    _geminiService.onProfileInferred = (inferredProfile) {
+      _userProfile = inferredProfile;
+      _isProfileInferred = true;
+      notifyListeners();
+      debugPrint(
+          'ChatProvider: Profile updated via zero-shot inference → ${inferredProfile.displayName}');
+    };
   }
 
   /// Set user ID (call after auth)
@@ -173,9 +194,27 @@ class ChatProvider extends ChangeNotifier {
   }
 
   /// Send a message to the AI coach
-  Future<void> sendMessage(String content) async {
+  Future<void> sendMessage(String content, {bool isPro = false}) async {
     if (content.trim().isEmpty) return;
     if (_isSending) return;
+
+    // Check free tier limits (5 messages max)
+    if (!isPro) {
+      final userMessageCount = _messages.where((m) => m.isUser).length;
+      if (userMessageCount >= 5) {
+        // Trigger Paywall
+        final didSubscribe = await RevenueCatService.instance.showPaywall();
+        if (!didSubscribe) {
+          // Abort if didn't subscribe
+          return;
+        }
+        // User subscribed! Unlock deep dive immediately for this session
+        isPro = true;
+      }
+    }
+
+    // Set deep dive status based on subscription
+    _geminiService.setDeepDiveUnlocked(isPro);
 
     // Ensure we have a session
     if (_currentSession == null) {
@@ -206,14 +245,14 @@ class ChatProvider extends ChangeNotifier {
 
       // Stream response from Gemini
       final responseBuffer = StringBuffer();
-      
+
       await for (final chunk in _geminiService.sendMessageStream(
         userMessage: content,
         chatHistory: _messages.where((m) => !m.isStreaming).toList(),
         profile: _userProfile,
       )) {
         responseBuffer.write(chunk);
-        
+
         // Update the streaming message
         final updatedMessage = assistantMessage.copyWith(
           content: responseBuffer.toString(),
@@ -236,6 +275,29 @@ class ChatProvider extends ChangeNotifier {
         message: finalMessage,
       );
 
+      // 3. Closure Logic: Codify the breakthrough
+      // 3. Closure Logic: Codify the breakthrough
+      if (_shouldCodifyBreakthrough(finalMessage.content)) {
+        await _saveBreakthroughArtifact(finalMessage);
+      }
+
+      // 4. Telemetry: Generate hidden summary every 3 messages
+      _messagesSinceLastSummary++;
+      if (_messagesSinceLastSummary >= 3) {
+        _messagesSinceLastSummary = 0;
+        // Fire and forget (background)
+        _geminiService
+            .generateTelemetrySummary(
+          messages.length > 6
+              ? messages.sublist(messages.length - 6)
+              : messages,
+        )
+            .then((summary) {
+          if (summary != null) {
+            _saveTelemetryArtifact(summary);
+          }
+        });
+      }
     } catch (e) {
       _errorMessage = 'Hmm, I need a moment to think. Mind trying again?';
       // Remove the streaming message on error
@@ -249,9 +311,9 @@ class ChatProvider extends ChangeNotifier {
   }
 
   /// Retry the last failed message
-  Future<void> retryLastMessage() async {
+  Future<void> retryLastMessage({bool isPro = false}) async {
     if (_messages.isEmpty) return;
-    
+
     // Find the last user message
     Message? lastUserMessage;
     for (int i = _messages.length - 1; i >= 0; i--) {
@@ -269,9 +331,9 @@ class ChatProvider extends ChangeNotifier {
       // Remove the user message (it will be re-added)
       _messages.removeWhere((m) => m.id == lastUserMessage!.id);
       notifyListeners();
-      
+
       // Resend
-      await sendMessage(lastUserMessage.content);
+      await sendMessage(lastUserMessage.content, isPro: isPro);
     }
   }
 
@@ -287,7 +349,7 @@ class ChatProvider extends ChangeNotifier {
         userId: _userId,
         sessionId: sessionId,
       );
-      
+
       if (_currentSession?.id == sessionId) {
         _currentSession = null;
         _messages = [];
@@ -303,6 +365,45 @@ class ChatProvider extends ChangeNotifier {
   void clearError() {
     _errorMessage = null;
     notifyListeners();
+  }
+
+  // ————————————————————————————————————————————————
+  // Logical Home Focus Methods
+  // ————————————————————————————————————————————————
+
+  /// Set the user's current focus (One Thing)
+  void startNewFocus(String focus) {
+    _currentFocus = focus;
+    notifyListeners();
+  }
+
+  /// Clear the current focus to return to Intention Setting
+  void clearFocus() {
+    _currentFocus = null;
+    notifyListeners();
+  }
+
+  // ————————————————————————————————————————————————
+  // Telemetry & Breakthrough Logic
+  // ————————————————————————————————————————————————
+
+  bool _shouldCodifyBreakthrough(String text) {
+    // Simple heuristic: check for breakthrough keywords or length
+    final keywords = ['aha', 'realize', 'understand', 'epiphany', 'clear now'];
+    final lowerText = text.toLowerCase();
+    return keywords.any((k) => lowerText.contains(k)) || text.length > 500;
+  }
+
+  Future<void> _saveBreakthroughArtifact(Message message) async {
+    // Mock breakthrough saving
+    debugPrint(
+        'ChatProvider: Breakthrough Saved — "${message.content.substring(0, 20)}..."');
+  }
+
+  Future<void> _saveTelemetryArtifact(Map<String, dynamic> data) async {
+    // Mock telemetry artifact saving
+    debugPrint('ChatProvider: 🧠 TELEMETRY LOGGED: $data');
+    // Logic to save to a local "Telemetry" collection could go here
   }
 
   @override

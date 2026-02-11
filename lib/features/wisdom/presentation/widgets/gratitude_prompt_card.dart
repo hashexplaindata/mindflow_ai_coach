@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_spacing.dart';
 import '../../domain/models/wisdom_item.dart';
 
 class GratitudePromptCard extends StatefulWidget {
@@ -90,7 +89,7 @@ class _GratitudePromptCardState extends State<GratitudePromptCard> {
                       ),
                     ),
                     if (widget.hasWrittenToday)
-                      Text(
+                      const Text(
                         'Completed today',
                         style: TextStyle(
                           fontFamily: 'DM Sans',
@@ -109,7 +108,7 @@ class _GratitudePromptCardState extends State<GratitudePromptCard> {
                     color: AppColors.successGreen.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.check,
                     color: AppColors.successGreen,
                     size: 16,

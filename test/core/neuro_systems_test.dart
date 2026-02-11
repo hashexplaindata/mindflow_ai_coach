@@ -162,7 +162,7 @@ void main() {
       final detector = VAKDetector();
 
       // Visual language
-      final visualText =
+      const visualText =
           "I see what you mean. The picture is clear. I can visualize the solution.";
       final visualProfile = detector.detectFromText(visualText);
 

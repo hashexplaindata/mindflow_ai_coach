@@ -1,16 +1,17 @@
 // import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import '../domain/models/message.dart';
 import '../domain/models/chat_session.dart';
 
 /// Chat Repository for MindFlow AI Coach
 /// Handles persistence of chat sessions and messages to Firestore
-/// 
+///
 /// Firestore structure:
 /// users/{userId}/chats/{chatId}/
 ///   - createdAt: timestamp
 ///   - summary: string
 ///   - messageCount: number
-///   
+///
 ///   messages/{messageId}/
 ///     - role: 'user' | 'assistant'
 ///     - content: string
@@ -18,7 +19,7 @@ import '../domain/models/chat_session.dart';
 class ChatRepository {
   // TODO: Uncomment when Firebase is configured
   // final FirebaseFirestore _firestore;
-  // 
+  //
   // ChatRepository({FirebaseFirestore? firestore})
   //     : _firestore = firestore ?? FirebaseFirestore.instance;
 
@@ -31,7 +32,7 @@ class ChatRepository {
   /// Create a new chat session
   Future<ChatSession> createSession(String userId) async {
     final session = ChatSession.create();
-    
+
     try {
       // TODO: Uncomment when Firebase is configured
       // await _firestore
@@ -40,15 +41,15 @@ class ChatRepository {
       //     .collection('chats')
       //     .doc(session.id)
       //     .set(session.toMap());
-      
+
       // In-memory storage
       _sessions[session.id] = session;
       _messages[session.id] = [];
-      
-      print('ChatRepository: Created session ${session.id}');
+
+      debugPrint('ChatRepository: Created session ${session.id}');
       return session;
     } catch (e) {
-      print('ChatRepository: Error creating session: $e');
+      debugPrint('ChatRepository: Error creating session: $e');
       rethrow;
     }
   }
@@ -62,7 +63,7 @@ class ChatRepository {
     try {
       // TODO: Uncomment when Firebase is configured
       // final batch = _firestore.batch();
-      // 
+      //
       // // Add message
       // final messageRef = _firestore
       //     .collection('users')
@@ -72,7 +73,7 @@ class ChatRepository {
       //     .collection('messages')
       //     .doc(message.id);
       // batch.set(messageRef, message.toMap());
-      // 
+      //
       // // Update session metadata
       // final sessionRef = _firestore
       //     .collection('users')
@@ -83,31 +84,33 @@ class ChatRepository {
       //   'messageCount': FieldValue.increment(1),
       //   'lastMessageAt': FieldValue.serverTimestamp(),
       //   if (message.isUser) 'summary': message.content.substring(
-      //     0, 
+      //     0,
       //     message.content.length > 50 ? 50 : message.content.length,
       //   ),
       // });
-      // 
+      //
       // await batch.commit();
-      
+
       // In-memory storage
       _messages[sessionId] ??= [];
       _messages[sessionId]!.add(message);
-      
+
       // Update session
       if (_sessions.containsKey(sessionId)) {
         _sessions[sessionId] = _sessions[sessionId]!.copyWith(
           messageCount: _messages[sessionId]!.length,
           lastMessageAt: DateTime.now(),
-          summary: message.isUser 
-              ? message.content.substring(0, message.content.length > 50 ? 50 : message.content.length)
+          summary: message.isUser
+              ? message.content.substring(
+                  0, message.content.length > 50 ? 50 : message.content.length)
               : _sessions[sessionId]!.summary,
         );
       }
-      
-      print('ChatRepository: Saved message ${message.id} to session $sessionId');
+
+      debugPrint(
+          'ChatRepository: Saved message ${message.id} to session $sessionId');
     } catch (e) {
-      print('ChatRepository: Error saving message: $e');
+      debugPrint('ChatRepository: Error saving message: $e');
       rethrow;
     }
   }
@@ -129,15 +132,15 @@ class ChatRepository {
       //     .orderBy('timestamp', descending: false)
       //     .limit(limit)
       //     .get();
-      // 
+      //
       // return snapshot.docs
       //     .map((doc) => Message.fromMap(doc.data()))
       //     .toList();
-      
+
       // In-memory storage
       return _messages[sessionId] ?? [];
     } catch (e) {
-      print('ChatRepository: Error getting messages: $e');
+      debugPrint('ChatRepository: Error getting messages: $e');
       return [];
     }
   }
@@ -159,7 +162,7 @@ class ChatRepository {
     //     .map((snapshot) => snapshot.docs
     //         .map((doc) => Message.fromMap(doc.data()))
     //         .toList());
-    
+
     // In-memory: return current messages as a single-item stream
     return Stream.value(_messages[sessionId] ?? []);
   }
@@ -174,16 +177,16 @@ class ChatRepository {
       //     .collection('chats')
       //     .orderBy('createdAt', descending: true)
       //     .get();
-      // 
+      //
       // return snapshot.docs
       //     .map((doc) => ChatSession.fromMap(doc.data()))
       //     .toList();
-      
+
       // In-memory storage
       return _sessions.values.toList()
         ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
     } catch (e) {
-      print('ChatRepository: Error getting sessions: $e');
+      debugPrint('ChatRepository: Error getting sessions: $e');
       return [];
     }
   }
@@ -203,28 +206,28 @@ class ChatRepository {
       //     .doc(sessionId)
       //     .collection('messages')
       //     .get();
-      // 
+      //
       // final batch = _firestore.batch();
       // for (final doc in messagesSnapshot.docs) {
       //   batch.delete(doc.reference);
       // }
-      // 
+      //
       // // Delete session
       // batch.delete(_firestore
       //     .collection('users')
       //     .doc(userId)
       //     .collection('chats')
       //     .doc(sessionId));
-      // 
+      //
       // await batch.commit();
-      
+
       // In-memory storage
       _sessions.remove(sessionId);
       _messages.remove(sessionId);
-      
-      print('ChatRepository: Deleted session $sessionId');
+
+      debugPrint('ChatRepository: Deleted session $sessionId');
     } catch (e) {
-      print('ChatRepository: Error deleting session: $e');
+      debugPrint('ChatRepository: Error deleting session: $e');
       rethrow;
     }
   }

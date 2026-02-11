@@ -8,14 +8,15 @@ import '../providers/chat_provider.dart';
 import '../widgets/message_bubble.dart';
 import '../widgets/chat_input.dart';
 import '../widgets/suggestion_chips.dart';
-import '../widgets/typing_indicator.dart';
 import '../../domain/models/conversation_context.dart';
 import '../../../subscription/presentation/providers/subscription_provider.dart';
 import '../../../subscription/presentation/widgets/paywall_trigger.dart';
 import '../../../coach/presentation/screens/coach_gallery_screen.dart';
 
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key});
+  const ChatScreen({super.key, this.initialMessage});
+
+  final String? initialMessage;
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -38,6 +39,16 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       curve: Curves.easeIn,
     );
     _fadeController.forward();
+
+    // Auto-send initial message from HomeScreen if provided
+    if (widget.initialMessage != null &&
+        widget.initialMessage!.trim().isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final chatProvider = context.read<ChatProvider>();
+        final isPro = context.read<SubscriptionProvider>().isPro;
+        chatProvider.sendMessage(widget.initialMessage!, isPro: isPro);
+      });
+    }
   }
 
   @override
@@ -71,7 +82,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         final conversationContext = chatProvider.getConversationContext();
 
         return Scaffold(
-          backgroundColor: AppColors.jobsCream,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           appBar: _buildAppBar(context, chatProvider),
           body: FadeTransition(
             opacity: _fadeAnimation,
@@ -80,7 +91,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 if (chatProvider.errorMessage != null)
                   _ErrorBanner(
                     message: chatProvider.errorMessage!,
-                    onRetry: chatProvider.retryLastMessage,
+                    onRetry: () => chatProvider.retryLastMessage(
+                      isPro: context.read<SubscriptionProvider>().isPro,
+                    ),
                     onDismiss: chatProvider.clearError,
                   ),
                 Expanded(
@@ -89,7 +102,12 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                       : chatProvider.messages.isEmpty
                           ? _EmptyState(
                               context: conversationContext,
-                              onSuggestionTap: chatProvider.sendMessage,
+                              onSuggestionTap: (msg) =>
+                                  chatProvider.sendMessage(
+                                msg,
+                                isPro:
+                                    context.read<SubscriptionProvider>().isPro,
+                              ),
                             )
                           : _MessagesList(
                               messages: chatProvider.messages,
@@ -100,10 +118,16 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 if (chatProvider.hasMessages && !chatProvider.isSending)
                   QuickActionChips(
                     actions: conversationContext.getQuickActions(),
-                    onTap: chatProvider.sendMessage,
+                    onTap: (msg) => chatProvider.sendMessage(
+                      msg,
+                      isPro: context.read<SubscriptionProvider>().isPro,
+                    ),
                   ),
                 ChatInput(
-                  onSend: chatProvider.sendMessage,
+                  onSend: (msg) => chatProvider.sendMessage(
+                    msg,
+                    isPro: context.read<SubscriptionProvider>().isPro,
+                  ),
                   enabled: !chatProvider.isSending,
                   placeholder: chatProvider.isSending
                       ? 'Presence is responding...'
@@ -119,13 +143,14 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
   PreferredSizeWidget _buildAppBar(
       BuildContext context, ChatProvider provider) {
+    final colorScheme = Theme.of(context).colorScheme;
     return AppBar(
-      backgroundColor: AppColors.jobsCream,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       elevation: 0,
       leading: IconButton(
         icon: Icon(
           Icons.arrow_back_ios_rounded,
-          color: AppColors.jobsObsidian.withValues(alpha: 0.7),
+          color: colorScheme.onSurface.withValues(alpha: 0.7),
         ),
         onPressed: () => Navigator.of(context).pop(),
       ),
@@ -141,7 +166,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 provider.activeCoach.name,
                 style: AppTextStyles.label.copyWith(
                   fontWeight: FontWeight.w600,
-                  color: AppColors.jobsObsidian,
+                  color: colorScheme.onSurface,
                 ),
               ),
               AnimatedSwitcher(
@@ -151,8 +176,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   key: ValueKey(provider.isSending),
                   style: AppTextStyles.caption.copyWith(
                     color: provider.isSending
-                        ? AppColors.jobsSage
-                        : AppColors.textSecondary,
+                        ? colorScheme.primary
+                        : colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
                 ),
               ),
@@ -164,7 +189,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         IconButton(
           icon: Icon(
             Icons.people_alt_rounded,
-            color: AppColors.jobsObsidian.withValues(alpha: 0.7),
+            color: colorScheme.onSurface.withValues(alpha: 0.7),
           ),
           onPressed: () {
             Navigator.push(
@@ -181,7 +206,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         IconButton(
           icon: Icon(
             Icons.more_vert_rounded,
-            color: AppColors.jobsObsidian.withValues(alpha: 0.7),
+            color: colorScheme.onSurface.withValues(alpha: 0.7),
           ),
           onPressed: () {
             _showOptionsMenu(context, provider);
@@ -198,8 +223,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       builder: (context) {
         return Container(
           decoration: BoxDecoration(
-            color: AppColors.cardBackground,
-            borderRadius: const BorderRadius.vertical(
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.vertical(
               top: Radius.circular(AppSpacing.radiusCard),
             ),
           ),
@@ -218,7 +243,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 ),
                 const SizedBox(height: AppSpacing.spacing16),
                 ListTile(
-                  leading: Icon(Icons.add_rounded, color: AppColors.jobsSage),
+                  leading:
+                      const Icon(Icons.add_rounded, color: AppColors.jobsSage),
                   title: const Text('New Conversation'),
                   onTap: () {
                     Navigator.pop(context);
@@ -226,8 +252,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   },
                 ),
                 ListTile(
-                  leading:
-                      Icon(Icons.refresh_rounded, color: AppColors.jobsSage),
+                  leading: const Icon(Icons.refresh_rounded,
+                      color: AppColors.jobsSage),
                   title: const Text('Clear History'),
                   onTap: () {
                     Navigator.pop(context);
@@ -235,8 +261,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   },
                 ),
                 ListTile(
-                  leading:
-                      Icon(Icons.star_rounded, color: AppColors.primaryOrange),
+                  leading: const Icon(Icons.star_rounded,
+                      color: AppColors.primaryOrange),
                   title: const Text('Manage Subscription'),
                   subtitle: Text(
                     context.watch<SubscriptionProvider>().isPro
@@ -257,7 +283,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   },
                 ),
                 ListTile(
-                  leading: Icon(Icons.psychology_outlined,
+                  leading: const Icon(Icons.psychology_outlined,
                       color: AppColors.jobsSage),
                   title: const Text('Your Profile'),
                   subtitle: Text(provider.userProfile.displayName),
@@ -378,7 +404,7 @@ class _EmptyState extends StatelessWidget {
                     text: suggestion,
                     onTap: () => onSuggestionTap(suggestion),
                   );
-                }).toList(),
+                }),
               ],
             ),
           ),
@@ -470,7 +496,7 @@ class _SuggestionTile extends StatelessWidget {
             Container(
               width: 6,
               height: 6,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: AppColors.jobsSage,
                 shape: BoxShape.circle,
               ),
@@ -565,7 +591,7 @@ class _ErrorBanner extends StatelessWidget {
       color: AppColors.errorRed.withValues(alpha: 0.1),
       child: Row(
         children: [
-          Icon(
+          const Icon(
             Icons.error_outline_rounded,
             color: AppColors.errorRed,
             size: 20,
@@ -581,7 +607,7 @@ class _ErrorBanner extends StatelessWidget {
           ),
           TextButton(
             onPressed: onRetry,
-            child: Text(
+            child: const Text(
               'Retry',
               style: TextStyle(color: AppColors.errorRed),
             ),

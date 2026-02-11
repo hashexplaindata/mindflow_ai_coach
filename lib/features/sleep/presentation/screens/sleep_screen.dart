@@ -3,7 +3,6 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../meditation/domain/models/sample_data.dart';
 import '../../../meditation/domain/models/meditation_session.dart';
-import '../../../meditation/presentation/screens/player_screen.dart';
 import '../../../subscription/presentation/screens/subscription_screen.dart';
 
 class SleepScreen extends StatelessWidget {
@@ -227,10 +226,10 @@ class _SleepStoryCard extends StatelessWidget {
         width: 160,
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
+          gradient: const LinearGradient(
             colors: [
-              const Color(0xFF2D3A4F),
-              const Color(0xFF1D2633),
+              Color(0xFF2D3A4F),
+              Color(0xFF1D2633),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -334,7 +333,7 @@ class _SoundscapeCard extends StatelessWidget {
             ),
             if (soundscape.isPremium) ...[
               const SizedBox(height: 8),
-              Icon(
+              const Icon(
                 Icons.lock_rounded,
                 size: 14,
                 color: AppColors.primaryOrange,

@@ -28,7 +28,7 @@ class AudioSynthesizer {
 
     // --- AUDIO GENERATION ---
     int offset = 44;
-    final maxAmplitude = 32767 * 0.8; // 80% volume to avoid clipping
+    const maxAmplitude = 32767 * 0.8; // 80% volume to avoid clipping
 
     // Musical Harmonics (Major Pentatonic-ish ambient pad)
     // We add harmonics at 1.5x (Perfect Fifth), 2.0x (Octave), 1.25x (Major Third)

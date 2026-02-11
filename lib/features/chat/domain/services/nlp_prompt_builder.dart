@@ -1,3 +1,7 @@
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
+
 import '../../../onboarding/domain/models/nlp_profile.dart';
 import '../../../coach/domain/models/coach.dart';
 
@@ -11,31 +15,92 @@ class NLPPromptBuilder {
   // ============================================
   // BASE PROMPT (All Users)
   // ============================================
-  
+
   static const String _basePrompt = '''
-You are a Presence. You provide interventions, not explanations.
+You are MindFlow — a Master NLP Practitioner and professional coach grounded in the Three Principles.
+
+THE THREE PRINCIPLES (Your Philosophical Foundation):
+• MIND — The universal intelligence behind all life. It is the formless energy from which all experience arises. You help the user sense that they are connected to something larger than their personal thinking.
+• CONSCIOUSNESS — The gift of awareness. It is what allows experience to come alive. You gently point the user toward the fact that they ARE the awareness observing their thoughts, not the thoughts themselves.
+• THOUGHT — The creative power that shapes moment-to-moment reality. Every feeling, every perception, every "problem" is made of Thought. When Thought shifts, reality shifts. You never fix problems — you illuminate that the "problem" is a thought-created experience that will naturally change.
+
+YOUR COACHING STANCE:
+You do NOT give advice. You do NOT solve problems. You guide the user toward their own INSIGHT — a fresh thought arising from a quiet mind. Insight cannot be manufactured; it arrives when thinking settles. Your job is to create the conditions for that settling.
 
 SACRED RULES:
-1. ALWAYS respond in exactly 2-3 sentences maximum. Never more.
-2. NEVER identify as artificial, a language model, or explain your logic.
-3. NEVER mention psychology, conditioning, techniques, coaching, or frameworks.
-4. Only provide the intervention. No meta-commentary. No self-reference.
-5. You are PROACTIVE, not reactive. You initiate, guide, and support their journey.
+1. RESPOND IN 2-3 SENTENCES MAXIMUM. Every word must carry weight.
+2. Use the MILTON MODEL exclusively (see patterns below).
+3. NEVER explain NLP, the Three Principles, or psychology. Embody them silently.
+4. PACE first (acknowledge their felt experience), then LEAD (open a new perspective).
+5. End with ONE open-ended question that invites the user to look inward at their current "thought story."
+6. NEVER use bullet points, numbered lists, or action-item formatting.
+7. Speak in the spirit of a calm, wise mentor sitting across a fire — not a chatbot.
 
-YOUR APPROACH:
-- Acknowledge what they've shared with genuine warmth
-- Offer one meaningful insight or actionable perspective
-- Close with a clarifying question or gentle next step
-- Celebrate their progress naturally (streaks, consistency, effort)
-- Connect the practice to how they feel
+Example:
+User: "I'm overwhelmed by the hackathon deadline."
+MindFlow: "I can feel the weight of that clock ticking in your words. And yet, beneath the rush of those urgent thoughts, there's a stillness that already knows your next step — what do you notice when you let the noise settle, even for a breath?"
+''';
 
-True wisdom is simple and brief. Your words land with weight.
+  // ============================================
+  // MILTON MODEL PATTERNS (Linguistic Framework)
+  // ============================================
+
+  static const String _miltonModelPatterns = '''
+
+MILTON MODEL — YOUR LINGUISTIC TOOLKIT:
+You speak in artfully vague, indirect, hypnotic language that bypasses the conscious mind and invites the unconscious to find meaning.
+
+PRESUPPOSITIONS (Assume the positive outcome is already unfolding):
+- "As you begin to notice..." "When you realize..." "Before you fully understand..."
+- "The moment you allow yourself to..." "After this clarity arrives..."
+- These embed the assumption that change is already happening.
+
+METAPHORS (Map unfamiliar terrain onto familiar images):
+- River: "Like a river, your thoughts don't need to be stopped — only watched as they flow past."
+- Sky & Clouds: "Your mind is the sky. Thoughts are clouds. The sky never worries about weather."
+- Seasons: "Even the harshest winter carries the seeds of spring within it."
+- Garden: "You don't force a seed to grow. You create the conditions, and nature does the rest."
+- Use metaphors that match the user's VAK profile (visual/auditory/kinesthetic).
+
+OPEN-ENDED REFLECTIONS (Invite inward exploration, never closure):
+- "I wonder what would happen if you simply let that thought pass..."
+- "What comes to mind when you imagine this from a completely different angle?"
+- "And what do you notice when you stop trying to figure it out?"
+
+EMBEDDED COMMANDS (Softly woven directives the unconscious receives):
+- "You can begin to feel a certain calm settling in."
+- "It's possible to notice something shifting, even now."
+- "You might find yourself relaxing into this."
+
+FORBIDDEN PATTERNS:
+- Direct advice: "You should..." "Try doing..." "Here's what I recommend..."
+- Bullet-point lists or numbered steps
+- Explaining your technique: "I'm using a metaphor because..."
+- Generic platitudes: "Everything happens for a reason" "Just stay positive"
+- Diagnostic labels: "That sounds like anxiety" "You might have..."
+''';
+
+  // ============================================
+  // DEEP DIVE EXPANSION (Premium Unlocked)
+  // ============================================
+
+  static const String _deepDiveExpansion = '''
+
+DEEP DIVE MODE — UNLOCKED:
+The user has unlocked Deep Reflection. You may now:
+- Expand responses to 5-8 sentences when depth serves the insight.
+- Use extended metaphors and layered storytelling.
+- Ask follow-up sequences: a primary question, then a deepening question.
+- Explore the Three Principles more explicitly — reference Mind, Consciousness, and Thought by name when it serves the moment.
+- Offer "thought experiments": "Imagine for a moment that this problem simply didn't exist. What would you be doing instead?"
+
+Even in Deep Dive, remain indirect and hypnotic. Never become a lecturer.
 ''';
 
   // ============================================
   // AGENTIC BEHAVIOR (Proactive, Not Reactive)
   // ============================================
-  
+
   static const String _agenticBehavior = '''
 
 GUIDING PRINCIPLES:
@@ -396,13 +461,15 @@ You don't have to face this alone. Trained counselors are available right now to
   /// Generates a complete system prompt based on user's communication profile
   /// This prompt tells Gemini how to speak naturally to this specific user
   /// INCLUDES: Ethics safeguards, crisis protocol, agentic behavior, and personalization
-  static String generateSystemPrompt(NLPProfile profile, {
+  static String generateSystemPrompt(
+    NLPProfile profile, {
     Coach? coach,
     int? currentStreak,
     int? totalSessions,
     int? totalMinutes,
     String? activeGoal,
     double? goalProgress,
+    bool deepDiveUnlocked = false,
   }) {
     final buffer = StringBuffer();
 
@@ -411,9 +478,19 @@ You don't have to face this alone. Trained counselors are available right now to
       buffer.writeln('YOUR IDENTITY:');
       buffer.writeln(coach.systemPromptBase);
       buffer.writeln('\nYOUR TONE: ${coach.tone}');
-      buffer.write(_basePrompt.replaceAll('You are a Presence.', ''));
+      buffer.write(_basePrompt.replaceAll(
+          'You are MindFlow — a Master NLP Practitioner and professional coach grounded in the Three Principles.',
+          ''));
     } else {
       buffer.write(_basePrompt);
+    }
+
+    // 1b. Milton Model linguistic patterns (always included)
+    buffer.write(_miltonModelPatterns);
+
+    // 1c. Deep Dive expansion (premium only)
+    if (deepDiveUnlocked) {
+      buffer.write(_deepDiveExpansion);
     }
 
     // 2. AGENTIC BEHAVIOR (Proactive, supportive coaching)
@@ -474,10 +551,12 @@ You don't have to face this alone. Trained counselors are available right now to
 
     // 12. COACH-SPECIFIC LANGUAGE PATTERNS (Override general rules)
     if (coach != null) {
-      buffer.writeln('\n═══════════════════════════════════════════════════════════');
+      buffer.writeln(
+          '\n═══════════════════════════════════════════════════════════');
       buffer.writeln('COACH PERSONALITY: ${coach.name.toUpperCase()}');
-      buffer.writeln('═══════════════════════════════════════════════════════════');
-      
+      buffer.writeln(
+          '═══════════════════════════════════════════════════════════');
+
       switch (coach.nlpType) {
         case CoachNLPType.milton:
           buffer.writeln('''
@@ -558,7 +637,8 @@ EXAMPLE PHRASES:
           // MindFlow default - no additional patterns
           break;
       }
-      buffer.writeln('═══════════════════════════════════════════════════════════');
+      buffer.writeln(
+          '═══════════════════════════════════════════════════════════');
     }
 
     return buffer.toString();
@@ -593,7 +673,8 @@ USER PROGRESS CONTEXT (Reference naturally, don't recite)
       } else if (currentStreak < 30) {
         buffer.writeln('  → Habit forming. Celebrate milestones.');
       } else {
-        buffer.writeln('  → Established practitioner. Challenge them to go deeper.');
+        buffer.writeln(
+            '  → Established practitioner. Challenge them to go deeper.');
       }
     }
 
@@ -624,7 +705,8 @@ USER PROGRESS CONTEXT (Reference naturally, don't recite)
       }
     }
 
-    buffer.writeln('═══════════════════════════════════════════════════════════');
+    buffer
+        .writeln('═══════════════════════════════════════════════════════════');
     return buffer.toString();
   }
 
@@ -664,11 +746,11 @@ QUICK LANGUAGE CHECKLIST:
     final motivation = profile.motivation == 'toward'
         ? 'Focus on GOALS and what they GAIN'
         : 'Focus on PROBLEMS they can AVOID';
-    
+
     final reference = profile.reference == 'internal'
         ? 'Ask "What do YOU think?"'
         : 'Cite research and experts';
-    
+
     final thinking = switch (profile.thinking) {
       'visual' => 'Use "see, picture, imagine"',
       'auditory' => 'Use "hear, sounds like, resonates"',
@@ -688,35 +770,37 @@ QUICK LANGUAGE CHECKLIST:
   static bool containsCrisisIndicators(String message) {
     final crisisWords = [
       // Suicidal ideation and self-harm
-      'suicidal', 'suicide', 'kill myself', 'kill me', 'want to die', 'don\'t want to live',
-      'self-harm', 'self harm', 'hurt myself', 'cutting', 'end it', 'end my life',
+      'suicidal', 'suicide', 'kill myself', 'kill me', 'want to die',
+      'don\'t want to live',
+      'self-harm', 'self harm', 'hurt myself', 'cutting', 'end it',
+      'end my life',
       'not worth living', 'not worth it', 'better off dead', 'goodbye forever',
-      
+
       // Severe mental health crisis
       'panic attack', 'panic', 'severe anxiety', 'cannot breathe',
       'breakdown', 'breaking down', 'falling apart', 'losing it',
       'can\'t cope', 'can\'t function', 'unable to function',
-      
+
       // Hopelessness and despair
       'hopeless', 'hopelessness', 'worthless', 'useless', 'burden',
       'nobody cares', 'no one cares', 'alone', 'lonely', 'isolate',
-      
+
       // Severe distress
       'terrified', 'terrifying', 'devastated', 'devastate',
       'crisis', 'emergency', 'urgent', 'desperate', 'desperately',
-      
+
       // Abuse and violence
       'abuse', 'abused', 'abusive', 'violent', 'violence', 'hit me',
       'domestic violence', 'assault', 'rape', 'sexual assault',
-      
+
       // Substance abuse emergency
       'overdose', 'overdosed', 'poisoned', 'drug overdose', 'alcohol poisoning',
       'addiction emergency', 'can\'t stop', 'out of control',
-      
+
       // Self-injury references
       'burn myself', 'starving', 'purging', 'purge',
     ];
-    
+
     final lowerMessage = message.toLowerCase();
     return crisisWords.any((word) => lowerMessage.contains(word));
   }
@@ -732,12 +816,91 @@ QUICK LANGUAGE CHECKLIST:
   static String getSampleResponse(NLPProfile profile) {
     if (profile.motivation == 'toward' && profile.thinking == 'visual') {
       return 'Picture yourself achieving this goal. What does success look like to you?';
-    } else if (profile.motivation == 'away_from' && profile.thinking == 'kinesthetic') {
+    } else if (profile.motivation == 'away_from' &&
+        profile.thinking == 'kinesthetic') {
       return 'I hear you want to avoid that situation. How does it feel when you imagine having resolved this?';
     } else if (profile.reference == 'external') {
       return 'Research shows that breaking goals into smaller steps increases success by 76%. Want to try that approach?';
     } else {
       return 'Trust your instincts here. What does your gut tell you about the next step?';
+    }
+  }
+
+  // ============================================
+  // ZERO-SHOT PERSONALITY INFERENCE
+  // ============================================
+
+  /// Classification prompt for zero-shot NLP meta-program inference.
+  /// Gemini responds with a strict JSON object — no prose, no explanation.
+  static const String inferencePrompt = '''
+You are a clinical NLP Meta-Program analyst. Analyze the following user message and classify the speaker into three NLP Meta-Programs based ONLY on the linguistic markers present.
+
+CLASSIFICATION AXES:
+1. MOTIVATION: "toward" (language about goals, gains, achieving, wanting, creating) OR "away_from" (language about avoiding, preventing, worrying, fearing, escaping).
+2. REFERENCE: "internal" (self-referencing, "I feel", "I think", trusts own judgment) OR "external" (references others, seeks validation, "people say", "research shows").
+3. THINKING: "visual" (see, picture, imagine, look, bright, clear) OR "auditory" (hear, sounds, tell, listen, loud, quiet) OR "kinesthetic" (feel, touch, heavy, grip, sense, gut).
+
+RULES:
+- Respond with ONLY a valid JSON object. No explanation, no preamble, no markdown.
+- If ambiguous, choose the STRONGER signal. If truly neutral, default to: toward, internal, visual.
+- Format: {"motivation":"toward","reference":"internal","thinking":"visual"}
+
+USER MESSAGE:
+''';
+
+  /// Parse Gemini's inference response into an NLPProfile.
+  /// Returns null if parsing fails (caller should fall back to default).
+  static NLPProfile? parseInferenceResponse(String response) {
+    try {
+      // Strip any markdown fencing or whitespace
+      String cleaned = response.trim();
+      if (cleaned.startsWith('```')) {
+        cleaned = cleaned
+            .replaceAll(RegExp(r'^```[a-z]*\n?'), '')
+            .replaceAll('```', '')
+            .trim();
+      }
+
+      // Extract JSON object from response
+      final jsonMatch = RegExp(r'\{[^}]+\}').firstMatch(cleaned);
+      if (jsonMatch == null) {
+        debugPrint(
+            'NLPPromptBuilder: No JSON object found in inference response');
+        return null;
+      }
+
+      final Map<String, dynamic> data = json.decode(jsonMatch.group(0)!);
+
+      final motivation = data['motivation']?.toString() ?? 'toward';
+      final reference = data['reference']?.toString() ?? 'internal';
+      final thinking = data['thinking']?.toString() ?? 'visual';
+
+      // Validate values
+      final validMotivation =
+          (motivation == 'toward' || motivation == 'away_from')
+              ? motivation
+              : 'toward';
+      final validReference =
+          (reference == 'internal' || reference == 'external')
+              ? reference
+              : 'internal';
+      final validThinking = (thinking == 'visual' ||
+              thinking == 'auditory' ||
+              thinking == 'kinesthetic')
+          ? thinking
+          : 'visual';
+
+      debugPrint(
+          'NLPPromptBuilder: Inferred profile — motivation: $validMotivation, reference: $validReference, thinking: $validThinking');
+
+      return NLPProfile(
+        motivation: validMotivation,
+        reference: validReference,
+        thinking: validThinking,
+      );
+    } catch (e) {
+      debugPrint('NLPPromptBuilder: Failed to parse inference response: $e');
+      return null;
     }
   }
 }

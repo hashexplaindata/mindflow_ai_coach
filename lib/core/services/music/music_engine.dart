@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:mindflow_ai_coach/core/services/music/frequency_registry.dart';
 import 'package:mindflow_ai_coach/core/services/music/nlp_music_bridge.dart';
 
 enum MusicPlaybackState { idle, playing, paused, generating }
@@ -15,8 +14,8 @@ class MusicEngine extends ChangeNotifier {
 
   // Simulation of volume layers
   double _entrainmentVolume = 0.5;
-  double _ambientVolume = 0.3;
-  double _generativeVolume = 0.4;
+  final double _ambientVolume = 0.3;
+  final double _generativeVolume = 0.4;
 
   MusicPlaybackState get state => _state;
   AudioPrescription? get currentPrescription => _currentPrescription;

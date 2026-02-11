@@ -27,18 +27,18 @@ class JobsTheme {
         onSurface: AppColors.jobsObsidian,
         surfaceContainerHighest: AppColors.jobsCream,
         outline: Colors.transparent,
-        error: const Color(0xFFDC3545),
+        error: Color(0xFFDC3545),
         onError: AppColors.jobsCream,
       ),
       scaffoldBackgroundColor: AppColors.jobsCream,
-      appBarTheme: AppBarTheme(
+      appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.jobsCream,
         foregroundColor: AppColors.jobsObsidian,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: true,
         systemOverlayStyle: SystemUiOverlayStyle.dark,
-        titleTextStyle: const TextStyle(
+        titleTextStyle: TextStyle(
           fontFamily: _fontFamily,
           fontSize: 20,
           fontWeight: FontWeight.w600,
@@ -46,7 +46,7 @@ class JobsTheme {
           color: AppColors.jobsObsidian,
           letterSpacing: -0.3,
         ),
-        iconTheme: const IconThemeData(
+        iconTheme: IconThemeData(
           color: AppColors.jobsObsidian,
           size: 24,
         ),
@@ -161,13 +161,13 @@ class JobsTheme {
         unselectedItemColor: AppColors.jobsObsidian.withValues(alpha: 0.4),
         type: BottomNavigationBarType.fixed,
         elevation: 0,
-        selectedLabelStyle: TextStyle(
+        selectedLabelStyle: const TextStyle(
           fontFamily: _fontFamily,
           fontSize: 12,
           fontWeight: FontWeight.w500,
           height: _lineHeight,
         ),
-        unselectedLabelStyle: TextStyle(
+        unselectedLabelStyle: const TextStyle(
           fontFamily: _fontFamily,
           fontSize: 12,
           fontWeight: FontWeight.normal,
@@ -211,8 +211,8 @@ class JobsTheme {
       ),
       progressIndicatorTheme: const ProgressIndicatorThemeData(
         color: AppColors.jobsSage,
-        linearTrackColor: const Color(0xFFE5E5E0),
-        circularTrackColor: const Color(0xFFE5E5E0),
+        linearTrackColor: Color(0xFFE5E5E0),
+        circularTrackColor: Color(0xFFE5E5E0),
       ),
       dividerTheme: DividerThemeData(
         color: AppColors.jobsObsidian.withValues(alpha: 0.1),
@@ -222,7 +222,7 @@ class JobsTheme {
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.jobsSage.withValues(alpha: 0.15),
         selectedColor: AppColors.jobsSage,
-        labelStyle: TextStyle(
+        labelStyle: const TextStyle(
           fontFamily: _fontFamily,
           fontSize: 14,
           fontWeight: FontWeight.w500,
@@ -366,18 +366,18 @@ class JobsTheme {
         onSurface: AppColors.jobsObsidianDark,
         surfaceContainerHighest: AppColors.surfaceDark,
         outline: Colors.transparent,
-        error: const Color(0xFFCF6679),
+        error: Color(0xFFCF6679),
         onError: AppColors.jobsCreamDark,
       ),
       scaffoldBackgroundColor: AppColors.jobsCreamDark,
-      appBarTheme: AppBarTheme(
+      appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.jobsCreamDark,
         foregroundColor: AppColors.jobsObsidianDark,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: true,
         systemOverlayStyle: SystemUiOverlayStyle.light,
-        titleTextStyle: const TextStyle(
+        titleTextStyle: TextStyle(
           fontFamily: _fontFamily,
           fontSize: 20,
           fontWeight: FontWeight.w600,
@@ -385,7 +385,7 @@ class JobsTheme {
           color: AppColors.jobsObsidianDark,
           letterSpacing: -0.3,
         ),
-        iconTheme: const IconThemeData(
+        iconTheme: IconThemeData(
           color: AppColors.jobsObsidianDark,
           size: 24,
         ),
@@ -450,13 +450,13 @@ class JobsTheme {
         unselectedItemColor: AppColors.jobsObsidianDark.withValues(alpha: 0.4),
         type: BottomNavigationBarType.fixed,
         elevation: 0,
-        selectedLabelStyle: TextStyle(
+        selectedLabelStyle: const TextStyle(
           fontFamily: _fontFamily,
           fontSize: 12,
           fontWeight: FontWeight.w500,
           height: _lineHeight,
         ),
-        unselectedLabelStyle: TextStyle(
+        unselectedLabelStyle: const TextStyle(
           fontFamily: _fontFamily,
           fontSize: 12,
           fontWeight: FontWeight.normal,

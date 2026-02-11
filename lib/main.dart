@@ -4,8 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/physics.dart';
 
 import 'core/config/env_config.dart';
-import 'core/theme/jobs_theme.dart';
-import 'core/theme/theme_provider.dart';
+import 'core/theme/mindflow_theme.dart';
+
 import 'core/constants/app_colors.dart';
 import 'core/constants/app_spacing.dart';
 import 'core/constants/app_text_styles.dart';
@@ -16,21 +16,23 @@ import 'features/onboarding/domain/models/nlp_profile.dart';
 import 'features/onboarding/presentation/screens/profiling_screen.dart';
 import 'features/chat/presentation/providers/chat_provider.dart';
 import 'features/subscription/presentation/providers/subscription_provider.dart';
+import 'features/subscription/data/revenuecat_service.dart';
 import 'features/auth/presentation/providers/user_provider.dart';
 import 'features/habits/presentation/providers/habit_provider.dart';
 import 'features/wisdom/presentation/providers/wisdom_provider.dart';
 import 'features/coach/presentation/providers/background_coach_provider.dart';
 import 'features/coach/presentation/widgets/coach_intervention_overlay.dart';
 import 'features/home/presentation/screens/home_screen.dart';
-import 'features/explore/presentation/screens/explore_screen.dart';
-import 'features/sleep/presentation/screens/sleep_screen.dart';
 import 'features/profile/presentation/screens/profile_screen.dart';
-import 'features/habits/presentation/screens/habits_screen.dart';
 import 'features/chat/presentation/screens/chat_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EnvConfig.initialize();
+
+  // Initialize RevenueCat before the UI builds
+  await RevenueCatService.instance.initialize();
+
   runApp(const ProviderScope(child: MindFlowApp()));
 }
 
@@ -39,9 +41,6 @@ class MindFlowApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Watch the Riverpod theme provider
-    final themeMode = ref.watch(themeProvider);
-
     return provider.MultiProvider(
       providers: [
         // ThemeProvider is now handled by Riverpod
@@ -65,9 +64,9 @@ class MindFlowApp extends ConsumerWidget {
       child: MaterialApp(
         title: 'MindFlow',
         debugShowCheckedModeBanner: false,
-        theme: JobsTheme.lightTheme,
-        darkTheme: JobsTheme.darkTheme,
-        themeMode: themeMode,
+        theme: MindFlowTheme.lightTheme,
+        darkTheme: MindFlowTheme.darkTheme,
+        themeMode: ThemeMode.system, // This fixes the dark mode conflict
         home: const WelcomeScreen(),
       ),
     );
@@ -87,9 +86,7 @@ class _MainAppShellState extends ConsumerState<MainAppShell>
 
   final List<Widget> _screens = const [
     HomeScreen(),
-    ExploreScreen(),
-    HabitsScreen(),
-    SleepScreen(),
+    ChatScreen(),
     ProfileScreen(),
   ];
 
@@ -168,19 +165,19 @@ class _MainAppShellState extends ConsumerState<MainAppShell>
 
   void _navigateToMeditation() {
     setState(() {
-      _currentIndex = 1;
+      _currentIndex = 1; // Redirect to Chat (Coach)
     });
   }
 
   void _navigateToHabits() {
     setState(() {
-      _currentIndex = 2;
+      _currentIndex = 0; // Redirect to Home
     });
   }
 
   void _navigateToProgress() {
     setState(() {
-      _currentIndex = 4;
+      _currentIndex = 2; // Redirect to Profile
     });
   }
 
@@ -195,7 +192,7 @@ class _MainAppShellState extends ConsumerState<MainAppShell>
           index: _currentIndex,
           children: _screens,
         ),
-        floatingActionButton: _CoachFloatingButton(
+        /* floatingActionButton: _CoachFloatingButton(
           onPressed: () {
             Navigator.of(context).push(
               MaterialPageRoute(
@@ -203,7 +200,7 @@ class _MainAppShellState extends ConsumerState<MainAppShell>
               ),
             );
           },
-        ),
+        ), */
         bottomNavigationBar: BottomNavBar(
           currentIndex: _currentIndex,
           onTap: _onTabChanged,

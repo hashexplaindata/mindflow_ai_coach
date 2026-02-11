@@ -80,7 +80,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
       Navigator.of(context).push(
         PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) =>
-              PlayerScreen(meditation: meditation),
+              const PlayerScreen(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return FadeTransition(
               opacity: animation,
@@ -212,9 +212,9 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                 sliver: SliverToBoxAdapter(
                   child: Row(
                     children: [
-                      Text(
+                      const Text(
                         'Search Results',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'DM Sans',
                           fontSize: 18,
                           fontWeight: FontWeight.w600,

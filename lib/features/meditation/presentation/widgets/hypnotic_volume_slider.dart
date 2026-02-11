@@ -19,12 +19,12 @@ class HypnoticVolumeSlider extends StatefulWidget {
   final bool showWarnings;
 
   const HypnoticVolumeSlider({
-    Key? key,
+    super.key,
     required this.currentVolume,
     required this.onVolumeChanged,
     this.sessionDurationMinutes = 0,
     this.showWarnings = true,
-  }) : super(key: key);
+  });
 
   @override
   State<HypnoticVolumeSlider> createState() => _HypnoticVolumeSliderState();

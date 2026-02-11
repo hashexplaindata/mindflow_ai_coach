@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../onboarding/domain/models/nlp_profile.dart';
-import '../../domain/models/wisdom_category.dart';
 import '../../domain/models/wisdom_item.dart';
 import '../../domain/models/gratitude_entry.dart';
 import '../../domain/models/user_context.dart';

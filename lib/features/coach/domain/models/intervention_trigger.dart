@@ -94,52 +94,52 @@ class InterventionConfig {
   });
 
   static List<InterventionConfig> get defaultConfigs => [
-    InterventionConfig(
+    const InterventionConfig(
       trigger: InterventionTrigger.morningNudge,
-      cooldown: const Duration(hours: 24),
-      activeFrom: const TimeOfDay(hour: 9, minute: 0),
-      activeTo: const TimeOfDay(hour: 11, minute: 0),
+      cooldown: Duration(hours: 24),
+      activeFrom: TimeOfDay(hour: 9, minute: 0),
+      activeTo: TimeOfDay(hour: 11, minute: 0),
       priority: 6,
     ),
-    InterventionConfig(
+    const InterventionConfig(
       trigger: InterventionTrigger.streakAtRisk,
-      cooldown: const Duration(hours: 4),
-      activeFrom: const TimeOfDay(hour: 20, minute: 0),
-      activeTo: const TimeOfDay(hour: 22, minute: 0),
+      cooldown: Duration(hours: 4),
+      activeFrom: TimeOfDay(hour: 20, minute: 0),
+      activeTo: TimeOfDay(hour: 22, minute: 0),
       priority: 9,
     ),
-    InterventionConfig(
+    const InterventionConfig(
       trigger: InterventionTrigger.comebackWelcome,
-      cooldown: const Duration(hours: 24),
+      cooldown: Duration(hours: 24),
       priority: 8,
     ),
-    InterventionConfig(
+    const InterventionConfig(
       trigger: InterventionTrigger.milestoneReached,
-      cooldown: const Duration(hours: 1),
+      cooldown: Duration(hours: 1),
       priority: 10,
     ),
-    InterventionConfig(
+    const InterventionConfig(
       trigger: InterventionTrigger.eveningWindDown,
-      cooldown: const Duration(hours: 24),
-      activeFrom: const TimeOfDay(hour: 21, minute: 0),
-      activeTo: const TimeOfDay(hour: 23, minute: 0),
+      cooldown: Duration(hours: 24),
+      activeFrom: TimeOfDay(hour: 21, minute: 0),
+      activeTo: TimeOfDay(hour: 23, minute: 0),
       priority: 5,
     ),
-    InterventionConfig(
+    const InterventionConfig(
       trigger: InterventionTrigger.goalProgress,
-      cooldown: const Duration(hours: 12),
+      cooldown: Duration(hours: 12),
       priority: 4,
     ),
-    InterventionConfig(
+    const InterventionConfig(
       trigger: InterventionTrigger.habitReminder,
-      cooldown: const Duration(hours: 2),
+      cooldown: Duration(hours: 2),
       priority: 7,
     ),
-    InterventionConfig(
+    const InterventionConfig(
       trigger: InterventionTrigger.moodCheck,
-      cooldown: const Duration(hours: 6),
-      activeFrom: const TimeOfDay(hour: 10, minute: 0),
-      activeTo: const TimeOfDay(hour: 20, minute: 0),
+      cooldown: Duration(hours: 6),
+      activeFrom: TimeOfDay(hour: 10, minute: 0),
+      activeTo: TimeOfDay(hour: 20, minute: 0),
       priority: 3,
     ),
   ];

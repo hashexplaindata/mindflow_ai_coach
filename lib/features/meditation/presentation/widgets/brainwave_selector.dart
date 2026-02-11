@@ -93,7 +93,7 @@ class _BrainwaveSelectorState extends State<BrainwaveSelector> {
                   color: AppColors.jobsSage.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Row(
+                child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
@@ -101,7 +101,7 @@ class _BrainwaveSelectorState extends State<BrainwaveSelector> {
                       size: 12,
                       color: AppColors.jobsSage,
                     ),
-                    const SizedBox(width: 4),
+                    SizedBox(width: 4),
                     Text(
                       'Headphones',
                       style: TextStyle(
@@ -135,7 +135,7 @@ class _BrainwaveSelectorState extends State<BrainwaveSelector> {
                   ),
                   child: Row(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.headphones_rounded,
                         size: 16,
                         color: AppColors.warningAmber,

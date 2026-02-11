@@ -161,7 +161,7 @@ class _ProgressRingPainter extends CustomPainter {
         ..strokeWidth = strokeWidth
         ..strokeCap = StrokeCap.round;
 
-      final startAngle = -math.pi / 2;
+      const startAngle = -math.pi / 2;
       final sweepAngle = 2 * math.pi * progress.clamp(0.0, 1.0);
 
       canvas.drawArc(
@@ -250,15 +250,15 @@ class RitualCardExpanded extends StatelessWidget {
                       color: AppColors.jobsSage.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: Row(
+                    child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.check_circle_rounded,
                           color: AppColors.jobsSage,
                           size: 16,
                         ),
-                        const SizedBox(width: 4),
+                        SizedBox(width: 4),
                         Text(
                           'Complete',
                           style: TextStyle(
