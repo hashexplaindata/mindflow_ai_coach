@@ -38,7 +38,7 @@ class ConversationContext {
 
   List<String> getSuggestedStarters() {
     final timeContext = getCurrentTimeContext();
-    
+
     switch (timeContext) {
       case TimeOfDayContext.morning:
         return [
@@ -99,7 +99,7 @@ class ConversationContext {
   String getWelcomeGreeting() {
     final timeContext = getCurrentTimeContext();
     final practiceMessage = _getPracticeStageMessage();
-    
+
     switch (timeContext) {
       case TimeOfDayContext.morning:
         return 'Good morning. $practiceMessage';
@@ -124,7 +124,7 @@ class ConversationContext {
         return '$currentStreak days. You\'ve built something beautiful.';
       }
     }
-    
+
     if (totalSessions == 0) {
       return 'What brings you here today?';
     } else if (totalSessions < 5) {
@@ -156,6 +156,17 @@ class ConversationContext {
       goalProgress: goalProgress ?? this.goalProgress,
       timeOfDay: timeOfDay ?? this.timeOfDay,
     );
+  }
+
+  String toPromptString() {
+    return '''
+User Profile: ${userProfile.displayName}
+Current Time: ${timeOfDay.name}
+Streak: $currentStreak days
+Total Sessions: $totalSessions
+Active Goal: $activeGoal
+Goal Progress: ${(goalProgress ?? 0 * 100).toStringAsFixed(1)}%
+''';
   }
 }
 

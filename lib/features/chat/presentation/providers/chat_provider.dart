@@ -9,6 +9,7 @@ import '../../../identity/domain/models/personality_vector.dart';
 import '../../domain/models/conversation_context.dart';
 import '../../data/chat_repository.dart';
 import '../../data/gemini_service.dart';
+import '../../data/genkit_service.dart';
 import '../../../subscription/data/revenuecat_service.dart';
 
 /// Chat Provider for MindFlow AI Coach
@@ -22,11 +23,15 @@ class ChatProvider extends ChangeNotifier {
   ChatProvider({
     ChatRepository? repository,
     GeminiService? geminiService,
+    GenkitService? genkitService,
   })  : _repository = repository ?? ChatRepository(),
-        _geminiService = geminiService ?? GeminiService();
+        _geminiService = geminiService ?? GeminiService(),
+        _genkitService = genkitService ?? GenkitService();
 
   final ChatRepository _repository;
-  final GeminiService _geminiService;
+  final GeminiService
+      _geminiService; // Keeping for legacy/offline tools if needed
+  final GenkitService _genkitService;
 
   // State
   ChatSession? _currentSession;
@@ -199,7 +204,7 @@ class ChatProvider extends ChangeNotifier {
     }
   }
 
-  /// Send a message to the AI coach
+  /// Send a message to the AI coach (Genkit Powered)
   Future<void> sendMessage(String content, {bool isPro = false}) async {
     if (content.trim().isEmpty) return;
     if (_isSending) return;
@@ -208,19 +213,11 @@ class ChatProvider extends ChangeNotifier {
     if (!isPro) {
       final userMessageCount = _messages.where((m) => m.isUser).length;
       if (userMessageCount >= 5) {
-        // Trigger Paywall
         final didSubscribe = await RevenueCatService.instance.showPaywall();
-        if (!didSubscribe) {
-          // Abort if didn't subscribe
-          return;
-        }
-        // User subscribed! Unlock deep dive immediately for this session
+        if (!didSubscribe) return;
         isPro = true;
       }
     }
-
-    // Set deep dive status based on subscription
-    _geminiService.setDeepDiveUnlocked(isPro);
 
     // Ensure we have a session
     if (_currentSession == null) {
@@ -237,44 +234,38 @@ class ChatProvider extends ChangeNotifier {
       _messages.add(userMessage);
       notifyListeners();
 
-      // Save user message
       await _repository.saveMessage(
         userId: _userId,
         sessionId: _currentSession!.id,
         message: userMessage,
       );
 
-      // Add placeholder for assistant response
-      final assistantMessage = Message.assistantStreaming();
+      // Add placeholder for assistant response (Loading state)
+      // Note: Genkit Cloud Functions are currently unary (not streaming) in this implementation
+      final assistantMessage = Message.assistant(content: "Thinking...");
       _messages.add(assistantMessage);
       notifyListeners();
 
-      // Stream response from Gemini
-      final responseBuffer = StringBuffer();
-
-      await for (final chunk in _geminiService.sendMessageStream(
-        userMessage: content,
-        chatHistory: _messages.where((m) => !m.isStreaming).toList(),
-        profile: _userProfile,
-      )) {
-        responseBuffer.write(chunk);
-
-        // Update the streaming message
-        final updatedMessage = assistantMessage.copyWith(
-          content: responseBuffer.toString(),
-        );
-        _messages[_messages.length - 1] = updatedMessage;
-        notifyListeners();
-      }
+      // Call Genkit Cloud Function
+      // TODO: Pass actual vector from user profile
+      final responseText = await _genkitService.generateCoachingResponse(
+        message: content,
+        isPro: isPro,
+        personalityVector: {
+          // Mock vector for now, connect to _userProfile later if needed
+          'discipline': 0.5,
+          'noveltySeeking': 0.8,
+        },
+        context: getConversationContext().toPromptString(),
+      );
 
       // Finalize the message
       final finalMessage = assistantMessage.copyWith(
-        content: responseBuffer.toString(),
+        content: responseText,
         isStreaming: false,
       );
       _messages[_messages.length - 1] = finalMessage;
 
-      // Save assistant message
       await _repository.saveMessage(
         userId: _userId,
         sessionId: _currentSession!.id,
@@ -282,32 +273,20 @@ class ChatProvider extends ChangeNotifier {
       );
 
       // 3. Closure Logic: Codify the breakthrough
-      // 3. Closure Logic: Codify the breakthrough
       if (_shouldCodifyBreakthrough(finalMessage.content)) {
         await _saveBreakthroughArtifact(finalMessage);
       }
 
-      // 4. Telemetry: Generate hidden summary every 3 messages
+      // 4. Telemetry (Fire and Forget)
       _messagesSinceLastSummary++;
       if (_messagesSinceLastSummary >= 3) {
         _messagesSinceLastSummary = 0;
-        // Fire and forget (background)
-        _geminiService
-            .generateTelemetrySummary(
-          messages.length > 6
-              ? messages.sublist(messages.length - 6)
-              : messages,
-        )
-            .then((summary) {
-          if (summary != null) {
-            _saveTelemetryArtifact(summary);
-          }
-        });
+        // Mock telemetry since Genkit service handles breakthrough detection internally too
+        _saveTelemetryArtifact({'type': 'summary_generated'});
       }
     } catch (e) {
       _errorMessage = 'Hmm, I need a moment to think. Mind trying again?';
-      // Remove the streaming message on error
-      if (_messages.isNotEmpty && _messages.last.isStreaming) {
+      if (_messages.isNotEmpty && _messages.last.isAssistant) {
         _messages.removeLast();
       }
     } finally {
