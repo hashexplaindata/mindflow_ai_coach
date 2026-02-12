@@ -1,0 +1,36 @@
+{
+    "flutter": {
+        "platforms": {
+            "android": {
+                "default": {
+                    "projectId": "mindflow-ac7c0",
+                    "appId": "1:382815426284:android:388a6c02e776c0cdbef7c9",
+                    "fileOutput": "android/app/google-services.json"
+                }
+            },
+            "dart": {
+                "lib/firebase_options.dart": {
+                    "projectId": "mindflow-ac7c0",
+                    "configurations": {
+                        "android": "1:382815426284:android:388a6c02e776c0cdbef7c9"
+                    }
+                }
+            }
+        }
+    },
+    "functions": [
+        {
+            "source": "functions",
+            "codebase": "default",
+            "ignore": [
+                "node_modules",
+                ".git",
+                "firebase-debug.log",
+                "firebase-debug.*.log"
+            ]
+        }
+    ],
+    "firestore": {
+        "rules": "firestore.rules"
+    }
+}

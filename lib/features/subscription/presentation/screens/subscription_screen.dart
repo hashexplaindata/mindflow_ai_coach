@@ -89,7 +89,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                 ),
                 const SizedBox(height: AppSpacing.spacing32),
                 const Text(
-                  'Unlock Your\nFull Potential',
+                  'Unlock Deep\nReflections',
                   style: TextStyle(
                     fontFamily: 'DM Sans',
                     fontSize: 36,
@@ -113,17 +113,17 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                 const SizedBox(height: AppSpacing.spacing16),
                 const _FeatureItem(
                   icon: Icons.check_circle,
-                  text: 'Basic meditation sessions',
+                  text: '5 messages per session',
                   isIncluded: true,
                 ),
                 const _FeatureItem(
                   icon: Icons.check_circle,
-                  text: 'Daily reminders',
+                  text: 'Quick reflections (500 tokens)',
                   isIncluded: true,
                 ),
                 const _FeatureItem(
                   icon: Icons.check_circle,
-                  text: 'Progress tracking',
+                  text: 'Personality calibration',
                   isIncluded: true,
                 ),
                 const SizedBox(height: AppSpacing.spacing24),
@@ -140,31 +140,25 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                 const SizedBox(height: AppSpacing.spacing16),
                 const _FeatureItem(
                   icon: Icons.star,
-                  text: 'All meditation sessions',
+                  text: 'Unlimited Deep Dive mode',
                   isIncluded: false,
                   isPremium: true,
                 ),
                 const _FeatureItem(
                   icon: Icons.star,
-                  text: 'Sleep stories & soundscapes',
+                  text: '2.4x longer responses (1200 tokens)',
                   isIncluded: false,
                   isPremium: true,
                 ),
                 const _FeatureItem(
                   icon: Icons.star,
-                  text: 'Personalized recommendations',
+                  text: 'Personality Vector insights',
                   isIncluded: false,
                   isPremium: true,
                 ),
                 const _FeatureItem(
                   icon: Icons.star,
-                  text: 'Offline downloads',
-                  isIncluded: false,
-                  isPremium: true,
-                ),
-                const _FeatureItem(
-                  icon: Icons.star,
-                  text: 'Priority support',
+                  text: 'Adaptive AI constraints',
                   isIncluded: false,
                   isPremium: true,
                 ),
@@ -233,7 +227,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                 const SizedBox(height: AppSpacing.spacing16),
                 Center(
                   child: Text(
-                    'Cancel anytime. No commitments.',
+                    'Cancel anytime. Your data stays yours.',
                     style: TextStyle(
                       fontFamily: 'DM Sans',
                       fontSize: 13,

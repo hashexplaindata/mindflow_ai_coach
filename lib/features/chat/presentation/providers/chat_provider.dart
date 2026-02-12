@@ -5,6 +5,7 @@ import 'package:mindflow_ai_coach/features/coach/domain/models/coach.dart';
 import '../../../onboarding/domain/models/nlp_profile.dart';
 import '../../domain/models/message.dart';
 import '../../domain/models/chat_session.dart';
+import '../../../identity/domain/models/personality_vector.dart';
 import '../../domain/models/conversation_context.dart';
 import '../../data/chat_repository.dart';
 import '../../data/gemini_service.dart';
@@ -103,6 +104,11 @@ class ChatProvider extends ChangeNotifier {
     _userProfile = profile;
     _geminiService.setUserProfile(profile);
     notifyListeners();
+  }
+
+  /// Set user's Personality Vector (Layer 1)
+  void setPersonality(PersonalityVector vector) {
+    _geminiService.setPersonality(vector);
   }
 
   /// Set user progress context for personalized coaching

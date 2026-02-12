@@ -1,65 +1,61 @@
-import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
+import '../../features/subscription/data/revenuecat_service.dart';
 
 class ApiService {
   static final ApiService _instance = ApiService._internal();
   factory ApiService() => _instance;
-  ApiService._internal();
 
-  String get _baseUrl {
-    if (kIsWeb) {
-      return ''; // Indicates no backend on web for this MVP
+  final FirebaseFirestore? _firestore;
+
+  ApiService._internal() : _firestore = _initFirestore();
+
+  static FirebaseFirestore? _initFirestore() {
+    try {
+      if (Firebase.apps.isNotEmpty) {
+        return FirebaseFirestore.instance;
+      }
+    } catch (e) {
+      debugPrint('ApiService: Firebase not initialized: $e');
     }
-    return 'http://localhost:3000';
+    return null;
   }
 
-  bool get _shouldMock {
-    // FORCE MOCK FOR MOBILE MVP
-    // Server backend is not reachable from mobile without deployment/network config.
-    // We rely on local persistence and RevenueCat for MVP.
-    return true; 
-  }
-
+  /// Create or update user in Firestore
   Future<Map<String, dynamic>> createUser(String id, String email) async {
-    if (_shouldMock) {
-      // Mock successful user creation
-      return {
+    if (_firestore == null) {
+      debugPrint(
+          'ApiService: Offline/No-Firebase mode. Simulation user creation.');
+      return {'id': id, 'email': email};
+    }
+
+    try {
+      final userRef = _firestore!.collection('users').doc(id);
+      final userData = {
         'id': id,
         'email': email,
-        'createdAt': DateTime.now().toIso8601String()
+        'lastActive': FieldValue.serverTimestamp(),
+        // Merge true so we don't overwrite existing fields if user exists
       };
-    }
 
-    final response = await http.post(
-      Uri.parse('$_baseUrl/api/users'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'id': id, 'email': email}),
-    );
-
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      return jsonDecode(response.body);
-    } else {
-      throw Exception('Failed to create user: ${response.body}');
+      await userRef.set(userData, SetOptions(merge: true));
+      return userData;
+    } catch (e) {
+      debugPrint('ApiService: Error creating user in Firestore: $e');
+      // Fallback/Silent fail for offline support
+      return {'id': id, 'email': email};
     }
   }
 
+  /// Get available products (Deferred to RevenueCat)
   Future<List<Map<String, dynamic>>> getProducts() async {
-    if (_shouldMock) {
-      // Mock products
-      return [];
-    }
-
-    final response = await http.get(Uri.parse('$_baseUrl/api/products'));
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return List<Map<String, dynamic>>.from(data['products'] ?? []);
-    } else {
-      throw Exception('Failed to fetch products: ${response.body}');
-    }
+    // We strictly use RevenueCat for products in this MVP
+    return [];
   }
 
+  /// Create checkout session
+  /// (Deprecated in favor of in-app purchases via RevenueCat)
   Future<String?> createCheckoutSession({
     required String priceId,
     String? userId,
@@ -67,89 +63,72 @@ class ApiService {
     String? successUrl,
     String? cancelUrl,
   }) async {
-    if (_shouldMock) {
-      return null;
-    }
-
-    final response = await http.post(
-      Uri.parse('$_baseUrl/api/checkout'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'priceId': priceId,
-        'userId': userId,
-        'email': email,
-        'successUrl': successUrl,
-        'cancelUrl': cancelUrl,
-      }),
-    );
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return data['url'];
-    } else {
-      throw Exception('Failed to create checkout session: ${response.body}');
-    }
+    debugPrint('ApiService: Checkout session requested but we use RevenueCat.');
+    return null;
   }
 
+  /// Get subscription status
+  /// (Primarily handled by RevenueCat, but we can store a cached status in Firestore)
   Future<Map<String, dynamic>> getSubscription(String userId) async {
-    if (_shouldMock) {
-      // Mock no active subscription for free user
-      return {'status': 'none'};
-    }
+    try {
+      // 1. Check RevenueCat first (Source of Truth)
+      final isPro = await RevenueCatService.instance.checkProStatus();
 
-    final response = await http.get(
-      Uri.parse('$_baseUrl/api/subscription/$userId'),
-    );
+      // 2. Update Firestore for backend visibility
+      if (_firestore != null) {
+        await _firestore!.collection('users').doc(userId).set({
+          'isPro': isPro,
+          'lastCheck': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+      }
 
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else {
-      throw Exception('Failed to fetch subscription: ${response.body}');
+      return {'isPro': isPro};
+    } catch (e) {
+      debugPrint('ApiService: Error checking subscription: $e');
+      return {'isPro': false};
     }
   }
 
-  Future<void> logSession({
-    required String userId,
-    required String meditationId,
-    required int durationSeconds,
-  }) async {
-    if (_shouldMock) {
-      return; // Successfully "logged" locally
-    }
-
-    final response = await http.post(
-      Uri.parse('$_baseUrl/api/sessions'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
+  /// Log a session to Firestore
+  Future<void> logSession(
+      String userId, Map<String, dynamic> sessionData) async {
+    if (_firestore == null) return;
+    try {
+      await _firestore!.collection('sessions').add({
         'userId': userId,
-        'meditationId': meditationId,
-        'durationSeconds': durationSeconds,
-      }),
-    );
-
-    if (response.statusCode != 200) {
-      throw Exception('Failed to log session: ${response.body}');
+        ...sessionData,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      debugPrint('ApiService: Error logging session: $e');
     }
   }
 
+  /// Get aggregated progress from Firestore
   Future<Map<String, dynamic>> getProgress(String userId) async {
-    if (_shouldMock) {
-      // Return empty progress, reliance is on local storage in UserProvider
+    // If offline, return empty so provider falls back to local storage
+    if (_firestore == null) {
+      return {};
+    }
+
+    try {
+      final doc = await _firestore!.collection('users').doc(userId).get();
+      if (doc.exists && doc.data() != null) {
+        final data = doc.data()!;
+        return {
+          'totalMinutes': data['totalMinutes'] ?? 0,
+          'currentStreak': data['currentStreak'] ?? 0,
+          'sessionsCompleted': data['sessionsCompleted'] ?? 0,
+        };
+      }
       return {
         'totalMinutes': 0,
         'currentStreak': 0,
         'sessionsCompleted': 0,
       };
-    }
-
-    final response = await http.get(
-      Uri.parse('$_baseUrl/api/progress/$userId'),
-    );
-
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else {
-      throw Exception('Failed to fetch progress: ${response.body}');
+    } catch (e) {
+      debugPrint('ApiService: Error fetching progress from Firestore: $e');
+      return {};
     }
   }
 }

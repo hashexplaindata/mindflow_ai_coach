@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:provider/provider.dart' as provider;
+import 'package:provider/provider.dart' show ReadContext, WatchContext;
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
@@ -12,17 +13,20 @@ import '../../domain/models/conversation_context.dart';
 import '../../../subscription/presentation/providers/subscription_provider.dart';
 import '../../../subscription/presentation/widgets/paywall_trigger.dart';
 import '../../../coach/presentation/screens/coach_gallery_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../auth/presentation/providers/user_provider.dart';
 
-class ChatScreen extends StatefulWidget {
+class ChatScreen extends ConsumerStatefulWidget {
   const ChatScreen({super.key, this.initialMessage});
 
   final String? initialMessage;
 
   @override
-  State<ChatScreen> createState() => _ChatScreenState();
+  ConsumerState<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
+class _ChatScreenState extends ConsumerState<ChatScreen>
+    with TickerProviderStateMixin {
   final ScrollController _scrollController = ScrollController();
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
@@ -72,7 +76,22 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ChatProvider>(
+    // Listen to UserProvider for personality changes
+    ref.listen(userProvider, (previous, next) {
+      if (previous?.personality != next.personality) {
+        context.read<ChatProvider>().setPersonality(next.personality);
+      }
+    });
+
+    // Initial sync
+    final userState = ref.watch(userProvider);
+    if (userState.isInitialized) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.read<ChatProvider>().setPersonality(userState.personality);
+      });
+    }
+
+    return provider.Consumer<ChatProvider>(
       builder: (context, chatProvider, child) {
         if (chatProvider.messages.isNotEmpty) {
           WidgetsBinding.instance
@@ -163,7 +182,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                provider.activeCoach.name,
+                'Neural Mirror',
                 style: AppTextStyles.label.copyWith(
                   fontWeight: FontWeight.w600,
                   color: colorScheme.onSurface,

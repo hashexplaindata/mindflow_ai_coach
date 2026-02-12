@@ -1,8 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:uuid/uuid.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/services/api_service.dart';
+import '../../../identity/domain/models/personality_vector.dart';
+import 'dart:convert';
 
 // State class for UserProvider
 class UserState {
@@ -14,6 +19,7 @@ class UserState {
   final int totalMinutes;
   final int currentStreak;
   final int sessionsCompleted;
+  final PersonalityVector personality;
 
   const UserState({
     this.userId,
@@ -24,6 +30,7 @@ class UserState {
     this.totalMinutes = 0,
     this.currentStreak = 0,
     this.sessionsCompleted = 0,
+    this.personality = PersonalityVector.defaultProfile,
   });
 
   UserState copyWith({
@@ -35,6 +42,7 @@ class UserState {
     int? totalMinutes,
     int? currentStreak,
     int? sessionsCompleted,
+    PersonalityVector? personality,
   }) {
     return UserState(
       userId: userId ?? this.userId,
@@ -45,6 +53,7 @@ class UserState {
       totalMinutes: totalMinutes ?? this.totalMinutes,
       currentStreak: currentStreak ?? this.currentStreak,
       sessionsCompleted: sessionsCompleted ?? this.sessionsCompleted,
+      personality: personality ?? this.personality,
     );
   }
 }
@@ -60,6 +69,7 @@ class UserNotifier extends Notifier<UserState> {
   static const String _currentStreakKey = 'current_streak';
   static const String _sessionsCompletedKey = 'sessions_completed';
   static const String _lastSessionDateKey = 'last_session_date';
+  static const String _personalityKey = 'personality_vector';
 
   final ApiService _apiService = ApiService();
 
@@ -75,30 +85,17 @@ class UserNotifier extends Notifier<UserState> {
 
     try {
       final prefs = await SharedPreferences.getInstance();
-      var userId = prefs.getString(_userIdKey);
-      var email = prefs.getString(_userEmailKey);
 
-      if (userId == null) {
-        userId = const Uuid().v4();
-        email = '$userId@mindflow.app';
-        await prefs.setString(_userIdKey, userId);
-        await prefs.setString(_userEmailKey, email);
+      // Check if user is already signed in with Firebase
+      final firebaseUser = FirebaseAuth.instance.currentUser;
 
-        try {
-          await _apiService.createUser(userId, email);
-        } catch (e) {
-          debugPrint('UserProvider: Error creating user on API: $e');
-        }
+      if (firebaseUser != null) {
+        // User is already signed in
+        await _loginWithFirebaseUser(firebaseUser, prefs);
+      } else {
+        // Auto sign-in with Google
+        await signInWithGoogle();
       }
-
-      state = state.copyWith(userId: userId, email: email);
-
-      // Load local progress first
-      await _loadLocalProgress(prefs);
-
-      // Try to sync with server
-      await refreshSubscriptionStatus();
-      await refreshProgress();
 
       state = state.copyWith(isInitialized: true);
     } catch (e) {
@@ -108,10 +105,106 @@ class UserNotifier extends Notifier<UserState> {
     }
   }
 
+  Future<void> signInWithGoogle() async {
+    try {
+      state = state.copyWith(isLoading: true);
+
+      // Trigger Google Sign-In flow
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+
+      if (googleUser == null) {
+        // User cancelled the sign-in
+        state = state.copyWith(isLoading: false);
+        return;
+      }
+
+      // Obtain auth details
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+
+      // Create Firebase credential
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      // Sign in to Firebase
+      final userCredential =
+          await FirebaseAuth.instance.signInWithCredential(credential);
+      final firebaseUser = userCredential.user;
+
+      if (firebaseUser != null) {
+        final prefs = await SharedPreferences.getInstance();
+        await _loginWithFirebaseUser(firebaseUser, prefs);
+      }
+    } catch (e) {
+      debugPrint('UserProvider: Error signing in with Google: $e');
+      state = state.copyWith(isLoading: false);
+    }
+  }
+
+  Future<void> _loginWithFirebaseUser(
+      User firebaseUser, SharedPreferences prefs) async {
+    final userId = firebaseUser.uid;
+    final email = firebaseUser.email ?? '$userId@mindflow.app';
+
+    // CRITICAL: Link Firebase UID to RevenueCat
+    try {
+      await Purchases.logIn(userId);
+      debugPrint('UserProvider: ✅ Linked RevenueCat user: $userId');
+    } catch (e) {
+      debugPrint('UserProvider: ❌ Error linking RevenueCat user: $e');
+    }
+
+    // Save user info
+    await prefs.setString(_userIdKey, userId);
+    await prefs.setString(_userEmailKey, email);
+
+    state = state.copyWith(userId: userId, email: email);
+
+    // Load local progress first
+    await _loadLocalProgress(prefs);
+
+    // Start listening to Firestore for subscription status
+    _listenToFirestoreSubscription(userId);
+
+    // Try to sync with server
+    await refreshProgress();
+  }
+
+  void _listenToFirestoreSubscription(String userId) {
+    FirebaseFirestore.instance
+        .collection('customers')
+        .doc(userId)
+        .snapshots()
+        .listen((snapshot) {
+      if (snapshot.exists) {
+        final data = snapshot.data();
+        final isPro = data?['isPro'] ?? false;
+        state = state.copyWith(isSubscribed: isPro);
+        debugPrint(
+            'UserProvider: Subscription status from Firestore: isPro=$isPro');
+      }
+    }, onError: (error) {
+      debugPrint('UserProvider: Error listening to Firestore: $error');
+    });
+  }
+
   Future<void> _loadLocalProgress(SharedPreferences prefs) async {
     int totalMinutes = prefs.getInt(_totalMinutesKey) ?? 0;
     int currentStreak = prefs.getInt(_currentStreakKey) ?? 0;
     int sessionsCompleted = prefs.getInt(_sessionsCompletedKey) ?? 0;
+
+    // Load personality
+    PersonalityVector personality = PersonalityVector.defaultProfile;
+    final personalityJson = prefs.getString(_personalityKey);
+    if (personalityJson != null) {
+      try {
+        personality = PersonalityVector.fromJson(jsonDecode(personalityJson));
+      } catch (e) {
+        debugPrint('UserProvider: Error parsing personality JSON: $e');
+      }
+    }
 
     // Check if streak should be reset (no session yesterday or today)
     final lastSessionDate = prefs.getString(_lastSessionDateKey);
@@ -132,6 +225,7 @@ class UserNotifier extends Notifier<UserState> {
       totalMinutes: totalMinutes,
       currentStreak: currentStreak,
       sessionsCompleted: sessionsCompleted,
+      personality: personality,
     );
 
     debugPrint(
@@ -146,6 +240,8 @@ class UserNotifier extends Notifier<UserState> {
       await prefs.setInt(_sessionsCompletedKey, state.sessionsCompleted);
       await prefs.setString(
           _lastSessionDateKey, DateTime.now().toIso8601String());
+      await prefs.setString(
+          _personalityKey, jsonEncode(state.personality.toJson()));
       debugPrint('UserProvider: Saved local progress');
     } catch (e) {
       debugPrint('UserProvider: Error saving local progress: $e');
@@ -161,7 +257,8 @@ class UserNotifier extends Notifier<UserState> {
           subscription['status'] == 'trialing');
       state = state.copyWith(isSubscribed: isSubscribed);
     } catch (e) {
-      debugPrint('UserProvider: Error fetching subscription (using local): $e');
+      debugPrint(
+          'UserProvider: Error fetching subscription (using Firestore): $e');
     }
   }
 
@@ -232,15 +329,39 @@ class UserNotifier extends Notifier<UserState> {
     if (state.userId != null) {
       try {
         await _apiService.logSession(
-          userId: state.userId!,
-          meditationId: meditationId,
-          durationSeconds: durationSeconds,
+          state.userId!,
+          {
+            'meditationId': meditationId,
+            'durationSeconds': durationSeconds,
+            'minutes': durationSeconds ~/ 60,
+          },
         );
         debugPrint('UserProvider: Session synced with server');
       } catch (e) {
         debugPrint(
             'UserProvider: Error logging session to server (saved locally): $e');
       }
+    }
+  }
+
+  Future<void> updatePersonality(PersonalityVector newPersonality) async {
+    state = state.copyWith(personality: newPersonality);
+    await _saveLocalProgress();
+    debugPrint('UserProvider: Personality updated: $newPersonality');
+  }
+
+  Future<void> signOut() async {
+    try {
+      await GoogleSignIn().signOut();
+      await FirebaseAuth.instance.signOut();
+      await Purchases.logOut();
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+
+      state = const UserState();
+    } catch (e) {
+      debugPrint('UserProvider: Error signing out: $e');
     }
   }
 }

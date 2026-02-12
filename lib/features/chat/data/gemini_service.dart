@@ -7,6 +7,7 @@ import '../../../core/config/env_config.dart' as env;
 import '../domain/models/message.dart';
 import '../../coach/domain/models/coach.dart';
 import '../../onboarding/domain/models/nlp_profile.dart';
+import '../../identity/domain/models/personality_vector.dart';
 import '../domain/services/nlp_prompt_builder.dart';
 
 /// Gemini Service for MindFlow AI Coach
@@ -35,6 +36,9 @@ class GeminiService {
 
   /// Last known profile for prompt regeneration
   NLPProfile? _lastProfile;
+
+  /// Current Personality Vector (Layer 1)
+  PersonalityVector _currentPersonality = PersonalityVector.defaultProfile;
 
   /// Active coach for persona injection
   Coach? _activeCoach;
@@ -87,9 +91,20 @@ class GeminiService {
   /// Call this when user logs in or profile changes
   void setUserProfile(NLPProfile profile) {
     _lastProfile = profile;
+    _updateSystemPrompt();
+  }
 
-    _currentSystemPrompt = NLPPromptBuilder.generateSystemPrompt(
-      profile,
+  /// Set the personality vector (Layer 1 Update)
+  void setPersonality(PersonalityVector vector) {
+    _currentPersonality = vector;
+    _updateSystemPrompt();
+    debugPrint('GeminiService: Personality Vector updated to $vector');
+  }
+
+  void _updateSystemPrompt() {
+    // 1. Generate Base NLP Prompt (Legacy/VAK)
+    final basePrompt = NLPPromptBuilder.generateSystemPrompt(
+      _lastProfile ?? NLPProfile.defaultProfile,
       coach: _activeCoach,
       currentStreak: _currentStreak,
       totalSessions: _totalSessions,
@@ -98,8 +113,67 @@ class GeminiService {
       goalProgress: _goalProgress,
       deepDiveUnlocked: _deepDiveUnlocked,
     );
-    debugPrint(
-        'GeminiService: System prompt updated for ${profile.displayName} (Coach: ${_activeCoach?.name ?? "Default"})');
+
+    // 2. Inject Layer 2 Deterministic Constraints
+    final orchestratorInstructions =
+        _buildOrchestratorInstructions(_currentPersonality);
+
+    _currentSystemPrompt = '$basePrompt\n\n$orchestratorInstructions';
+
+    // 🚀 DEMO LOGGING: Show personality detection
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    debugPrint('🧠 IDENTITY ENGINE: Personality Vector Updated');
+    debugPrint('   Vector: $_currentPersonality');
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  }
+
+  /// Layer 2: Prompt Orchestrator Logic
+  String _buildOrchestratorInstructions(PersonalityVector p) {
+    final buffer = StringBuffer();
+    buffer.writeln("\n--- IDENTITY ENGINE INSTRUCTIONS ---");
+    buffer.writeln(
+        "USER_METRICS: [D:${p.discipline.toStringAsFixed(2)}, N:${p.novelty.toStringAsFixed(2)}, V:${p.volatility.toStringAsFixed(2)}, S:${p.structure.toStringAsFixed(2)}]");
+
+    // 🚀 DEMO LOGGING: Track active constraints
+    final activeConstraints = <String>[];
+
+    // Novelty (N) Constraints
+    if (p.needsShortAnswers) {
+      buffer
+          .writeln("CONSTRAINT: MAX RESPONSE LENGTH 50 WORDS. KEEP IT PUNCHY.");
+      activeConstraints.add('🎯 High Novelty → Short Answers Mode');
+    }
+
+    // Structure (S) Constraints
+    if (p.needsStepByStep) {
+      buffer.writeln(
+          "FORMAT: ALWAYS use markdown numbered lists (1., 2., 3.) for clarity.");
+      activeConstraints.add('📋 High Structure → Step-by-Step Format');
+    }
+
+    // Discipline (D) & Volatility (V) Constraints
+    if (p.needsToughLove) {
+      buffer.writeln(
+          "TONE: DIRECT & ACTION-ORIENTED. Do not coddle. Give 1 micro-step.");
+      activeConstraints
+          .add('💪 Low Discipline + Low Volatility → Tough Love Mode');
+    } else if (p.needsValidation) {
+      buffer.writeln(
+          "TONE: VALIDATING & CALM. Use 'We' language. Mirror emotions first.");
+      activeConstraints.add('🤝 High Volatility → Empathy Mode');
+    }
+
+    // 🚀 DEMO LOGGING: Show what was detected
+    if (activeConstraints.isNotEmpty) {
+      debugPrint('🤖 ORCHESTRATOR: Constraints Injected:');
+      for (final constraint in activeConstraints) {
+        debugPrint('   $constraint');
+      }
+    } else {
+      debugPrint('🤖 ORCHESTRATOR: No special constraints (balanced profile)');
+    }
+
+    return buffer.toString();
   }
 
   /// Set user progress context for more personalized coaching
@@ -136,14 +210,16 @@ class GeminiService {
   }) async* {
     if (profile != null) {
       setUserProfile(profile);
+    } else {
+      // Ensure prompt is up to date with current personality even if profile is null
+      if (_currentSystemPrompt == null) {
+        _updateSystemPrompt();
+      }
     }
 
     if (_currentSystemPrompt == null) {
       debugPrint('GeminiService: No system prompt set, using default');
-      _currentSystemPrompt = NLPPromptBuilder.generateSystemPrompt(
-        NLPProfile.defaultProfile,
-        deepDiveUnlocked: _deepDiveUnlocked,
-      );
+      _updateSystemPrompt();
     }
 
     // CRITICAL: Check for crisis indicators FIRST
@@ -173,6 +249,13 @@ class GeminiService {
       // Build conversation contents (chat history + new message)
       final conversationContents = <Map<String, dynamic>>[];
 
+      // For gemini-2.0-flash-exp, we need to include system prompt inline
+      // (systemInstruction field not supported in experimental models)
+      final effectiveFirstMessage =
+          conversationContents.isEmpty && limitedHistory.isEmpty
+              ? '${_currentSystemPrompt ?? ''}\n\nUser: $userMessage'
+              : userMessage;
+
       for (final msg in limitedHistory) {
         conversationContents.add({
           "role": msg.isUser ? "user" : "model",
@@ -182,32 +265,45 @@ class GeminiService {
         });
       }
 
-      // Add the current user message
+      // Add the current user message (with system prompt if first message)
       conversationContents.add({
         "role": "user",
         "parts": [
-          {"text": userMessage}
+          {"text": effectiveFirstMessage}
         ]
       });
 
       final apiUrl =
-          'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:streamGenerateContent?key=$apiKey';
+          'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:streamGenerateContent?key=$apiKey';
 
       debugPrint(
-          'GeminiService: Sending request to Gemini 2.0 Flash (Key length: ${apiKey.length})');
+          'GeminiService: Sending request to Gemini 2.0 Flash Exp (Key length: ${apiKey.length})');
 
-      // Use systemInstruction field for proper system prompt separation
+      // Gemini 2.0 Flash Exp request (NO systemInstruction field)
       final requestBody = json.encode({
-        "systemInstruction": {
-          "parts": [
-            {"text": _currentSystemPrompt ?? ''}
-          ]
-        },
         "contents": conversationContents,
         "generationConfig": {
           "temperature": 0.7,
           "maxOutputTokens": _deepDiveUnlocked ? 1200 : 500,
-        }
+        },
+        "safetySettings": [
+          {
+            "category": "HARM_CATEGORY_HARASSMENT",
+            "threshold": "BLOCK_ONLY_HIGH"
+          },
+          {
+            "category": "HARM_CATEGORY_HATE_SPEECH",
+            "threshold": "BLOCK_ONLY_HIGH"
+          },
+          {
+            "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            "threshold": "BLOCK_ONLY_HIGH"
+          },
+          {
+            "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+            "threshold": "BLOCK_ONLY_HIGH"
+          }
+        ]
       });
 
       final request = http.Request('POST', Uri.parse(apiUrl));
@@ -512,7 +608,7 @@ class GeminiService {
       }
 
       final inferenceUrl =
-          'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=$apiKey';
+          'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=$apiKey';
 
       final requestBody = json.encode({
         "contents": [
@@ -592,7 +688,7 @@ class GeminiService {
       if (apiKey.isEmpty) return null;
 
       final url =
-          'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=$apiKey';
+          'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=$apiKey';
 
       // Construct the analysis prompt
       final sb = StringBuffer();

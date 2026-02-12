@@ -1,0 +1,42 @@
+type User @table {
+  email: String!
+  createdAt: Timestamp!
+  displayName: String
+  cognitiveProfileVector: Vector @col(size: 1536)
+  preferredCoachingStyle: String
+}
+
+type CognitiveAssessment @table {
+  user: User!
+  assessmentDate: Date!
+  assessmentType: String!
+  rawResults: String
+  derivedInsights: String
+}
+
+type Prompt @table {
+  promptText: String!
+  createdAt: Timestamp!
+  promptVector: Vector @col(size: 1536)
+  category: String
+  source: String
+}
+
+type Reflection @table {
+  user: User!
+  prompt: Prompt!
+  reflectionText: String!
+  reflectionDate: Timestamp!
+  reflectionAudioUrl: String
+  sentimentScore: Float
+  isBookmarked: Boolean
+  isShared: Boolean
+}
+
+type Session @table {
+  user: User!
+  sessionStart: Timestamp!
+  sessionEnd: Timestamp!
+  sessionSummary: String
+  feedback: String
+}

@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "382815426284",
+    "project_id": "mindflow-ac7c0",
+    "storage_bucket": "mindflow-ac7c0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:382815426284:android:388a6c02e776c0cdbef7c9",
+        "android_client_info": {
+          "package_name": "com.example.mindflow_ai_coach"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "382815426284-u3pc6nebeehe07j0af31v36ujv6qhsgn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.mindflow_ai_coach",
+            "certificate_hash": "9cbe41e3766e50ab7c43c7036134e02c8d890842"
+          }
+        },
+        {
+          "client_id": "382815426284-4deq37ck1lkm8cbu9j7tbigrkmb8coah.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC8emRngN2bQg9MnHpKB0SQ2FUbhdKX_n8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "382815426284-4deq37ck1lkm8cbu9j7tbigrkmb8coah.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      },
+      "admob_app_id": "ca-app-pub-1720390407124015~3706175515"
+    }
+  ],
+  "configuration_version": "1"
+}

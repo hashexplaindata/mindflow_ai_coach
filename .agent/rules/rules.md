@@ -1,5 +1,5 @@
 ---
-trigger: always_on
+trigger: manual
 ---
 
 # 🚀 MISSION PROTOCOL: MindFlow MVP (Shipyard Hackathon)
@@ -17,10 +17,9 @@ Build a "Pocket Essentialist" AI Coach.
 
 - **Framework:** Flutter (Latest Stable)
 - **State Management:** `flutter_riverpod` (DO NOT use `provider` context.read/watch)
-- **Monetization:** `purchases_flutter` (^8.0.0) & `purchases_ui_flutter`
+- **Monetization:** `purchases_flutter` (^8.0.0) & `purchases_ui_flutter`& 'revenue cat'
 - **AI Backend:** `google_generative_ai` (Gemini 2.0 Flash)
-- **Database:** Firebase / Firestore (Read-only for MVP, use LocalStorage/SharedPrefs for user state)
-- **Audio:** `audioplayers` (Local MP3 loops ONLY. No generative audio.)
+- **Database:** Firebase
 
 ---
 

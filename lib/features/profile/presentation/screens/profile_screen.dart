@@ -1,18 +1,12 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:provider/provider.dart' show WatchContext;
-import 'package:http/http.dart' as http;
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/theme/theme_provider.dart';
 import '../../../auth/presentation/providers/user_provider.dart';
 import '../../../subscription/presentation/screens/subscription_screen.dart';
-import '../../../coach/presentation/screens/goals_screen.dart';
-import '../../../coach/presentation/widgets/goal_card.dart';
-import '../../../coach/domain/models/wellness_goal.dart';
-import '../../../chat/presentation/providers/chat_provider.dart';
-import '../widgets/mindset_card.dart';
+import '../widgets/personality_graph.dart';
+import '../../../identity/domain/models/personality_vector.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -80,16 +74,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         color: AppColors.jobsSage,
                       ),
                     ),
-                    const SizedBox(height: AppSpacing.spacing16),
-                    Text(
-                      'Mindful User',
-                      style: TextStyle(
-                        fontFamily: 'DM Sans',
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: theme.colorScheme.onSurface,
-                      ),
-                    ),
+
                     const SizedBox(height: AppSpacing.spacing8),
                     Container(
                       padding: const EdgeInsets.symmetric(
@@ -125,54 +110,67 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: AppSpacing.spacing32),
-
-                    // — Mindset Card (Inferred NLP Profile)
-                    const _MindsetSection(),
-                    const SizedBox(height: AppSpacing.spacing32),
-
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _StatCard(
-                            value: '${userState.totalMinutes}',
-                            label: 'Minutes',
-                            icon: Icons.timer_outlined,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _StatCard(
-                            value: '${userState.currentStreak}',
-                            label: 'Day Streak',
-                            icon: Icons.local_fire_department_rounded,
-                            isHighlighted: userState.currentStreak > 0,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _StatCard(
-                            value: '${userState.sessionsCompleted}',
-                            label: 'Sessions',
-                            icon: Icons.self_improvement_rounded,
-                          ),
-                        ),
-                      ],
-                    ),
                     const SizedBox(height: AppSpacing.spacing24),
-                    if (userState.userId != null)
-                      _GoalsSummarySection(
-                        userId: userState.userId!,
-                        onNavigateToGoals: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => GoalsScreen(
-                                userId: userState.userId!,
-                              ),
-                            ),
-                          );
-                        },
+
+                    // Personality Graph Widget
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? AppColors.cardBackgroundDark
+                            : Colors.white,
+                        borderRadius: BorderRadius.circular(24),
                       ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Your Cognitive Profile',
+                            style: TextStyle(
+                              fontFamily: 'DM Sans',
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: theme.colorScheme.onSurface,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          Center(
+                            child: PersonalityGraph(
+                              vector: userState.personality ??
+                                  PersonalityVector.defaultProfile,
+                              showLabels: true,
+                              size: 200.0,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          _DimensionRow(
+                              'Discipline',
+                              userState.personality?.discipline ?? 0.5,
+                              Icons.check_circle,
+                              theme,
+                              'Your ability to focus and follow through on tasks.'),
+                          const SizedBox(height: 12),
+                          _DimensionRow(
+                              'Novelty',
+                              userState.personality?.novelty ?? 0.5,
+                              Icons.explore,
+                              theme,
+                              'Your openness to new experiences and ideas.'),
+                          const SizedBox(height: 12),
+                          _DimensionRow(
+                              'Volatility',
+                              userState.personality?.volatility ?? 0.5,
+                              Icons.waves,
+                              theme),
+                          const SizedBox(height: 12),
+                          _DimensionRow(
+                              'Structure',
+                              userState.personality?.structure ?? 0.5,
+                              Icons.grid_on,
+                              theme),
+                        ],
+                      ),
+                    ),
                     const SizedBox(height: AppSpacing.spacing24),
                     Container(
                       decoration: BoxDecoration(
@@ -183,14 +181,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ),
                       child: Column(
                         children: [
-                          _SettingsItem(
-                            icon: Icons.notifications_outlined,
-                            title: 'Notifications',
-                            onTap: () {
-                              _showComingSoonSnackbar(context);
-                            },
-                          ),
-                          _Divider(isDark: isDark),
                           Consumer(
                             builder: (context, ref, _) {
                               final themeMode = ref.watch(themeProvider);
@@ -211,14 +201,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                     .read(themeProvider.notifier)
                                     .toggleTheme(),
                               );
-                            },
-                          ),
-                          _Divider(isDark: isDark),
-                          _SettingsItem(
-                            icon: Icons.person_outline,
-                            title: 'Account',
-                            onTap: () {
-                              _showComingSoonSnackbar(context);
                             },
                           ),
                           _Divider(isDark: isDark),
@@ -292,42 +274,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: AppSpacing.spacing24),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? AppColors.cardBackgroundDark
-                            : Colors.white,
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      child: Column(
-                        children: [
-                          _SettingsItem(
-                            icon: Icons.help_outline,
-                            title: 'Help & Support',
-                            onTap: () {
-                              _showComingSoonSnackbar(context);
-                            },
-                          ),
-                          _Divider(isDark: isDark),
-                          _SettingsItem(
-                            icon: Icons.privacy_tip_outlined,
-                            title: 'Privacy Policy',
-                            onTap: () {
-                              _showComingSoonSnackbar(context);
-                            },
-                          ),
-                          _Divider(isDark: isDark),
-                          _SettingsItem(
-                            icon: Icons.description_outlined,
-                            title: 'Terms of Service',
-                            onTap: () {
-                              _showComingSoonSnackbar(context);
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
+
                     const SizedBox(height: AppSpacing.spacing24),
                     SizedBox(
                       width: double.infinity,
@@ -381,60 +328,51 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 }
 
-class _StatCard extends StatelessWidget {
-  final String value;
-  final String label;
-  final IconData icon;
-  final bool isHighlighted;
-
-  const _StatCard({
-    required this.value,
-    required this.label,
-    required this.icon,
-    this.isHighlighted = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+// Helper widget to display personality dimensions
+Widget _DimensionRow(String label, double value, IconData icon, ThemeData theme,
+    [String? tooltip]) {
+  return Row(
+    children: [
+      Icon(
+        icon,
+        size: 20,
+        color: AppColors.jobsSage,
       ),
-      child: Column(
-        children: [
-          Icon(
-            icon,
-            size: 24,
-            color: isHighlighted ? AppColors.primaryOrange : AppColors.jobsSage,
+      const SizedBox(width: 12),
+      Expanded(
+        child: Text(
+          label,
+          style: TextStyle(
+            fontFamily: 'DM Sans',
+            fontSize: 15,
+            fontWeight: FontWeight.w500,
+            color: theme.colorScheme.onSurface,
           ),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: TextStyle(
-              fontFamily: 'DM Sans',
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: isHighlighted
-                  ? AppColors.primaryOrange
-                  : AppColors.jobsObsidian,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontFamily: 'DM Sans',
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: AppColors.jobsObsidian.withValues(alpha: 0.5),
-            ),
-          ),
-        ],
+        ),
       ),
-    );
-  }
+      Text(
+        '${(value * 100).toInt()}%',
+        style: TextStyle(
+          fontFamily: 'DM Sans',
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+          color: AppColors.jobsObsidian,
+        ),
+      ),
+      if (tooltip != null) ...[
+        const SizedBox(width: 8),
+        Tooltip(
+          message: tooltip,
+          triggerMode: TooltipTriggerMode.tap,
+          child: Icon(
+            Icons.info_outline,
+            size: 16,
+            color: theme.colorScheme.onSurface.withOpacity(0.5),
+          ),
+        ),
+      ],
+    ],
+  );
 }
 
 class _SettingsItem extends StatelessWidget {
@@ -505,177 +443,6 @@ class _Divider extends StatelessWidget {
       color: isDark
           ? AppColors.jobsObsidianDark.withValues(alpha: 0.1)
           : AppColors.jobsObsidian.withValues(alpha: 0.05),
-    );
-  }
-}
-
-class _GoalsSummarySection extends StatefulWidget {
-  final String userId;
-  final VoidCallback onNavigateToGoals;
-
-  const _GoalsSummarySection({
-    required this.userId,
-    required this.onNavigateToGoals,
-  });
-
-  @override
-  State<_GoalsSummarySection> createState() => _GoalsSummarySectionState();
-}
-
-class _GoalsSummarySectionState extends State<_GoalsSummarySection> {
-  WellnessGoal? _activeGoal;
-  int _completedCount = 0;
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadGoals();
-  }
-
-  Future<void> _loadGoals() async {
-    try {
-      final response = await _fetchGoals();
-      if (response != null) {
-        final activeGoals =
-            response.where((g) => g.status == GoalStatus.active).toList();
-        final completedGoals =
-            response.where((g) => g.status == GoalStatus.completed).toList();
-
-        if (mounted) {
-          setState(() {
-            _activeGoal = activeGoals.isNotEmpty ? activeGoals.first : null;
-            _completedCount = completedGoals.length;
-            _isLoading = false;
-          });
-        }
-      } else {
-        if (mounted) {
-          setState(() => _isLoading = false);
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
-  }
-
-  Future<List<WellnessGoal>?> _fetchGoals() async {
-    try {
-      final uri = Uri.parse('/api/goals/${widget.userId}');
-      final response = await http.get(uri);
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        return (data['goals'] as List)
-            .map((g) => WellnessGoal.fromJson(g))
-            .toList();
-      }
-    } catch (e) {
-      // Silent fail, will show empty state
-    }
-    return null;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_isLoading) {
-      return Container(
-        padding: const EdgeInsets.all(AppSpacing.spacing24),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: const Center(
-          child: SizedBox(
-            width: 24,
-            height: 24,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              valueColor: AlwaysStoppedAnimation(AppColors.jobsSage),
-            ),
-          ),
-        ),
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Goals',
-                style: TextStyle(
-                  fontFamily: 'DM Sans',
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.jobsObsidian,
-                ),
-              ),
-              if (_completedCount > 0)
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColors.successGreen.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.emoji_events_rounded,
-                        size: 14,
-                        color: AppColors.successGreen,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '$_completedCount achieved',
-                        style: const TextStyle(
-                          fontFamily: 'DM Sans',
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.successGreen,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-            ],
-          ),
-        ),
-        const SizedBox(height: AppSpacing.spacing12),
-        CompactGoalCard(
-          goal: _activeGoal,
-          onTap: widget.onNavigateToGoals,
-          onViewAll: widget.onNavigateToGoals,
-        ),
-      ],
-    );
-  }
-}
-
-class _MindsetSection extends StatelessWidget {
-  const _MindsetSection();
-
-  @override
-  Widget build(BuildContext context) {
-    // Watch standard provider (not Riverpod)
-    final chatProvider = context.watch<ChatProvider>();
-
-    if (!chatProvider.isProfileInferred) {
-      return const SizedBox.shrink();
-    }
-
-    return Column(
-      children: [
-        MindsetCard(profile: chatProvider.userProfile),
-        const SizedBox(height: AppSpacing.spacing32),
-      ],
     );
   }
 }

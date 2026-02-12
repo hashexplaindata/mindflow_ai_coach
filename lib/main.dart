@@ -26,9 +26,22 @@ import 'features/home/presentation/screens/home_screen.dart';
 import 'features/profile/presentation/screens/profile_screen.dart';
 import 'features/chat/presentation/screens/chat_screen.dart';
 
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EnvConfig.initialize();
+
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    debugPrint('Firebase initialized successfully');
+  } catch (e) {
+    debugPrint(
+        'Firebase initialization failed: (Missing google-services.json?) $e');
+  }
 
   // Initialize RevenueCat before the UI builds
   await RevenueCatService.instance.initialize();
