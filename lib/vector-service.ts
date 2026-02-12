@@ -1,33 +1,21 @@
+// lib/vector-service.ts
 import { blink } from './blink';
 import { PersonalityVector, INITIAL_VECTOR, calculateVectorDistance } from './engine';
 
 export const VectorService = {
   async getUserVector(userId: string): Promise<PersonalityVector & { turnCount: number }> {
-    try {
-      const records = await blink.db.usersVectors.list({
-        where: { userId },
+    const records = await blink.db.users_vectors.list({ userId });
+    const record = records[0];
+    
+    if (!record) {
+      const initial = await blink.db.users_vectors.create({
+        userId,
+        ...INITIAL_VECTOR,
+        turnCount: 0,
       });
-      const record = records[0];
-      
-      if (!record) {
-        await blink.db.usersVectors.upsert({
-          userId,
-          ...INITIAL_VECTOR,
-          turnCount: 0,
-        });
-        return { ...INITIAL_VECTOR, turnCount: 0 };
-      }
-      return {
-        discipline: Number(record.discipline) || 0.5,
-        novelty: Number(record.novelty) || 0.5,
-        reactivity: Number(record.reactivity) || 0.5,
-        structure: Number(record.structure) || 0.5,
-        turnCount: Number(record.turnCount) || 0,
-      };
-    } catch (err) {
-      console.warn('Failed to load vector, using defaults:', err);
-      return { ...INITIAL_VECTOR, turnCount: 0 };
+      return { ...initial, turnCount: 0 } as any;
     }
+    return record as any;
   },
 
   async recalibrate(userId: string, messages: { role: string; content: string }[]): Promise<PersonalityVector> {
@@ -65,8 +53,7 @@ Output the updated vector values (0.0 to 1.0) and shadow telemetry (Cognitive Lo
     const newVector = object as any;
     const distance = calculateVectorDistance(current, newVector);
 
-    await blink.db.usersVectors.upsert({
-      userId,
+    await blink.db.users_vectors.update(userId, {
       discipline: newVector.discipline,
       novelty: newVector.novelty,
       reactivity: newVector.reactivity,
@@ -75,7 +62,6 @@ Output the updated vector values (0.0 to 1.0) and shadow telemetry (Cognitive Lo
       updatedAt: new Date().toISOString(),
     });
 
-    // Save telemetry to shadow log
     await blink.db.telemetry.create({
       userId,
       turnIndex: current.turnCount + 1,
