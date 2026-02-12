@@ -31,22 +31,16 @@ class BottomNavBar extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _NavItem(
-                icon: Icons.home_rounded,
-                label: 'Home',
+                icon: Icons.chat_bubble_outline_rounded,
+                label: 'Chat',
                 isSelected: currentIndex == 0,
                 onTap: () => onTap(0),
               ),
               _NavItem(
-                icon: Icons.self_improvement_rounded,
-                label: 'Coach',
+                icon: Icons.person_outline_rounded,
+                label: 'Profile',
                 isSelected: currentIndex == 1,
                 onTap: () => onTap(1),
-              ),
-              _NavItem(
-                icon: Icons.person_rounded,
-                label: 'Profile',
-                isSelected: currentIndex == 2,
-                onTap: () => onTap(2),
               ),
             ],
           ),

@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_text_styles.dart';
-import '../../../../core/theme/headspace_theme.dart';
+import '../../../../core/theme/mindflow_theme.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../identity/domain/models/personality_vector.dart';
 import '../../domain/models/onboarding_question.dart';
-import '../../../chat/data/gemini_service.dart';
+import '../../../auth/presentation/providers/user_provider.dart';
 
 /// Profiling Screen
-/// 5-question Cognitive Assessment
-/// Generates a Personality Vector (The "Weapon" Core)
-class ProfilingScreen extends StatefulWidget {
+/// 4-question Cognitive Assessment ("The Vector")
+class ProfilingScreen extends ConsumerStatefulWidget {
   const ProfilingScreen({
     super.key,
     this.onComplete,
@@ -20,10 +20,10 @@ class ProfilingScreen extends StatefulWidget {
   final void Function(PersonalityVector vector)? onComplete;
 
   @override
-  State<ProfilingScreen> createState() => _ProfilingScreenState();
+  ConsumerState<ProfilingScreen> createState() => _ProfilingScreenState();
 }
 
-class _ProfilingScreenState extends State<ProfilingScreen>
+class _ProfilingScreenState extends ConsumerState<ProfilingScreen>
     with SingleTickerProviderStateMixin {
   final PageController _pageController = PageController();
 
@@ -130,18 +130,15 @@ class _ProfilingScreenState extends State<ProfilingScreen>
       structure: _structure,
     );
 
-    // Save to Core Engine
-    GeminiService.instance.setPersonality(vector);
+    // Save to Core Engine & cloud via UserProvider
+    await ref.read(userProvider.notifier).updatePersonality(vector);
 
-    // TODO: Save to Firestore via UserProvider if needed
-    // await UserProvider.instance.saveVector(vector);
-
-    setState(() {
-      _isSaving = false;
-    });
-
-    // Navigate to result
     if (mounted) {
+      setState(() {
+        _isSaving = false;
+      });
+
+      // Navigate to result
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (context) =>
@@ -188,7 +185,7 @@ class _ProfilingScreenState extends State<ProfilingScreen>
                             value: progress,
                             backgroundColor: AppColors.neutralLight,
                             valueColor: const AlwaysStoppedAnimation(
-                              AppColors.primaryOrange,
+                              MindFlowTheme.sage,
                             ),
                             minHeight: 4,
                           ),
@@ -224,7 +221,7 @@ class _ProfilingScreenState extends State<ProfilingScreen>
               const Padding(
                 padding: EdgeInsets.all(AppSpacing.spacing24),
                 child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation(AppColors.primaryOrange),
+                  valueColor: AlwaysStoppedAnimation(MindFlowTheme.sage),
                 ),
               ),
           ],
@@ -353,19 +350,19 @@ class ProfileResultScreen extends StatelessWidget {
     return Scaffold(
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.screenPadding),
+          padding: EdgeInsets.all(AppSpacing.screenPadding),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Spacer(flex: 1),
 
-              const Text(
+              Text(
                 '🧠 Analysis Complete',
-                style: AppTextStyles.headlineMedium,
+                style: AppTextStyles.headingMedium,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: AppSpacing.spacing8),
-              const Text(
+              Text(
                 'Your Cognitive Vector',
                 style: TextStyle(
                     fontFamily: 'DM Sans',
@@ -377,9 +374,7 @@ class ProfileResultScreen extends StatelessWidget {
               const Spacer(),
 
               // Vector Visualization Card
-              Container(
-                decoration: HeadspaceTheme.cardDecoration,
-                padding: const EdgeInsets.all(AppSpacing.cardPaddingLarge),
+              MindFlowCard(
                 child: Column(
                   children: [
                     _TraitBar(
@@ -453,7 +448,7 @@ class _TraitBar extends StatelessWidget {
           child: LinearProgressIndicator(
             value: value,
             backgroundColor: AppColors.neutralLight,
-            valueColor: const AlwaysStoppedAnimation(AppColors.jobsObsidian),
+            valueColor: const AlwaysStoppedAnimation(MindFlowTheme.obsidian),
             minHeight: 8,
           ),
         ),

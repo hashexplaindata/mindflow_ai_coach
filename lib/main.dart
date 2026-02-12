@@ -17,7 +17,6 @@ import 'features/chat/presentation/providers/chat_provider.dart';
 import 'features/subscription/presentation/providers/subscription_provider.dart';
 import 'features/subscription/data/revenuecat_service.dart';
 import 'features/auth/presentation/providers/user_provider.dart';
-import 'features/home/presentation/screens/home_screen.dart';
 import 'features/profile/presentation/screens/profile_screen.dart';
 import 'features/chat/presentation/screens/chat_screen.dart';
 import 'features/identity/domain/models/personality_vector.dart';
@@ -83,7 +82,6 @@ class _MainAppShellState extends ConsumerState<MainAppShell> {
   int _currentIndex = 0;
 
   final List<Widget> _screens = const [
-    HomeScreen(), // The "Intention" input
     ChatScreen(), // The "Neural Mirror"
     ProfileScreen(), // The "Vector"
   ];
@@ -104,6 +102,14 @@ class _MainAppShellState extends ConsumerState<MainAppShell> {
 
   @override
   Widget build(BuildContext context) {
+    // Sync Personality Vector from UserProvider -> ChatProvider
+    ref.listen(userProvider, (previous, next) {
+      if (next.personality != null &&
+          next.personality != previous?.personality) {
+        context.read<ChatProvider>().setPersonality(next.personality!);
+      }
+    });
+
     return Scaffold(
       body: IndexedStack(
         index: _currentIndex,

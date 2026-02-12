@@ -52,20 +52,20 @@ class OnboardingQuestions {
     OnboardingQuestion(
       id: 'structure_pref',
       dimension: 'structure',
-      question: 'How do you handle a new complex project?',
-      subtitle: 'Be honest about your natural instinct',
+      question: 'New Project Strategy:',
+      subtitle: 'Instinctive approach',
       optionA: QuestionOption(
         value: 'high_structure',
-        label: 'Step-by-step plan',
-        description: 'I need a clear roadmap before I start',
-        scoreImpact: 0.9, // High Structure
+        label: 'Detailed Roadmap',
+        description: 'Plan first, execute second.',
+        scoreImpact: 0.9,
         emoji: '📋',
       ),
       optionB: QuestionOption(
         value: 'low_structure',
-        label: 'Jump in & figure it out',
-        description: 'I prefer to explore and adapt as I go',
-        scoreImpact: 0.2, // Low Structure
+        label: 'Figure it out',
+        description: 'Start now, adapt later.',
+        scoreImpact: 0.2,
         emoji: '🌊',
       ),
     ),
@@ -74,88 +74,65 @@ class OnboardingQuestions {
     OnboardingQuestion(
       id: 'novelty_pref',
       dimension: 'novelty',
-      question: 'Your ideal weekend looks like:',
+      question: 'Weekend Preference:',
       subtitle: 'What recharges you?',
       optionA: QuestionOption(
         value: 'high_novelty',
-        label: 'Trying something new',
-        description: 'New places, potential chaos, excitement',
-        scoreImpact: 0.9, // High Novelty
+        label: 'Novelty & Chaos',
+        description: 'New places, high stimulation.',
+        scoreImpact: 0.9,
         emoji: '🌟',
       ),
       optionB: QuestionOption(
         value: 'low_novelty',
-        label: 'Comfort & routine',
-        description: 'Resting in a familiar, peaceful space',
-        scoreImpact: 0.2, // Low Novelty
+        label: 'Routine & Peace',
+        description: 'Familiar comfort, low noise.',
+        scoreImpact: 0.2,
         emoji: '🏠',
       ),
     ),
 
-    // 3. VOLATILITY / Emotional Reactivity (Reactive vs Stoic)
+    // 3. VOLATILITY (Reactive vs Stoic)
     OnboardingQuestion(
       id: 'volatility_pref',
       dimension: 'volatility',
-      question: 'When things go wrong, you tend to:',
-      subtitle: 'Your immediate reaction',
+      question: 'Reaction to Failure:',
+      subtitle: 'Gut response',
       optionA: QuestionOption(
         value: 'high_volatility',
-        label: 'Feel it intensely',
-        description: 'I need to process the frustration/emotion',
-        scoreImpact: 0.8, // High Volatility (needs validation)
+        label: 'Intense Emotion',
+        description: 'I feel the frustration deeply.',
+        scoreImpact: 0.8,
         emoji: '❤️‍🔥',
       ),
       optionB: QuestionOption(
         value: 'low_volatility',
-        label: 'Go into fix-it mode',
-        description: 'I detach and focus on the solution',
-        scoreImpact: 0.3, // Low Volatility (needs tough love/logic)
+        label: 'Cold Logic',
+        description: 'Detach and analyze the fix.',
+        scoreImpact: 0.3,
         emoji: '🤖',
       ),
     ),
 
-    // 4. DISCIPLINE / Approach (Order vs Chaos)
+    // 4. DISCIPLINE (Order vs Pressure)
     OnboardingQuestion(
       id: 'discipline_pref',
       dimension: 'discipline',
-      question: 'Your relationship with deadlines:',
-      subtitle: 'How you actually work',
+      question: 'Deadline Style:',
+      subtitle: 'Work flow',
       optionA: QuestionOption(
         value: 'high_discipline',
-        label: 'Early & Ready',
-        description: 'I finish early to avoid stress',
-        scoreImpact: 0.8, // High Discipline
+        label: 'Early & Steady',
+        description: 'Finished days in advance.',
+        scoreImpact: 0.8,
         emoji: '✅',
       ),
       optionB: QuestionOption(
         value: 'low_discipline',
-        label: 'Pressure Performer',
-        description: 'I do my best work at the last minute',
-        scoreImpact: 0.3, // Low Discipline (needs constraints)
+        label: 'Pressure Cooker',
+        description: 'Sprint at the last minute.',
+        scoreImpact: 0.3,
         emoji: '⏰',
-      ),
-    ),
-
-    // 5. MOTIVATION (Toward vs Away) - Maps to Volatility/Novelty mix usually, but let's keep it simple
-    // We'll map this to a slight modifier on Novelty/Discipline
-    OnboardingQuestion(
-      id: 'motivation_pref',
-      dimension: 'novelty', // Using this to fine-tune Novelty/Ambition
-      question: 'What drives you more?',
-      subtitle: 'The carrot or the stick?',
-      optionA: QuestionOption(
-        value: 'toward',
-        label: 'Achieving goals',
-        description: 'The excitement of the win',
-        scoreImpact: 0.8, // High Drive (Modifies Novelty+)
-        emoji: '🏆',
-      ),
-      optionB: QuestionOption(
-        value: 'away',
-        label: 'Avoiding failure',
-        description: 'The fear of messing up',
-        scoreImpact: 0.4, // Protection (Modifies Novelty-)
-        emoji: '🛡️',
       ),
     ),
   ];

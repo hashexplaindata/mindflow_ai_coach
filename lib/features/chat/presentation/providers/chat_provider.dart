@@ -40,6 +40,7 @@ class ChatProvider extends ChangeNotifier {
   bool _isSending = false;
   String? _errorMessage;
   NLPProfile _userProfile = NLPProfile.defaultProfile;
+  PersonalityVector? _personalityVector;
   bool _isProfileInferred = false;
 
   // Active Coach
@@ -113,6 +114,7 @@ class ChatProvider extends ChangeNotifier {
 
   /// Set user's Personality Vector (Layer 1)
   void setPersonality(PersonalityVector vector) {
+    _personalityVector = vector;
     _geminiService.setPersonality(vector);
   }
 
@@ -247,15 +249,13 @@ class ChatProvider extends ChangeNotifier {
       notifyListeners();
 
       // Call Genkit Cloud Function
-      // TODO: Pass actual vector from user profile
+      // Pass actual vector from user profile
       final responseText = await _genkitService.generateCoachingResponse(
         message: content,
         isPro: isPro,
-        personalityVector: {
-          // Mock vector for now, connect to _userProfile later if needed
-          'discipline': 0.5,
-          'noveltySeeking': 0.8,
-        },
+        personalityVector: _personalityVector?.toJson().map(
+              (key, value) => MapEntry(key, (value as num).toDouble()),
+            ),
         context: getConversationContext().toPromptString(),
       );
 

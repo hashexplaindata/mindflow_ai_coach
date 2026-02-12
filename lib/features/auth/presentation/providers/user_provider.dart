@@ -347,7 +347,21 @@ class UserNotifier extends Notifier<UserState> {
   Future<void> updatePersonality(PersonalityVector newPersonality) async {
     state = state.copyWith(personality: newPersonality);
     await _saveLocalProgress();
-    debugPrint('UserProvider: Personality updated: $newPersonality');
+
+    if (state.userId != null) {
+      try {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(state.userId)
+            .set({
+          'personality': newPersonality.toJson(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+        debugPrint('UserProvider: Personality synced to Firestore');
+      } catch (e) {
+        debugPrint('UserProvider: Error syncing personality to Firestore: $e');
+      }
+    }
   }
 
   Future<void> signOut() async {

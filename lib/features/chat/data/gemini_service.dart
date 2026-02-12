@@ -23,7 +23,10 @@ import '../domain/services/nlp_prompt_builder.dart';
 /// - Streaming: Yes (better UX with typing indicator)
 /// - Conversation Memory: Last 10 messages for context
 class GeminiService {
-  GeminiService();
+  GeminiService._internal();
+  static final GeminiService _instance = GeminiService._internal();
+  static GeminiService get instance => _instance;
+  factory GeminiService() => _instance;
 
   static const int _maxConversationMemory = 10;
 
