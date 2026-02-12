@@ -6,12 +6,16 @@ class PersonalityVector {
   final double novelty; // 0.0 (Traditional) -> 1.0 (Seeker)
   final double reactivity; // 0.0 (Stoic) -> 1.0 (Reactive)
   final double structure; // 0.0 (Flow) -> 1.0 (Grid)
+  final double warmth; // 0.0 (Clinical) -> 1.0 (Empathetic)
+  final double complexity; // 0.0 (Simple) -> 1.0 (Nuanced)
 
   const PersonalityVector({
     required this.discipline,
     required this.novelty,
     required this.reactivity,
     required this.structure,
+    this.warmth = 0.8,
+    this.complexity = 0.5,
   });
 
   // Default "balanced" profile
@@ -20,6 +24,8 @@ class PersonalityVector {
     novelty: 0.5,
     reactivity: 0.5,
     structure: 0.5,
+    warmth: 0.8,
+    complexity: 0.5,
   );
 
   // JSON Serialization
@@ -29,6 +35,8 @@ class PersonalityVector {
       'novelty': novelty,
       'reactivity': reactivity,
       'structure': structure,
+      'warmth': warmth,
+      'complexity': complexity,
     };
   }
 
@@ -38,6 +46,8 @@ class PersonalityVector {
       novelty: (json['novelty'] as num?)?.toDouble() ?? 0.5,
       reactivity: (json['reactivity'] as num?)?.toDouble() ?? 0.5,
       structure: (json['structure'] as num?)?.toDouble() ?? 0.5,
+      warmth: (json['warmth'] as num?)?.toDouble() ?? 0.8,
+      complexity: (json['complexity'] as num?)?.toDouble() ?? 0.5,
     );
   }
 
@@ -47,12 +57,16 @@ class PersonalityVector {
     double? novelty,
     double? reactivity,
     double? structure,
+    double? warmth,
+    double? complexity,
   }) {
     return PersonalityVector(
       discipline: discipline ?? this.discipline,
       novelty: novelty ?? this.novelty,
       reactivity: reactivity ?? this.reactivity,
       structure: structure ?? this.structure,
+      warmth: warmth ?? this.warmth,
+      complexity: complexity ?? this.complexity,
     );
   }
 
@@ -64,6 +78,6 @@ class PersonalityVector {
 
   @override
   String toString() {
-    return 'PersonalityVector(D:${discipline.toStringAsFixed(2)}, N:${novelty.toStringAsFixed(2)}, R:${reactivity.toStringAsFixed(2)}, S:${structure.toStringAsFixed(2)})';
+    return 'PersonalityVector(D:${discipline.toStringAsFixed(2)}, N:${novelty.toStringAsFixed(2)}, R:${reactivity.toStringAsFixed(2)}, S:${structure.toStringAsFixed(2)}, W:${warmth.toStringAsFixed(2)}, C:${complexity.toStringAsFixed(2)})';
   }
 }

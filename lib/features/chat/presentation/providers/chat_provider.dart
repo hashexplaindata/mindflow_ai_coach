@@ -388,7 +388,34 @@ class ChatProvider extends ChangeNotifier {
   Future<void> _saveTelemetryArtifact(Map<String, dynamic> data) async {
     // Mock telemetry artifact saving
     debugPrint('ChatProvider: 🧠 TELEMETRY LOGGED: $data');
-    // Logic to save to a local "Telemetry" collection could go here
+
+    // 🧠 AUTOMATED ORCHESTRATION: Personality Adaptation
+    if (data.containsKey('suggested_vector_update')) {
+      try {
+        final update = data['suggested_vector_update'];
+        if (update is Map<String, dynamic>) {
+          final current =
+              _personalityVector ?? PersonalityVector.defaultProfile;
+
+          final newVector = current.copyWith(
+            structure: (update['structure'] as num?)?.toDouble(),
+            discipline: (update['discipline'] as num?)?.toDouble(),
+            warmth: (update['warmth'] as num?)?.toDouble(),
+            complexity: (update['complexity'] as num?)?.toDouble(),
+          );
+
+          // Only apply if there's a change
+          if (newVector.toString() != current.toString()) {
+            debugPrint(
+                'ChatProvider: 🔄 ADAPTING PERSONALITY: $current -> $newVector');
+            setPersonality(newVector);
+            // TODO: Persist to user profile in backend
+          }
+        }
+      } catch (e) {
+        debugPrint('ChatProvider: Error applying vector update: $e');
+      }
+    }
   }
 
   @override

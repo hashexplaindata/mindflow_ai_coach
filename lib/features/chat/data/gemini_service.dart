@@ -105,10 +105,11 @@ class GeminiService {
   }
 
   void _updateSystemPrompt() {
-    // 1. Generate Base NLP Prompt (Legacy/VAK)
-    final basePrompt = NLPPromptBuilder.generateSystemPrompt(
+    // Generate System Prompt (including Rule Layer)
+    _currentSystemPrompt = NLPPromptBuilder.generateSystemPrompt(
       _lastProfile ?? NLPProfile.defaultProfile,
       coach: _activeCoach,
+      vector: _currentPersonality,
       currentStreak: _currentStreak,
       totalSessions: _totalSessions,
       totalMinutes: _totalMinutes,
@@ -117,66 +118,11 @@ class GeminiService {
       deepDiveUnlocked: _deepDiveUnlocked,
     );
 
-    // 2. Inject Layer 2 Deterministic Constraints
-    final orchestratorInstructions =
-        _buildOrchestratorInstructions(_currentPersonality);
-
-    _currentSystemPrompt = '$basePrompt\n\n$orchestratorInstructions';
-
     // 🚀 DEMO LOGGING: Show personality detection
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     debugPrint('🧠 IDENTITY ENGINE: Personality Vector Updated');
     debugPrint('   Vector: $_currentPersonality');
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  }
-
-  /// Layer 2: Prompt Orchestrator Logic
-  String _buildOrchestratorInstructions(PersonalityVector p) {
-    final buffer = StringBuffer();
-    buffer.writeln("\n--- IDENTITY ENGINE INSTRUCTIONS ---");
-    buffer.writeln(
-        "USER_METRICS: [D:${p.discipline.toStringAsFixed(2)}, N:${p.novelty.toStringAsFixed(2)}, R:${p.reactivity.toStringAsFixed(2)}, S:${p.structure.toStringAsFixed(2)}]");
-
-    // 🚀 DEMO LOGGING: Track active constraints
-    final activeConstraints = <String>[];
-
-    // Novelty (N) Constraints
-    if (p.needsShortAnswers) {
-      buffer
-          .writeln("CONSTRAINT: MAX RESPONSE LENGTH 50 WORDS. KEEP IT PUNCHY.");
-      activeConstraints.add('🎯 High Novelty → Short Answers Mode');
-    }
-
-    // Structure (S) Constraints
-    if (p.needsStepByStep) {
-      buffer.writeln(
-          "FORMAT: ALWAYS use markdown numbered lists (1., 2., 3.) for clarity.");
-      activeConstraints.add('📋 High Structure → Step-by-Step Format');
-    }
-
-    // Discipline (D) & Volatility (V) Constraints
-    if (p.needsToughLove) {
-      buffer.writeln(
-          "TONE: DIRECT & ACTION-ORIENTED. Do not coddle. Give 1 micro-step.");
-      activeConstraints
-          .add('💪 Low Discipline + Low Volatility → Tough Love Mode');
-    } else if (p.needsValidation) {
-      buffer.writeln(
-          "TONE: VALIDATING & CALM. Use 'We' language. Mirror emotions first.");
-      activeConstraints.add('🤝 High Volatility → Empathy Mode');
-    }
-
-    // 🚀 DEMO LOGGING: Show what was detected
-    if (activeConstraints.isNotEmpty) {
-      debugPrint('🤖 ORCHESTRATOR: Constraints Injected:');
-      for (final constraint in activeConstraints) {
-        debugPrint('   $constraint');
-      }
-    } else {
-      debugPrint('🤖 ORCHESTRATOR: No special constraints (balanced profile)');
-    }
-
-    return buffer.toString();
   }
 
   /// Set user progress context for more personalized coaching
@@ -699,12 +645,20 @@ class GeminiService {
       sb.writeln(
           'TASK: Analyze the recent conversation and generate a telemetry artifact.');
       sb.writeln('OUTPUT: Strictly valid JSON. No markdown. No code blocks.');
-      sb.writeln('JSON SCHEMA: {');
-      sb.writeln('  "user_mood": "string (e.g., Anxious, Motivated)",');
-      sb.writeln('  "key_insights": ["string", "string"],');
-      sb.writeln('  "breakthrough_probability": float (0.0 to 1.0),');
-      sb.writeln('  "suggested_focus": "string (optional)"');
+      sb.writeln('json_schema = {');
+      sb.writeln('  "user_mood": "string",');
+      sb.writeln('  "key_insights": ["string"],');
+      sb.writeln('  "breakthrough_probability": float,');
+      sb.writeln('  "suggested_focus": "string",');
+      sb.writeln('  "suggested_vector_update": {');
+      sb.writeln('    "structure": float, // 0.0-1.0 (optional)');
+      sb.writeln('    "discipline": float, // 0.0-1.0 (optional)');
+      sb.writeln('    "warmth": float, // 0.0-1.0 (optional)');
+      sb.writeln('    "complexity": float // 0.0-1.0 (optional)');
+      sb.writeln('  }');
       sb.writeln('}');
+      sb.writeln('\nCURRENT CONTEXT:');
+      sb.writeln('Current Personality Vector: $_currentPersonality');
       sb.writeln('\nCONVERSATION HISTORY:');
 
       for (final msg in recentHistory) {

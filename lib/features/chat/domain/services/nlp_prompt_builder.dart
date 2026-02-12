@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 
 import '../../../onboarding/domain/models/nlp_profile.dart';
 import '../../../coach/domain/models/coach.dart';
+import '../../../identity/domain/models/personality_vector.dart';
 
 /// Personalized Wisdom Prompt Builder
 /// Generates adaptive prompts based on user's communication preferences
@@ -34,7 +35,7 @@ SACRED RULES:
 4. PACE first (acknowledge their felt experience), then LEAD (open a new perspective).
 5. End with ONE open-ended question that invites the user to look inward at their current "thought story."
 6. NEVER use bullet points, numbered lists, or action-item formatting.
-7. Speak in the spirit of a calm, wise mentor sitting across a fire — not a chatbot.
+7. Speak in the spirit of a calm, wise mentor with a natural wit, sitting across a fire — not a chatbot.
 
 Example:
 User: "I'm overwhelmed by the hackathon deadline."
@@ -464,6 +465,7 @@ You don't have to face this alone. Trained counselors are available right now to
   static String generateSystemPrompt(
     NLPProfile profile, {
     Coach? coach,
+    PersonalityVector? vector,
     int? currentStreak,
     int? totalSessions,
     int? totalMinutes,
@@ -472,21 +474,49 @@ You don't have to face this alone. Trained counselors are available right now to
     bool deepDiveUnlocked = false,
   }) {
     final buffer = StringBuffer();
+    var currentBasePrompt = _basePrompt;
+
+    // RULE LAYER: Vector-based Overrides
+    if (vector != null) {
+      // 1. Structure Override
+      if (vector.structure > 0.7) {
+        currentBasePrompt = currentBasePrompt.replaceAll(
+          '6. NEVER use bullet points, numbered lists, or action-item formatting.',
+          '6. USE bullet points and numbered lists for clarity. HIGH STRUCTURE REQUIRED.',
+        );
+      }
+
+      // 2. Discipline Override (Directness)
+      if (vector.discipline > 0.7) {
+        currentBasePrompt = currentBasePrompt.replaceAll(
+          '2. Use the MILTON MODEL exclusively (see patterns below).',
+          '2. BE DIRECT and ACTION-FOCUSED. Minimize linguistic fluff.',
+        );
+        currentBasePrompt = currentBasePrompt.replaceAll(
+            '34. PACE first (acknowledge their felt experience), then LEAD (open a new perspective).',
+            '34. LEAD immediately. State the insight directly.');
+      }
+    }
 
     // 1. Base prompt (custom coach or default)
     if (coach != null) {
       buffer.writeln('YOUR IDENTITY:');
       buffer.writeln(coach.systemPromptBase);
       buffer.writeln('\nYOUR TONE: ${coach.tone}');
-      buffer.write(_basePrompt.replaceAll(
+      buffer.write(currentBasePrompt.replaceAll(
           'You are MindFlow — a Master NLP Practitioner and professional coach grounded in the Three Principles.',
           ''));
     } else {
-      buffer.write(_basePrompt);
+      buffer.write(currentBasePrompt);
     }
 
-    // 1b. Milton Model linguistic patterns (always included)
-    buffer.write(_miltonModelPatterns);
+    // 1b. Milton Model linguistic patterns (Include unless Discipline is very high)
+    if (vector == null || vector.discipline <= 0.7) {
+      buffer.write(_miltonModelPatterns);
+    } else {
+      buffer.writeln(
+          '\n[DIRECT MODE ACTIVE: Milton Model Patterns suppressed for clarity]\n');
+    }
 
     // 1c. Deep Dive expansion (premium only)
     if (deepDiveUnlocked) {
@@ -504,6 +534,11 @@ You don't have to face this alone. Trained counselors are available right now to
 
     // 5. CRISIS PROTOCOL (Critical safety feature)
     buffer.write(_crisisGuidelines);
+
+    // 5b. RULE LAYER INJECTION
+    if (vector != null) {
+      buffer.write(_generateRuleLayer(vector));
+    }
 
     // 6. Add motivation-specific language (Toward vs Away-From)
     if (profile.motivation == 'toward') {
@@ -759,6 +794,52 @@ QUICK LANGUAGE CHECKLIST:
     };
 
     return '$motivation | $reference | $thinking';
+  }
+
+  /// Generate Rule Layer based on Personality Vector
+  static String _generateRuleLayer(PersonalityVector vector) {
+    final sb = StringBuffer();
+    sb.writeln('\n═══════════════════════════════════════════════════════════');
+    sb.writeln('⚠️ ORCHESTRATION RULE LAYER (Dynamic Constraints)');
+    sb.writeln('═══════════════════════════════════════════════════════════');
+
+    // Structure
+    if (vector.structure > 0.7) {
+      sb.writeln(
+          '• MODE: HIGH STRUCTURE. Use lists, clear steps, and concise formatting.');
+    } else if (vector.structure < 0.3) {
+      sb.writeln('• MODE: FLOW STATE. Use 100% natural paragraphs. No lists.');
+    }
+
+    // Discipline
+    if (vector.discipline > 0.7) {
+      sb.writeln(
+          '• MODE: DRILL INSTRUCTOR. Be direct, challenge excuses, demand action.');
+    } else if (vector.discipline < 0.3) {
+      sb.writeln(
+          '• MODE: NURTURING PARENT. Be gentle, permissive, and unconditionally accepting.');
+    }
+
+    // Warmth
+    if (vector.warmth > 0.8) {
+      sb.writeln(
+          '• TONE: WARM & CONNECTED. Focus on the relationship and safety.');
+    } else if (vector.warmth < 0.3) {
+      sb.writeln(
+          '• TONE: SURGICAL PRECISION. Focus on the mechanics of the problem, objectively.');
+    }
+
+    // Complexity
+    if (vector.complexity > 0.7) {
+      sb.writeln(
+          '• LEVEL: PHILOSOPHER. You may use abstract concepts and multi-layered metaphors.');
+    } else if (vector.complexity < 0.3) {
+      sb.writeln(
+          '• LEVEL: ELI5. Explain as if to a child. Simple words. Short sentences.');
+    }
+
+    sb.writeln('═══════════════════════════════════════════════════════════\n');
+    return sb.toString();
   }
 
   // ============================================
