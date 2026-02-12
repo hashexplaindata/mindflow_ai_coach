@@ -31,10 +31,10 @@ dependencies:
   provider: ^6.1.2
 
   # --- Navigation ---
-  go_router: ^14.2.0
+  # go_router removed - using Navigator
 
   # --- UI & Media ---
-  lottie: ^3.1.2
+  # lottie removed - no animations
   cupertino_icons: ^1.0.6
 
   # --- Utilities ---
