@@ -1,41 +1,60 @@
-// lib/vector-service.ts
 import { blink } from './blink';
-import { PersonalityVector, INITIAL_VECTOR, calculateVectorDistance } from './engine';
+import {
+  PersonalityVector,
+  ShadowTelemetry,
+  INITIAL_VECTOR,
+  calculateVectorDistance,
+  clampVector,
+  selectMiltonPatterns,
+} from './engine';
+
+export interface VectorRecord extends PersonalityVector {
+  turnCount: number;
+}
 
 export const VectorService = {
-  async getUserVector(userId: string): Promise<PersonalityVector & { turnCount: number }> {
-    const records = await blink.db.users_vectors.list({ userId });
-    const record = records[0];
-    
-    if (!record) {
-      const initial = await blink.db.users_vectors.create({
-        userId,
-        ...INITIAL_VECTOR,
-        turnCount: 0,
-      });
-      return { ...initial, turnCount: 0 } as any;
+  async getUserVector(userId: string): Promise<VectorRecord> {
+    try {
+      const records = await blink.db.usersVectors.list({ userId });
+      const record = records[0];
+      if (!record) {
+        await blink.db.usersVectors.upsert({
+          userId,
+          ...INITIAL_VECTOR,
+          turnCount: 0,
+        });
+        return { ...INITIAL_VECTOR, turnCount: 0 };
+      }
+      return {
+        discipline: Number(record.discipline) || 0.5,
+        novelty: Number(record.novelty) || 0.5,
+        reactivity: Number(record.reactivity) || 0.5,
+        structure: Number(record.structure) || 0.5,
+        turnCount: Number(record.turnCount) || 0,
+      };
+    } catch (err) {
+      console.warn('Vector load failed:', err);
+      return { ...INITIAL_VECTOR, turnCount: 0 };
     }
-    return record as any;
   },
 
-  async recalibrate(userId: string, messages: { role: string; content: string }[]): Promise<PersonalityVector> {
+  async recalibrate(
+    userId: string,
+    messages: { role: string; content: string }[]
+  ): Promise<{ vector: PersonalityVector; telemetry: ShadowTelemetry }> {
     const current = await this.getUserVector(userId);
-    
+
     const { object } = await blink.ai.generateObject({
       prompt: `Role: You are a Computational Behavioral Scientist.
-Task: Analyze the user's cognitive dimensions from the provided conversation.
-Dimensions:
-- Discipline (D): Logical density, focus, commitment to a line of thought.
-- Novelty (N): Metaphorical complexity, creativity, openness to new perspectives.
-- Reactivity (R): Emotional intensity, sensitivity to mirroring, conversational speed.
-- Structure (S): Information architecture, organized vs. associative flow.
+Task: Analyze the user's cognitive dimensions from the conversation.
+Dimensions: Discipline [0-1], Novelty [0-1], Reactivity [0-1], Structure [0-1].
 
 Conversation:
-${messages.map(m => `${m.role.toUpperCase()}: ${m.content}`).join('\n')}
+${messages.slice(-12).map(m => `${m.role.toUpperCase()}: ${m.content}`).join('\n')}
 
 Current Profile: ${JSON.stringify({ D: current.discipline, N: current.novelty, R: current.reactivity, S: current.structure })}
 
-Output the updated vector values (0.0 to 1.0) and shadow telemetry (Cognitive Load and Mindset Drift).`,
+Output updated vector values and shadow telemetry.`,
       schema: {
         type: 'object',
         properties: {
@@ -43,45 +62,53 @@ Output the updated vector values (0.0 to 1.0) and shadow telemetry (Cognitive Lo
           novelty: { type: 'number', minimum: 0, maximum: 1 },
           reactivity: { type: 'number', minimum: 0, maximum: 1 },
           structure: { type: 'number', minimum: 0, maximum: 1 },
-          cognitiveLoad: { type: 'number', description: "Measure of processing difficulty observed in the user's syntax." },
-          mindsetDrift: { type: 'number', description: "Measure of shift in perspective or emotional state from the baseline." }
+          cognitiveLoad: { type: 'number', minimum: 0, maximum: 1 },
+          mindsetDrift: { type: 'number', minimum: 0, maximum: 1 },
         },
-        required: ['discipline', 'novelty', 'reactivity', 'structure', 'cognitiveLoad', 'mindsetDrift']
-      }
+        required: ['discipline', 'novelty', 'reactivity', 'structure', 'cognitiveLoad', 'mindsetDrift'],
+      },
     });
 
-    const newVector = object as any;
+    const raw = object as any;
+    const newVector = clampVector(raw);
     const distance = calculateVectorDistance(current, newVector);
+    const newTurnCount = current.turnCount + 1;
 
-    await blink.db.users_vectors.update(userId, {
-      discipline: newVector.discipline,
-      novelty: newVector.novelty,
-      reactivity: newVector.reactivity,
-      structure: newVector.structure,
-      turnCount: current.turnCount + 1,
+    const telemetry: ShadowTelemetry = {
+      cognitiveLoad: raw.cognitiveLoad ?? 0,
+      mindsetDrift: raw.mindsetDrift ?? 0,
+      miltonPatterns: selectMiltonPatterns(newVector),
+      vectorDistance: distance,
+      turnIndex: newTurnCount,
+      timestamp: Date.now(),
+    };
+
+    await blink.db.usersVectors.upsert({
+      userId,
+      ...newVector,
+      turnCount: newTurnCount,
       updatedAt: new Date().toISOString(),
     });
 
     await blink.db.telemetry.create({
       userId,
-      turnIndex: current.turnCount + 1,
-      cognitiveLoad: newVector.cognitiveLoad,
-      mindsetDrift: newVector.mindsetDrift,
-      metadata: JSON.stringify({ distance, timestamp: Date.now() }),
+      turnIndex: newTurnCount,
+      cognitiveLoad: telemetry.cognitiveLoad,
+      mindsetDrift: telemetry.mindsetDrift,
+      metadata: JSON.stringify({ distance, miltonPatterns: telemetry.miltonPatterns, timestamp: telemetry.timestamp }),
     });
 
-    return newVector;
+    return { vector: newVector, telemetry };
   },
 
   async generateBreakthrough(userId: string, messages: { role: string; content: string }[]) {
     const { text } = await blink.ai.generateText({
-      prompt: `Synthesize a 'Codified Breakthrough' from this session. 
-A Codified Breakthrough is a singular, profound insight expressed in exactly one or two powerful sentences. 
-It must reflect a shift in the user's cognitive landscape.
+      prompt: `Synthesize a 'Codified Breakthrough' from this session.
+A Codified Breakthrough is a singular, profound insight in one or two sentences.
 
-Session history:
+Session:
 ${messages.slice(-10).map(m => `${m.role.toUpperCase()}: ${m.content}`).join('\n')}`,
-      system: "You are a Lead Behavioral Architect. Deliver a high-density, profound cognitive artifact."
+      system: 'You are a Lead Behavioral Architect. Deliver a profound cognitive artifact.',
     });
 
     return await blink.db.breakthroughs.create({
@@ -89,5 +116,5 @@ ${messages.slice(-10).map(m => `${m.role.toUpperCase()}: ${m.content}`).join('\n
       content: text,
       turnCount: messages.length,
     });
-  }
+  },
 };

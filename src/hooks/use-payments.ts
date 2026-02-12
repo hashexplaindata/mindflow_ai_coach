@@ -1,25 +1,29 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+
+const PRO_STORAGE_KEY = 'mindflow_pro_access';
 
 export const usePayments = () => {
   const [isPro, setIsPro] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate checking entitlement
-    const checkPro = async () => {
-      // In a real RC web setup, you'd use their REST API or Web SDK
-      // Here we simulate for the builder
-      const isProUser = localStorage.getItem('mindflow_pro') === 'true';
-      setIsPro(isProUser);
-      setIsLoading(false);
-    };
-    checkPro();
+    const stored = localStorage.getItem(PRO_STORAGE_KEY);
+    setIsPro(stored === 'true');
+    setIsLoading(false);
   }, []);
 
-  const upgrade = () => {
-    localStorage.setItem('mindflow_pro', 'true');
+  const upgrade = useCallback(() => {
+    // On web, RevenueCat doesn't have a native SDK.
+    // For the hackathon demo, we toggle Pro locally.
+    // In production, this would call a RevenueCat REST API or redirect to a Stripe checkout.
+    localStorage.setItem(PRO_STORAGE_KEY, 'true');
     setIsPro(true);
-  };
+  }, []);
 
-  return { isPro, isLoading, upgrade };
+  const checkEntitlement = useCallback((entitlementId: string): boolean => {
+    if (entitlementId === 'pro_access') return isPro;
+    return false;
+  }, [isPro]);
+
+  return { isPro, isLoading, upgrade, checkEntitlement };
 };

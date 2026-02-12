@@ -1,9 +1,17 @@
-// lib/engine.ts
 export interface PersonalityVector {
   discipline: number;
   novelty: number;
   reactivity: number;
   structure: number;
+}
+
+export interface ShadowTelemetry {
+  cognitiveLoad: number;
+  mindsetDrift: number;
+  miltonPatterns: string[];
+  vectorDistance: number;
+  turnIndex: number;
+  timestamp: number;
 }
 
 export const INITIAL_VECTOR: PersonalityVector = {
@@ -12,6 +20,17 @@ export const INITIAL_VECTOR: PersonalityVector = {
   reactivity: 0.5,
   structure: 0.5,
 };
+
+export const MILTON_PATTERNS = [
+  "Mind Reading",
+  "Embedded Commands",
+  "Presuppositions",
+  "Double Binds",
+  "Selectional Restriction Violation",
+  "Phonological Ambiguity",
+  "Tag Questions",
+  "Conversational Postulate",
+];
 
 export function calculateVectorDistance(v1: PersonalityVector, v2: PersonalityVector): number {
   return Math.sqrt(
@@ -22,16 +41,34 @@ export function calculateVectorDistance(v1: PersonalityVector, v2: PersonalityVe
   );
 }
 
+export function clampVector(v: PersonalityVector): PersonalityVector {
+  return {
+    discipline: Math.max(0, Math.min(1, v.discipline)),
+    novelty: Math.max(0, Math.min(1, v.novelty)),
+    reactivity: Math.max(0, Math.min(1, v.reactivity)),
+    structure: Math.max(0, Math.min(1, v.structure)),
+  };
+}
+
+export function selectMiltonPatterns(vector: PersonalityVector): string[] {
+  const selected: string[] = [];
+  if (vector.novelty > 0.6) selected.push(MILTON_PATTERNS[0], MILTON_PATTERNS[2]);
+  if (vector.reactivity > 0.5) selected.push(MILTON_PATTERNS[1], MILTON_PATTERNS[3]);
+  if (vector.discipline > 0.6) selected.push(MILTON_PATTERNS[6], MILTON_PATTERNS[7]);
+  if (vector.structure < 0.4) selected.push(MILTON_PATTERNS[4], MILTON_PATTERNS[5]);
+  return selected.length > 0 ? selected : [MILTON_PATTERNS[2], MILTON_PATTERNS[7]];
+}
+
 export function getLinguisticStyle(vector: PersonalityVector) {
   const mu = vector.novelty > 0.7 ? "high density Milton patterns" : "subtle Milton patterns";
-  
   return {
     sentenceLength: vector.discipline > 0.7 ? 'complex and multi-layered' : vector.discipline < 0.3 ? 'minimal and high-impact' : 'balanced and rhythmic',
     metaphorDensity: vector.novelty > 0.7 ? 'heavy recursive metaphors' : vector.novelty < 0.3 ? 'literal and grounding' : 'moderate metaphorical framing',
     empathyLevel: vector.reactivity > 0.7 ? 'highly resonant and mirror-like' : vector.reactivity < 0.3 ? 'detached and analytical' : 'neutrally reflective',
     formattingStyle: vector.structure > 0.7 ? 'highly structured with clear hierarchies' : vector.structure < 0.3 ? 'stream of consciousness flow' : 'clean logical flow',
     miltonConstraints: mu,
-    voiceTone: vector.discipline > 0.5 ? 'Professor/Scientist' : 'Oracle/Guide'
+    voiceTone: vector.discipline > 0.5 ? 'Professor/Scientist' : 'Oracle/Guide',
+    miltonPatterns: selectMiltonPatterns(vector),
   };
 }
 
@@ -49,11 +86,13 @@ Linguistic Style Mapping (f(Vp)):
 - Archetype: ${style.voiceTone}
 
 Milton Model Integration:
-Use ${style.miltonConstraints} like presuppositions and embedded commands to gently bypass ego-resistance without direct confrontation.
+Use ${style.miltonConstraints} like presuppositions and embedded commands to gently bypass ego-resistance.
+Active patterns: ${style.miltonPatterns.join(', ')}
 
 Constraints:
 - Never give direct advice.
 - Use 'The Three Principles' as your philosophical foundation.
-- Every response should reflect the user's current cognitive state back to them.`;
+- Every response should reflect the user's current cognitive state back to them.
+- Keep responses concise but rich in depth.`;
   }
 };
