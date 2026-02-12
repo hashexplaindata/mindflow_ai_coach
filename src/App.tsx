@@ -3,52 +3,89 @@ import { blink } from '@/lib/blink';
 import { useAuth } from '@/hooks/use-auth';
 import { ChatInterface } from '@/components/chat-interface';
 import { Toaster } from 'sonner';
-import { Brain, Sparkle, GoogleLogo, GithubLogo } from '@phosphor-icons/react';
+import { Brain, Sparkle, GoogleLogo, GithubLogo, ClockCounterClockwise, SignOut, Crown } from '@phosphor-icons/react';
+import { motion } from 'framer-motion';
 
 function LandingPage({ onLogin }: { onLogin: () => void }) {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/20 via-background to-background">
-      <div className="max-w-2xl w-full text-center space-y-12">
-        <div className="space-y-4">
-          <div className="flex justify-center">
-            <div className="p-4 rounded-3xl bg-primary/10 border border-primary/20 animate-float">
-              <Brain size={64} weight="duotone" className="text-primary" />
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">
+      {/* Background Orbs */}
+      <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 blur-[120px] rounded-full animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-secondary/10 blur-[120px] rounded-full animate-pulse [animation-delay:2s]" />
+      </div>
+
+      <div className="max-w-4xl w-full text-center space-y-16 relative z-10">
+        <div className="space-y-6">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="flex justify-center"
+          >
+            <div className="p-6 rounded-[2rem] bg-white/[0.02] border border-white/[0.05] shadow-2xl cyber-glow backdrop-blur-xl">
+              <Brain size={80} weight="duotone" className="text-primary animate-pulse" />
             </div>
-          </div>
-          <h1 className="text-5xl md:text-7xl font-display font-bold tracking-tighter">
-            Mind<span className="text-primary">Flow</span>
-          </h1>
-          <p className="text-xl md:text-2xl text-muted-foreground font-light max-w-lg mx-auto leading-relaxed">
-            Profiling cognitive dimensions to adapt the interface of thought.
-          </p>
+          </motion.div>
+          
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="space-y-4"
+          >
+            <h1 className="text-6xl md:text-8xl font-display font-bold tracking-tighter">
+              Mind<span className="text-primary">Flow</span>
+            </h1>
+            <p className="text-xl md:text-3xl text-muted-foreground font-light max-w-2xl mx-auto leading-relaxed">
+              An adaptive interface of thought.
+              <span className="block text-lg mt-4 opacity-50 font-mono tracking-widest uppercase">Computational Behavioral Science</span>
+            </p>
+          </motion.div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left"
+        >
           {[
-            { icon: Sparkle, title: 'Adaptive Style', desc: 'AI modifies syntax and metaphor density based on your personality.' },
-            { icon: Brain, title: 'Zero-Shot Profiling', desc: 'No onboarding. Your messages are your cognitive footprint.' },
-            { icon: GithubLogo, title: 'Breakthrough Logs', desc: 'Codified insights saved to your personal wisdom log.' },
+            { icon: Sparkle, title: 'Adaptive Style', desc: 'AI modifies syntax and metaphor density based on your unique personality vector.' },
+            { icon: Brain, title: 'Zero-Shot Profiling', desc: 'No onboarding. Your first 3 messages define your cognitive footprint.' },
+            { icon: ClockCounterClockwise, title: 'Insight Log', desc: 'Codified breakthroughs captured into your personal longitudinal wisdom log.' },
           ].map((f, i) => (
-            <div key={i} className="glass-panel p-6 rounded-2xl space-y-3">
-              <f.icon size={24} className="text-secondary" />
-              <h3 className="font-display font-semibold">{f.title}</h3>
-              <p className="text-sm text-muted-foreground leading-snug">{f.desc}</p>
+            <div key={i} className="glass-panel p-8 rounded-3xl space-y-4 hover:bg-white/[0.03] transition-colors group">
+              <div className="p-3 rounded-2xl bg-white/[0.05] w-fit group-hover:scale-110 transition-transform">
+                <f.icon size={28} className="text-secondary" />
+              </div>
+              <h3 className="text-xl font-display font-semibold tracking-tight">{f.title}</h3>
+              <p className="text-base text-muted-foreground leading-relaxed opacity-70">{f.desc}</p>
             </div>
           ))}
-        </div>
+        </motion.div>
 
-        <div className="flex flex-col items-center gap-4">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="flex flex-col items-center gap-6"
+        >
           <button
             onClick={onLogin}
-            className="group relative px-8 py-4 bg-primary text-white rounded-2xl font-semibold text-lg hover:scale-105 transition-all cyber-glow active:scale-95"
+            className="group relative px-12 py-5 bg-primary text-primary-foreground rounded-2xl font-bold text-xl hover:scale-105 transition-all cyber-glow active:scale-95 shadow-2xl shadow-primary/20"
           >
-            Enter the Flow
+            Begin the Recalibration
           </button>
-          <p className="text-xs text-muted-foreground uppercase tracking-widest font-mono">
-            Powered by Gemini 2.0 Flash
-          </p>
-        </div>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground uppercase tracking-[0.3em] font-mono opacity-40">
+            <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+            Gemini 2.0 Flash Core Enabled
+          </div>
+        </motion.div>
       </div>
+
+      <footer className="absolute bottom-8 left-0 right-0 text-center opacity-20 text-[10px] font-mono uppercase tracking-widest">
+        Privacy-First Shadow Telemetry Active • Recursive Recalibration v1.0
+      </footer>
     </div>
   );
 }

@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { blink } from '@/lib/blink';
 import { VectorService } from '@/lib/vector-service';
-import { PersonalityVector, INITIAL_VECTOR, getLinguisticStyle } from '@/lib/engine';
+import { PersonalityVector, INITIAL_VECTOR, CognitiveEngine } from '@/lib/engine';
 import { VectorDisplay } from './vector-display';
 import { Brain, PaperPlaneTilt, Sparkle, ClockCounterClockwise, SignOut, Crown } from '@phosphor-icons/react';
 import ReactMarkdown from 'react-markdown';
@@ -20,12 +20,21 @@ export function ChatInterface({ userId }: { userId: string }) {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [vector, setVector] = useState<PersonalityVector>(INITIAL_VECTOR);
+  const [turnCount, setTurnCount] = useState(0);
   const [showWisdom, setShowWisdom] = useState(false);
   const { isPro, upgrade } = usePayments();
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    VectorService.getUserVector(userId).then(setVector);
+    VectorService.getUserVector(userId).then(data => {
+      setVector({
+        discipline: data.discipline,
+        novelty: data.novelty,
+        reactivity: data.reactivity,
+        structure: data.structure
+      });
+      setTurnCount(data.turnCount);
+    });
   }, [userId]);
 
   useEffect(() => {
@@ -45,54 +54,55 @@ export function ChatInterface({ userId }: { userId: string }) {
     setLoading(true);
 
     try {
-      const style = getLinguisticStyle(vector);
+      const systemPrompt = CognitiveEngine.generateSystemPrompt(vector);
       
       const { text } = await blink.ai.generateText({
         messages: [
-          { 
-            role: 'system', 
-            content: `You are MindFlow, a Computational Behavioral Scientist AI. 
-            Philosophical Bedrock: The Three Principles (Mind, Consciousness, Thought).
-            Tone: Mirror (Neutral/Reflective), not a 'Fixer'.
-            Linguistic Style Constraints: ${JSON.stringify(style)}.
-            Linguistic Patterns: Milton Model (presuppositions, embedded commands) to bypass ego-resistance.` 
-          },
+          { role: 'system', content: systemPrompt },
           ...newMessages
         ],
       });
 
-      const updatedMessages: Message[] = [...newMessages, { role: 'assistant', content: text }];
+      const assistantMsg = text;
+      const updatedMessages: Message[] = [...newMessages, { role: 'assistant', content: assistantMsg }];
       setMessages(updatedMessages);
 
-      // Recalibrate every 3 turns
-      if (updatedMessages.length % 6 === 0) { // 3 turns = 6 messages
+      // Recursive Recalibration Logic
+      // 1. Zero-shot profiling: After the first 3 user messages (messages.length === 5 or 6 depending on assistant reply)
+      // Actually, let's count user messages.
+      const userMessageCount = updatedMessages.filter(m => m.role === 'user').length;
+      
+      if (userMessageCount === 3 && turnCount === 0) {
+        const newV = await VectorService.recalibrate(userId, updatedMessages);
+        setVector(newV);
+        setTurnCount(1);
+        toast.success("Cognitive Profile Extracted", {
+          description: "MindFlow has analyzed your initial dimensions.",
+          icon: <Brain weight="duotone" className="text-primary" />
+        });
+      } else if (userMessageCount > 3 && userMessageCount % 3 === 0) {
+        // Periodic recalibration for Pro users
         if (isPro) {
           const newV = await VectorService.recalibrate(userId, updatedMessages);
           setVector(newV);
-          toast.info("MindFlow has recalibrated your cognitive vector.", {
-            icon: <Brain className="w-4 h-4" />,
-          });
-        } else {
-          toast.info("Recursive Recalibration is a Pro feature.", {
-            description: "Upgrade to unlock real-time vector updates.",
-            action: {
-              label: "Upgrade",
-              onClick: upgrade
-            }
+          setTurnCount(prev => prev + 1);
+          toast.info("Vector Recalibrated", {
+            description: "Style orchestration updated to match current drift.",
+            icon: <Sparkle weight="duotone" className="text-secondary" />
           });
         }
       }
 
-      // Check for breakthrough at session end (arbitrary logic for demo)
-      if (updatedMessages.length > 10 && updatedMessages.length % 10 === 0) {
+      // Codified Breakthrough logic
+      if (userMessageCount >= 10 && userMessageCount % 5 === 0) {
         await VectorService.generateBreakthrough(userId, updatedMessages);
-        toast.success("Codified Breakthrough generated in your Wisdom Log.", {
-          icon: <Sparkle className="w-4 h-4" />,
+        toast.success("New Insight Codified", {
+          description: "Check your Wisdom Log for the latest breakthrough.",
         });
       }
     } catch (error) {
       console.error(error);
-      toast.error("An error occurred in the cognition engine.");
+      toast.error("Cognition engine failed to respond.");
     } finally {
       setLoading(false);
     }
@@ -103,71 +113,96 @@ export function ChatInterface({ userId }: { userId: string }) {
   }
 
   return (
-    <div className="flex flex-col h-screen max-w-4xl mx-auto p-4 md:p-8 relative">
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-2">
-          <Brain size={32} weight="duotone" className="text-primary animate-pulse" />
-          <h1 className="text-2xl font-display font-bold tracking-tight">MindFlow</h1>
+    <div className="flex flex-col h-screen max-w-5xl mx-auto p-4 md:p-12 relative">
+      {/* Minimal Header */}
+      <header className="flex items-center justify-between mb-12">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-primary/10 rounded-xl border border-primary/20">
+            <Brain size={24} weight="duotone" className="text-primary" />
+          </div>
+          <h1 className="text-xl font-display font-bold tracking-tight opacity-80">MindFlow</h1>
         </div>
-        <div className="flex items-center gap-4">
+        
+        <div className="flex items-center gap-6">
           <VectorDisplay vector={vector} />
-          <div className="flex items-center gap-2">
+          
+          <div className="flex items-center gap-1">
             <button 
               onClick={() => setShowWisdom(true)}
-              className="p-2 rounded-full hover:bg-white/5 transition-colors"
+              className="p-2.5 rounded-xl hover:bg-white/5 transition-all active:scale-90"
               title="Wisdom Log"
             >
-              <ClockCounterClockwise size={20} />
+              <ClockCounterClockwise size={22} weight="light" />
             </button>
             {!isPro && (
               <button 
                 onClick={upgrade}
-                className="p-2 rounded-full hover:bg-primary/20 text-primary transition-colors"
+                className="p-2.5 rounded-xl hover:bg-accent/10 text-accent transition-all active:scale-90"
                 title="Upgrade to Pro"
               >
-                <Crown size={20} weight="fill" />
+                <Crown size={22} weight="fill" />
               </button>
             )}
             <button 
               onClick={() => blink.auth.signOut()}
-              className="p-2 rounded-full hover:bg-white/5 transition-colors"
+              className="p-2.5 rounded-xl hover:bg-white/5 transition-all active:scale-90"
               title="Sign Out"
             >
-              <SignOut size={20} />
+              <SignOut size={22} weight="light" />
             </button>
           </div>
         </div>
-      </div>
+      </header>
 
+      {/* Message Stream */}
       <div 
         ref={scrollRef}
-        className="flex-1 overflow-y-auto space-y-8 pb-32 scrollbar-none"
+        className="flex-1 overflow-y-auto space-y-12 pb-40 scrollbar-none px-2"
       >
-        <AnimatePresence>
+        <AnimatePresence mode="popLayout">
           {messages.length === 0 && (
             <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="h-full flex flex-col items-center justify-center text-center space-y-4 opacity-50"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="h-[60vh] flex flex-col items-center justify-center text-center space-y-6"
             >
-              <Sparkle size={48} weight="thin" className="animate-spin-slow" />
-              <p className="text-lg font-display">Begin the flow of thought.</p>
+              <div className="relative">
+                <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full" />
+                <Sparkle size={64} weight="thin" className="relative text-primary/40 animate-spin-slow" />
+              </div>
+              <div className="space-y-2">
+                <p className="text-2xl font-display font-light text-foreground/40">The flow is quiet.</p>
+                <p className="text-sm font-mono uppercase tracking-[0.2em] text-foreground/20">Awaiting cognitive input</p>
+              </div>
             </motion.div>
           )}
           {messages.map((m, i) => (
             <motion.div
               key={i}
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
               className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
-              <div className={`max-w-[85%] md:max-w-[70%] p-6 rounded-3xl ${
+              <div className={`max-w-[90%] md:max-w-[75%] ${
                 m.role === 'user' 
-                  ? 'bg-primary/10 border border-primary/20 rounded-tr-none' 
-                  : 'glass-panel rounded-tl-none milton-reveal'
+                  ? 'text-right' 
+                  : 'milton-reveal'
               }`}>
-                <div className="prose prose-invert prose-p:leading-relaxed text-foreground/90">
-                  <ReactMarkdown>{m.content}</ReactMarkdown>
+                <div className={`inline-block text-left p-0 ${
+                  m.role === 'user' 
+                    ? 'text-primary' 
+                    : 'text-foreground/90'
+                }`}>
+                  {m.role === 'user' ? (
+                    <span className="text-3xl md:text-4xl font-display font-light leading-tight tracking-tight">
+                      {m.content}
+                    </span>
+                  ) : (
+                    <div className="prose prose-invert prose-lg md:prose-xl max-w-none prose-p:leading-relaxed prose-p:font-light font-sans selection:bg-secondary/30">
+                      <ReactMarkdown>{m.content}</ReactMarkdown>
+                    </div>
+                  )}
                 </div>
               </div>
             </motion.div>
@@ -178,43 +213,49 @@ export function ChatInterface({ userId }: { userId: string }) {
               animate={{ opacity: 1 }}
               className="flex justify-start"
             >
-              <div className="glass-panel p-6 rounded-3xl rounded-tl-none flex items-center gap-2">
-                <div className="w-2 h-2 bg-primary rounded-full animate-bounce" />
-                <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:-0.15s]" />
-                <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:-0.3s]" />
+              <div className="flex gap-1.5 py-4">
+                <div className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce [animation-duration:1s]" />
+                <div className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce [animation-duration:1s] [animation-delay:0.2s]" />
+                <div className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce [animation-duration:1s] [animation-delay:0.4s]" />
               </div>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      <form 
-        onSubmit={handleSubmit}
-        className="fixed bottom-8 left-4 right-4 max-w-4xl mx-auto"
-      >
-        <div className="relative glass-panel rounded-2xl cyber-glow input-focus-glow">
-          <textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSubmit();
-              }
-            }}
-            placeholder="What occupies your mind?"
-            className="w-full bg-transparent p-6 pr-16 outline-none resize-none min-h-[80px] text-lg"
-            rows={1}
-          />
-          <button
-            type="submit"
-            disabled={loading || !input.trim()}
-            className="absolute right-4 bottom-4 p-3 rounded-xl bg-primary text-white hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:scale-100"
-          >
-            <PaperPlaneTilt size={24} weight="fill" />
-          </button>
-        </div>
-      </form>
+      {/* Simon UX Input */}
+      <div className="fixed bottom-0 left-0 right-0 p-8 md:p-12 pointer-events-none">
+        <form 
+          onSubmit={handleSubmit}
+          className="max-w-4xl mx-auto pointer-events-auto"
+        >
+          <div className="relative group">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/20 via-secondary/20 to-accent/20 rounded-3xl blur opacity-0 group-focus-within:opacity-100 transition duration-1000" />
+            <div className="relative glass-panel rounded-3xl overflow-hidden border-white/[0.08] group-focus-within:border-primary/30 transition-colors">
+              <textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSubmit();
+                  }
+                }}
+                placeholder="Share your reflection..."
+                className="w-full bg-transparent p-8 pr-20 outline-none resize-none min-h-[100px] text-xl md:text-2xl font-light tracking-tight placeholder:text-white/10"
+                rows={1}
+              />
+              <button
+                type="submit"
+                disabled={loading || !input.trim()}
+                className="absolute right-6 bottom-6 p-4 rounded-2xl bg-primary text-white hover:scale-105 active:scale-95 transition-all disabled:opacity-0 disabled:scale-90 shadow-xl shadow-primary/20"
+              >
+                <PaperPlaneTilt size={28} weight="fill" />
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
