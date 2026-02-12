@@ -66,6 +66,9 @@ class MindFlowApp extends ConsumerWidget {
         darkTheme: MindFlowTheme.darkTheme,
         themeMode: ThemeMode.system,
         home: const WelcomeScreen(),
+        routes: {
+          '/home': (context) => const MainAppShell(),
+        },
       ),
     );
   }

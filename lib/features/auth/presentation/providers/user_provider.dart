@@ -8,8 +8,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/services/api_service.dart';
 import '../../../identity/domain/models/personality_vector.dart';
 import 'dart:convert';
-import '../../profile/data/trend_repository.dart';
-import '../../profile/domain/models/personality_trend.dart';
+import '../../../profile/data/trend_repository.dart';
+import '../../../profile/domain/models/personality_trend.dart';
 
 // State class for UserProvider
 class UserState {

@@ -2,10 +2,11 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/foundation.dart';
+import 'dart:math';
 
 import '../../../../core/theme/mindflow_theme.dart';
 import '../../../auth/presentation/providers/user_provider.dart';
-import 'dart:math';
 import '../../domain/models/personality_trend.dart';
 import '../../../identity/domain/models/personality_vector.dart';
 
@@ -44,18 +45,18 @@ class _CognitiveInsightsScreenState
     final isPro = userState.isSubscribed;
 
     return Scaffold(
-      backgroundColor: MindFlowTheme.mindFlowCream, // #FAFAFA
+      backgroundColor: MindFlowTheme.cream, // #FAFAFA
       appBar: AppBar(
         title: const Text(
           'Cognitive Insights',
           style: TextStyle(
-            color: MindFlowTheme.mindFlowBlack,
+            color: MindFlowTheme.obsidian,
             fontWeight: FontWeight.bold,
           ),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: const IconThemeData(color: MindFlowTheme.mindFlowBlack),
+        iconTheme: const IconThemeData(color: MindFlowTheme.obsidian),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -71,7 +72,6 @@ class _CognitiveInsightsScreenState
             ],
           ),
         ),
-      ),
       ),
       floatingActionButton: kDebugMode
           ? FloatingActionButton(
@@ -89,7 +89,7 @@ class _CognitiveInsightsScreenState
         Text(
           'Your Evolution',
           style: TextStyle(
-            color: MindFlowTheme.mindFlowBlack,
+            color: MindFlowTheme.obsidian,
             fontSize: 24,
             fontWeight: FontWeight.bold,
             letterSpacing: -0.5,
@@ -99,7 +99,7 @@ class _CognitiveInsightsScreenState
         Text(
           'Track how your cognitive patterns shift over time.',
           style: TextStyle(
-            color: MindFlowTheme.mindFlowGrey,
+            color: MindFlowTheme.obsidianLight,
             fontSize: 16,
           ),
         ),
@@ -120,7 +120,7 @@ class _CognitiveInsightsScreenState
       return Center(
         child: Text(
           'Not enough data yet. Complete more sessions!',
-          style: TextStyle(color: MindFlowTheme.mindFlowGrey),
+          style: TextStyle(color: MindFlowTheme.obsidianLight),
         ),
       );
     }
@@ -195,7 +195,7 @@ class _CognitiveInsightsScreenState
         Text(
           'About Me Context',
           style: TextStyle(
-            color: MindFlowTheme.mindFlowBlack,
+            color: MindFlowTheme.obsidian,
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
@@ -221,7 +221,7 @@ class _CognitiveInsightsScreenState
               Text(
                 'This context helps Gemini understand you better.',
                 style: TextStyle(
-                  color: MindFlowTheme.mindFlowGrey,
+                  color: MindFlowTheme.obsidianLight,
                   fontSize: 14,
                 ),
               ),
