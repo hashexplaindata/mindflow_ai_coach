@@ -1,279 +1,300 @@
-import 'dart:ui';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_spacing.dart';
+import 'package:intl/intl.dart';
+
 import '../../../../core/theme/mindflow_theme.dart';
 import '../../../auth/presentation/providers/user_provider.dart';
-import '../../../subscription/presentation/screens/subscription_screen.dart';
+import 'dart:math';
+import '../../domain/models/personality_trend.dart';
+import '../../../identity/domain/models/personality_vector.dart';
 
-class CognitiveInsightsScreen extends ConsumerWidget {
+class CognitiveInsightsScreen extends ConsumerStatefulWidget {
   const CognitiveInsightsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CognitiveInsightsScreen> createState() =>
+      _CognitiveInsightsScreenState();
+}
+
+class _CognitiveInsightsScreenState
+    extends ConsumerState<CognitiveInsightsScreen> {
+  List<PersonalityTrend> _trends = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTrends();
+  }
+
+  Future<void> _loadTrends() async {
+    final trends = await ref.read(userProvider.notifier).getTrends();
+    if (mounted) {
+      setState(() {
+        _trends = trends.reversed.toList(); // Oldest first for the chart
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final userState = ref.watch(userProvider);
-    final vector = userState.personality;
     final isPro = userState.isSubscribed;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFAFAFA),
+      backgroundColor: MindFlowTheme.mindFlowCream, // #FAFAFA
       appBar: AppBar(
-        backgroundColor: const Color(0xFFFAFAFA),
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_rounded,
-              color: MindFlowTheme.obsidian, size: 20),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: Text(
-          'COGNITIVE INSIGHTS',
+        title: const Text(
+          'Cognitive Insights',
           style: TextStyle(
-            fontFamily: 'Fraunces',
-            fontSize: 16,
+            color: MindFlowTheme.mindFlowBlack,
             fontWeight: FontWeight.bold,
-            color: MindFlowTheme.obsidian,
-            letterSpacing: 1.0,
           ),
         ),
-        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: MindFlowTheme.mindFlowBlack),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppSpacing.screenPadding),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 1. Vector Scores Panel
-            _SectionHeader('VECTOR ANALYSIS'),
-            const SizedBox(height: AppSpacing.spacing16),
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.neutralMedium),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.02),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  _VectorBar('Structure', vector.structure),
-                  const SizedBox(height: 24),
-                  _VectorBar('Novelty', vector.novelty),
-                  const SizedBox(height: 24),
-                  _VectorBar('Reactivity', vector.reactivity),
-                  const SizedBox(height: 24),
-                  _VectorBar('Discipline', vector.discipline),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 32),
-
-            // 2. Behavioral Trends (GATED)
-            _SectionHeader('BEHAVIORAL TRENDS'),
-            const SizedBox(height: AppSpacing.spacing16),
-
-            ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: Stack(
-                children: [
-                  // Content (Hidden/Blurred if !Pro)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(color: AppColors.neutralMedium),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _TrendItem('Focus Consistency', '+12%', true),
-                        const Divider(height: 32),
-                        _TrendItem('Stress Resilience', 'Stable', true),
-                        const Divider(height: 32),
-                        _TrendItem('Creative Output', '-5%', false),
-                        const Divider(height: 32),
-                        const Text(
-                          'Analysis based on last 7 days of interaction.',
-                          style: TextStyle(
-                              color: AppColors.textSecondary, fontSize: 12),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Blur Overlay
-                  if (!isPro)
-                    Positioned.fill(
-                      child: Stack(
-                        children: [
-                          BackdropFilter(
-                            filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-                            child: Container(
-                              color: Colors.white.withOpacity(0.2),
-                            ),
-                          ),
-                          Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.lock_outline_rounded,
-                                    size: 32, color: MindFlowTheme.obsidian),
-                                const SizedBox(height: 12),
-                                const Text(
-                                  'Unlock Trends',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: MindFlowTheme.obsidian,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-                                ElevatedButton(
-                                  onPressed: () {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                          builder: (_) =>
-                                              const SubscriptionScreen()),
-                                    );
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: MindFlowTheme.obsidian,
-                                    foregroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(24)),
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 24, vertical: 12),
-                                  ),
-                                  child: const Text('Upgrade to Pro'),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader(this.title);
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: TextStyle(
-        fontFamily: 'DM Sans',
-        fontSize: 12,
-        fontWeight: FontWeight.bold,
-        letterSpacing: 1.5,
-        color: MindFlowTheme.obsidian.withOpacity(0.5),
-      ),
-    );
-  }
-}
-
-class _VectorBar extends StatelessWidget {
-  const _VectorBar(this.label, this.value);
-
-  final String label;
-  final double value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              label.toUpperCase(),
-              style: const TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1,
-                color: MindFlowTheme.obsidian,
-              ),
-            ),
-            Text(
-              '${(value * 100).toInt()}%',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: MindFlowTheme.obsidian.withOpacity(0.6),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(4),
-          child: LinearProgressIndicator(
-            value: value,
-            backgroundColor: const Color(0xFFEEEEEE),
-            valueColor: const AlwaysStoppedAnimation(MindFlowTheme.obsidian),
-            minHeight: 6,
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildHeader(),
+              const SizedBox(height: 32),
+              _buildTrendChart(isPro),
+              const SizedBox(height: 32),
+              _buildAboutMeSection(isPro),
+            ],
           ),
         ),
-      ],
+      ),
+      ),
+      floatingActionButton: kDebugMode
+          ? FloatingActionButton(
+              onPressed: _simulateData,
+              child: const Icon(Icons.refresh),
+            )
+          : null,
     );
   }
-}
 
-class _TrendItem extends StatelessWidget {
-  const _TrendItem(this.label, this.value, this.isPositive);
-
-  final String label;
-  final String value;
-  final bool isPositive;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _buildHeader() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          label,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: MindFlowTheme.obsidian,
+          'Your Evolution',
+          style: TextStyle(
+            color: MindFlowTheme.mindFlowBlack,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            letterSpacing: -0.5,
           ),
         ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          decoration: BoxDecoration(
-            color:
-                isPositive ? const Color(0xFFE8F5E9) : const Color(0xFFFFEBEE),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Text(
-            value,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: isPositive ? Colors.green[800] : Colors.red[800],
-            ),
+        const SizedBox(height: 8),
+        Text(
+          'Track how your cognitive patterns shift over time.',
+          style: TextStyle(
+            color: MindFlowTheme.mindFlowGrey,
+            fontSize: 16,
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildTrendChart(bool isPro) {
+    if (!isPro) {
+      return _buildLockedFeature('Unlock Pro to view your cognitive trends.');
+    }
+
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_trends.isEmpty) {
+      return Center(
+        child: Text(
+          'Not enough data yet. Complete more sessions!',
+          style: TextStyle(color: MindFlowTheme.mindFlowGrey),
+        ),
+      );
+    }
+
+    // Prepare chart data
+    // We'll show 4 lines: D, N, R, S
+    return Container(
+      height: 300,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: LineChart(
+        LineChartData(
+          gridData: FlGridData(show: false),
+          titlesData: FlTitlesData(
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(showTitles: true, reservedSize: 30),
+            ),
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(showTitles: false), // Too crowded usually
+            ),
+            topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          ),
+          borderData: FlBorderData(show: false),
+          minX: 0,
+          maxX: (_trends.length - 1).toDouble(),
+          minY: 0,
+          maxY: 1,
+          lineBarsData: [
+            _buildLine(
+                Colors.blue, (i) => _trends[i].vector.discipline), // Discipline
+            _buildLine(
+                Colors.purple, (i) => _trends[i].vector.novelty), // Novelty
+            _buildLine(
+                Colors.red, (i) => _trends[i].vector.reactivity), // Reactivity
+            _buildLine(
+                Colors.green, (i) => _trends[i].vector.structure), // Structure
+          ],
+        ),
+      ),
+    );
+  }
+
+  LineChartBarData _buildLine(Color color, double Function(int) activeValue) {
+    return LineChartBarData(
+      spots: List.generate(_trends.length, (index) {
+        return FlSpot(index.toDouble(), activeValue(index));
+      }),
+      isCurved: true,
+      color: color,
+      barWidth: 3,
+      isStrokeCapRound: true,
+      dotData: FlDotData(show: true),
+      belowBarData: BarAreaData(show: false),
+    );
+  }
+
+  Widget _buildAboutMeSection(bool isPro) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'About Me Context',
+          style: TextStyle(
+            color: MindFlowTheme.mindFlowBlack,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'This context helps Gemini understand you better.',
+                style: TextStyle(
+                  color: MindFlowTheme.mindFlowGrey,
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Placeholder for editable text fields
+              TextField(
+                decoration: InputDecoration(
+                  labelText: 'Your Core Values',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 3,
+                enabled: isPro, // Gate editing
+              ),
+              if (!isPro)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Text(
+                    'Unlock Pro to customize your AI context.',
+                    style: TextStyle(
+                      color: Colors.amber[800],
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _simulateData() async {
+    final random = Random();
+    final newVector = PersonalityVector(
+      discipline: random.nextDouble(),
+      novelty: random.nextDouble(),
+      reactivity: random.nextDouble(),
+      structure: random.nextDouble(),
+      warmth: random.nextDouble(),
+      complexity: random.nextDouble(),
+    );
+
+    // Bypassing the gated check for visual verification
+    await ref.read(userProvider.notifier).updatePersonality(
+          newVector,
+          reason: 'Debug Simulation ${DateTime.now().second}',
+        );
+
+    _loadTrends();
+  }
+
+  Widget _buildLockedFeature(String message) {
+    return Container(
+      height: 200,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.lock, size: 48, color: Colors.grey),
+            const SizedBox(height: 16),
+            Text(
+              message,
+              style: const TextStyle(color: Colors.grey),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -8,6 +8,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/services/api_service.dart';
 import '../../../identity/domain/models/personality_vector.dart';
 import 'dart:convert';
+import '../../profile/data/trend_repository.dart';
+import '../../profile/domain/models/personality_trend.dart';
 
 // State class for UserProvider
 class UserState {
@@ -72,6 +74,7 @@ class UserNotifier extends Notifier<UserState> {
   static const String _personalityKey = 'personality_vector';
 
   final ApiService _apiService = ApiService();
+  final TrendRepository _trendRepository = TrendRepository();
 
   @override
   UserState build() {
@@ -344,12 +347,14 @@ class UserNotifier extends Notifier<UserState> {
     }
   }
 
-  Future<void> updatePersonality(PersonalityVector newPersonality) async {
+  Future<void> updatePersonality(PersonalityVector newPersonality,
+      {String reason = 'Manual Update'}) async {
     state = state.copyWith(personality: newPersonality);
     await _saveLocalProgress();
 
     if (state.userId != null) {
       try {
+        // 1. Sync current vector
         await FirebaseFirestore.instance
             .collection('users')
             .doc(state.userId)
@@ -357,10 +362,30 @@ class UserNotifier extends Notifier<UserState> {
           'personality': newPersonality.toJson(),
           'updatedAt': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
-        debugPrint('UserProvider: Personality synced to Firestore');
+
+        // 2. Save historical trend
+        await _trendRepository.saveTrend(
+          state.userId!,
+          PersonalityTrend(
+            timestamp: DateTime.now(),
+            vector: newPersonality,
+            reason: reason,
+          ),
+        );
+        debugPrint('UserProvider: Personality and Trend synced to Firestore');
       } catch (e) {
         debugPrint('UserProvider: Error syncing personality to Firestore: $e');
       }
+    }
+  }
+
+  Future<List<PersonalityTrend>> getTrends() async {
+    if (state.userId == null) return [];
+    try {
+      return await _trendRepository.getTrends(state.userId!);
+    } catch (e) {
+      debugPrint('UserProvider: Error fetching trends: $e');
+      return [];
     }
   }
 
@@ -373,7 +398,7 @@ class UserNotifier extends Notifier<UserState> {
     }
 
     debugPrint('UserProvider: 🧠 Recalibrating personality vector...');
-    await updatePersonality(newVector);
+    await updatePersonality(newVector, reason: 'AI Recalibration');
   }
 
   Future<void> signOut() async {
