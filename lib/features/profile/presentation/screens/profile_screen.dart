@@ -6,7 +6,7 @@ import '../../../../core/theme/theme_provider.dart';
 import '../../../auth/presentation/providers/user_provider.dart';
 import '../../../subscription/presentation/screens/subscription_screen.dart';
 import '../widgets/personality_graph.dart';
-import '../../../identity/domain/models/personality_vector.dart';
+import 'cognitive_insights_screen.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -134,6 +134,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             ),
                           ),
                           const SizedBox(height: 24),
+                          Center(
                             child: PersonalityGraph(
                               vector: userState.personality,
                               showLabels: true,
@@ -167,6 +168,39 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               userState.personality.structure,
                               Icons.grid_on,
                               theme),
+                          const SizedBox(height: 24),
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton(
+                              onPressed: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const CognitiveInsightsScreen(),
+                                  ),
+                                );
+                              },
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: AppColors.jobsObsidian,
+                                side: const BorderSide(
+                                    color: AppColors.neutralMedium),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 16),
+                              ),
+                              child: const Text(
+                                'VIEW COGNITIVE INSIGHTS',
+                                style: TextStyle(
+                                  fontFamily: 'DM Sans',
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1.0,
+                                ),
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),

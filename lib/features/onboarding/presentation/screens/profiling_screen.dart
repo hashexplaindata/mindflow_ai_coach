@@ -33,7 +33,7 @@ class _ProfilingScreenState extends ConsumerState<ProfilingScreen>
   double _reactivity = 0.5;
   double _structure = 0.5;
 
-  int _currentIndex = 0;
+  int _currentIndex = 0; // 0 = Intro, 1-4 = Questions
   bool _isSaving = false;
 
   late AnimationController _fadeController;
@@ -43,12 +43,12 @@ class _ProfilingScreenState extends ConsumerState<ProfilingScreen>
   void initState() {
     super.initState();
     _fadeController = AnimationController(
-      duration: const Duration(milliseconds: 400),
+      duration: const Duration(milliseconds: 600),
       vsync: this,
     );
     _fadeAnimation = CurvedAnimation(
       parent: _fadeController,
-      curve: Curves.easeInOut,
+      curve: Curves.fastOutSlowIn,
     );
     _fadeController.forward();
   }
@@ -71,7 +71,7 @@ class _ProfilingScreenState extends ConsumerState<ProfilingScreen>
           _novelty = option.scoreImpact;
           break;
         case 'reactivity':
-        case 'volatility': // Keep legacy key support just in case, or map it
+        case 'volatility':
           _reactivity = option.scoreImpact;
           break;
         case 'structure':
@@ -82,7 +82,7 @@ class _ProfilingScreenState extends ConsumerState<ProfilingScreen>
 
     // Short delay before advancing
     Future.delayed(const Duration(milliseconds: 300), () {
-      if (_currentIndex < OnboardingQuestions.questions.length - 1) {
+      if (_currentIndex < OnboardingQuestions.questions.length) {
         _goToNext();
       } else {
         _completeOnboarding();
@@ -93,8 +93,8 @@ class _ProfilingScreenState extends ConsumerState<ProfilingScreen>
   void _goToNext() {
     _fadeController.reverse().then((_) {
       _pageController.nextPage(
-        duration: const Duration(milliseconds: 400),
-        curve: Curves.easeInOut,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOutCubic,
       );
       setState(() {
         _currentIndex++;
@@ -107,8 +107,8 @@ class _ProfilingScreenState extends ConsumerState<ProfilingScreen>
     if (_currentIndex > 0) {
       _fadeController.reverse().then((_) {
         _pageController.previousPage(
-          duration: const Duration(milliseconds: 400),
-          curve: Curves.easeInOut,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeInOutCubic,
         );
         setState(() {
           _currentIndex--;
@@ -139,62 +139,70 @@ class _ProfilingScreenState extends ConsumerState<ProfilingScreen>
         _isSaving = false;
       });
 
-      // Navigate to result
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) =>
-              ProfileResultScreen(vector: vector, onStart: widget.onComplete),
-        ),
-      );
+      // The Artist Protocol: Direct fade to Chat (Home)
+      Navigator.of(context).pushReplacementNamed('/home');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     const questions = OnboardingQuestions.questions;
-    final progress = (_currentIndex + 1) / questions.length;
+    final totalSteps = questions.length + 1; // Intro + 4 Questions
 
     return Scaffold(
+      backgroundColor: const Color(0xFFFAFAFA), // Strict Protocol
       body: SafeArea(
         child: Column(
           children: [
-            // Header
+            // Header (Progress)
             Padding(
-              padding: const EdgeInsets.all(AppSpacing.screenPadding),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.screenPadding,
+                vertical: AppSpacing.spacing24,
+              ),
               child: Row(
                 children: [
                   if (_currentIndex > 0)
                     IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_rounded),
+                      icon: const Icon(Icons.arrow_back_ios_rounded, size: 20),
                       onPressed: _goToPrevious,
-                      color: AppColors.neutralDark,
+                      color: MindFlowTheme.obsidian,
                     )
                   else
-                    const SizedBox(width: 48),
+                    const SizedBox(width: 48), // Balance for title centering
+
                   Expanded(
                     child: Column(
                       children: [
                         Text(
-                          'Analysis ${_currentIndex + 1}/${questions.length}',
-                          style: AppTextStyles.caption
-                              .copyWith(letterSpacing: 1.5),
-                        ),
-                        const SizedBox(height: AppSpacing.spacing8),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
-                          child: LinearProgressIndicator(
-                            value: progress,
-                            backgroundColor: AppColors.neutralLight,
-                            valueColor: const AlwaysStoppedAnimation(
-                              MindFlowTheme.sage,
-                            ),
-                            minHeight: 4,
+                          _currentIndex == 0
+                              ? 'CALIBRATION'
+                              : 'STEP $_currentIndex / ${questions.length}',
+                          style: AppTextStyles.caption.copyWith(
+                            letterSpacing: 2.0,
+                            color: MindFlowTheme.obsidian.withOpacity(0.4),
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
+                        if (_currentIndex > 0) ...[
+                          const SizedBox(height: AppSpacing.spacing16),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(2),
+                            child: LinearProgressIndicator(
+                              value: (_currentIndex) /
+                                  questions.length, // 1/4 to 4/4
+                              backgroundColor: const Color(0xFFEEEEEE),
+                              valueColor: const AlwaysStoppedAnimation(
+                                MindFlowTheme.obsidian,
+                              ),
+                              minHeight: 2,
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
-                  const SizedBox(width: 48),
+                  const SizedBox(width: 48), // Balance
                 ],
               ),
             ),
@@ -204,15 +212,17 @@ class _ProfilingScreenState extends ConsumerState<ProfilingScreen>
               child: PageView.builder(
                 controller: _pageController,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: questions.length,
+                itemCount: totalSteps,
                 itemBuilder: (context, index) {
-                  final question = questions[index];
                   return FadeTransition(
                     opacity: _fadeAnimation,
-                    child: _QuestionCard(
-                      question: question,
-                      onSelect: (option) => _selectOption(question, option),
-                    ),
+                    child: index == 0
+                        ? _IntroCard(onStart: _goToNext)
+                        : _QuestionCard(
+                            question: questions[index - 1],
+                            onSelect: (option) =>
+                                _selectOption(questions[index - 1], option),
+                          ),
                   );
                 },
               ),
@@ -222,7 +232,8 @@ class _ProfilingScreenState extends ConsumerState<ProfilingScreen>
               const Padding(
                 padding: EdgeInsets.all(AppSpacing.spacing24),
                 child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation(MindFlowTheme.sage),
+                  valueColor: AlwaysStoppedAnimation(MindFlowTheme.obsidian),
+                  strokeWidth: 2,
                 ),
               ),
           ],
@@ -253,14 +264,17 @@ class _QuestionCard extends StatelessWidget {
           const Spacer(flex: 1),
           Text(
             question.question,
-            style: AppTextStyles.question,
+            style: AppTextStyles.question.copyWith(
+              color: MindFlowTheme.obsidian,
+              fontWeight: FontWeight.w600,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: AppSpacing.spacing12),
           Text(
             question.subtitle,
             style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.textSecondary,
+              color: MindFlowTheme.obsidian.withOpacity(0.6),
             ),
             textAlign: TextAlign.center,
           ),
@@ -275,6 +289,64 @@ class _QuestionCard extends StatelessWidget {
             );
           }),
           const Spacer(flex: 2),
+        ],
+      ),
+    );
+  }
+}
+
+class _IntroCard extends StatelessWidget {
+  const _IntroCard({required this.onStart});
+
+  final VoidCallback onStart;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(AppSpacing.screenPadding),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Spacer(flex: 2),
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: MindFlowTheme.sage.withOpacity(0.1),
+            ),
+            child: const Icon(
+              Icons.auto_awesome_rounded,
+              size: 48,
+              color: MindFlowTheme.sage,
+            ),
+          ),
+          const SizedBox(height: 32),
+          const Text(
+            'Let\'s calibrate your mind.',
+            style: TextStyle(
+              fontFamily: 'Fraunces',
+              fontSize: 32,
+              fontWeight: FontWeight.bold,
+              color: MindFlowTheme.obsidian,
+              height: 1.2,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            '4 questions to customize your AI coach to your cognitive style.',
+            style: AppTextStyles.bodyLarge.copyWith(
+              color: MindFlowTheme.obsidian.withOpacity(0.7),
+              height: 1.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const Spacer(flex: 3),
+          AppButton(
+            text: 'Begin Calibration',
+            onPressed: onStart,
+          ),
+          const SizedBox(height: 32),
         ],
       ),
     );
@@ -317,13 +389,17 @@ class _OptionCard extends StatelessWidget {
                   children: [
                     Text(
                       option.label,
-                      style: AppTextStyles.label
-                          .copyWith(fontWeight: FontWeight.w600),
+                      style: AppTextStyles.label.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: MindFlowTheme.obsidian, // Strict Theme
+                      ),
                     ),
                     Text(
                       option.description,
-                      style: AppTextStyles.bodySmall
-                          .copyWith(color: AppColors.textSecondary),
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: MindFlowTheme.obsidian
+                            .withOpacity(0.6), // Strict Theme
+                      ),
                     ),
                   ],
                 ),
@@ -332,128 +408,6 @@ class _OptionCard extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class ProfileResultScreen extends StatelessWidget {
-  const ProfileResultScreen({
-    super.key,
-    required this.vector,
-    this.onStart,
-  });
-
-  final PersonalityVector vector;
-  final void Function(PersonalityVector)? onStart;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.all(AppSpacing.screenPadding),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Spacer(flex: 1),
-
-              Text(
-                '🧠 Analysis Complete',
-                style: AppTextStyles.headingMedium,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: AppSpacing.spacing8),
-              Text(
-                'Your Cognitive Vector',
-                style: TextStyle(
-                    fontFamily: 'DM Sans',
-                    fontSize: 16,
-                    color: AppColors.textSecondary),
-                textAlign: TextAlign.center,
-              ),
-
-              const Spacer(),
-
-              // Vector Visualization Card
-              MindFlowCard(
-                child: Column(
-                  children: [
-                    _TraitBar(
-                        'Structure', vector.structure, '🌊 Flow', '📋 Grid'),
-                    const SizedBox(height: 24),
-                    _TraitBar(
-                        'Novelty', vector.novelty, '🏠 Routine', '🌟 Seeker'),
-                    const SizedBox(height: 24),
-                    _TraitBar('Reactivity', vector.reactivity, '🤖 Stoic',
-                        '❤️‍🔥 Reactive'),
-                    const SizedBox(height: 24),
-                    _TraitBar('Discipline', vector.discipline, '⏰ Pressure',
-                        '✅ Order'),
-                  ],
-                ),
-              ),
-
-              const Spacer(flex: 2),
-
-              AppButton(
-                text: 'Enter MindFlow',
-                onPressed: () {
-                  if (onStart != null) {
-                    onStart!(vector);
-                  } else {
-                    // Force navigation if no callback
-                    Navigator.of(context).pushReplacementNamed('/home');
-                  }
-                },
-              ),
-              const SizedBox(height: AppSpacing.spacing24),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _TraitBar extends StatelessWidget {
-  const _TraitBar(this.label, this.value, this.leftLabel, this.rightLabel);
-
-  final String label;
-  final double value;
-  final String leftLabel;
-  final String rightLabel;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(leftLabel,
-                style: const TextStyle(
-                    fontSize: 12, color: AppColors.textSecondary)),
-            Text(label.toUpperCase(),
-                style: const TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1)),
-            Text(rightLabel,
-                style: const TextStyle(
-                    fontSize: 12, color: AppColors.textSecondary)),
-          ],
-        ),
-        const SizedBox(height: 8),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(4),
-          child: LinearProgressIndicator(
-            value: value,
-            backgroundColor: AppColors.neutralLight,
-            valueColor: const AlwaysStoppedAnimation(MindFlowTheme.obsidian),
-            minHeight: 8,
-          ),
-        ),
-      ],
     );
   }
 }

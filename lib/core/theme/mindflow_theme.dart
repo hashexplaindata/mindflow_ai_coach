@@ -31,8 +31,8 @@ class MindFlowTheme {
   static const Color sageLight = Color(0xFFA8B8A0);
   static const Color sageDark = Color(0xFF6B7D63);
 
-  /// Obsidian - Softer than black, easier on eyes
-  static const Color obsidian = Color(0xFF2D2D2D);
+  /// Obsidian - Softer than black, easier on eyes (Updated to #1A1A1A for higher contrast)
+  static const Color obsidian = Color(0xFF1A1A1A);
   static const Color obsidianLight = Color(0xFF4A4A4A);
 
   /// Flow state indicator - Vibrant but not alarming
