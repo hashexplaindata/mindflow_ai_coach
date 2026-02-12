@@ -1,8 +1,6 @@
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
-import '../../../core/config/env_config.dart' as env;
-import '../../onboarding/domain/models/nlp_profile.dart'; // Reusing this for vector for now or creating new
+// Reusing this for vector for now or creating new
 
 /// The bridge to the "Core Weapon" (Genkit Backend)
 class GenkitService {

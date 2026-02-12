@@ -223,17 +223,17 @@ class GeminiService {
       });
 
       final apiUrl =
-          'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:streamGenerateContent?key=$apiKey';
+          'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?key=$apiKey';
 
       debugPrint(
-          'GeminiService: Sending request to Gemini 2.0 Flash Exp (Key length: ${apiKey.length})');
+          'GeminiService: Sending request to Gemini 1.5 Flash (Key length: ${apiKey.length})');
 
-      // Gemini 2.0 Flash Exp request (NO systemInstruction field)
+      // Gemini 1.5 Flash request
       final requestBody = json.encode({
         "contents": conversationContents,
         "generationConfig": {
           "temperature": 0.7,
-          "maxOutputTokens": _deepDiveUnlocked ? 1200 : 500,
+          "maxOutputTokens": _deepDiveUnlocked ? 1000 : 500,
         },
         "safetySettings": [
           {
@@ -269,18 +269,14 @@ class GeminiService {
               'GeminiService: API error ${streamedResponse.statusCode}: $errorBody');
 
           if (streamedResponse.statusCode == 400) {
-            yield 'I\'m having trouble understanding. Could you try rephrasing? (Invalid request)';
+            yield 'I\'m having trouble understanding. (API Error 400: Bad Request). Please check the logs.';
+          } else if (streamedResponse.statusCode == 401 ||
+              streamedResponse.statusCode == 403) {
+            yield 'Authentication failed. Please check your GEMINI_API_KEY in .env. (Error ${streamedResponse.statusCode})';
           } else if (streamedResponse.statusCode == 429) {
-            final retryMatch =
-                RegExp(r'retry in (\d+(\.\d+)?)s').firstMatch(errorBody);
-            final waitSeconds = retryMatch != null
-                ? double.tryParse(retryMatch.group(1) ?? '')?.ceil() ?? 30
-                : 30;
-            yield 'I need a moment to recharge. Please try again in $waitSeconds seconds. 🧘';
-          } else if (streamedResponse.statusCode == 403) {
-            yield 'I\'m not authorized to help right now. Please check the API configuration.';
+            yield 'I need a moment to recharge. (Rate Limit Exceeded). Please try again later.';
           } else {
-            yield 'I\'m having a moment of reflection. Could you try again? (Error: ${streamedResponse.statusCode})';
+            yield 'I\'m having a moment of reflection. (API Error ${streamedResponse.statusCode})';
           }
           return;
         }
@@ -297,10 +293,7 @@ class GeminiService {
             'GeminiService: Received response length: ${fullResponse.length}');
 
         // Parse the accumulated JSON response
-        // The response is a JSON array: [{...}, {...}, ...]
-        // Each object contains candidates[0].content.parts[0].text
         try {
-          // Try to parse as JSON and extract text properly
           final dynamic jsonData = json.decode(fullResponse);
           final textParts = <String>[];
 
@@ -328,10 +321,7 @@ class GeminiService {
           }
 
           if (textParts.isNotEmpty) {
-            // Yield the combined text with word-by-word streaming effect
             final combinedText = textParts.join('');
-            debugPrint(
-                'GeminiService: Successfully got response (${combinedText.length} chars)');
             final words = combinedText.split(' ');
             for (int i = 0; i < words.length; i++) {
               yield words[i];
@@ -340,48 +330,19 @@ class GeminiService {
             }
           } else {
             debugPrint(
-                'GeminiService: No text parts found in response, using fallback');
-            yield* _getMockResponse(userMessage, profile);
+                'GeminiService: No text parts found in response. Response might be empty or blocked.');
+            yield 'I didn\'t get that. (Empty response from AI)';
           }
         } catch (parseError) {
           debugPrint('GeminiService: JSON parse error: $parseError');
-          // Fallback: try regex extraction
-          final regex =
-              RegExp(r'"text"\s*:\s*"((?:[^"\\]|\\.)*)?"', multiLine: true);
-          final matches = regex.allMatches(fullResponse);
-          final extractedTexts = <String>[];
-
-          for (final match in matches) {
-            final text = match.group(1);
-            if (text != null && text.isNotEmpty) {
-              // Unescape JSON string
-              final unescaped = text
-                  .replaceAll(r'\n', '\n')
-                  .replaceAll(r'\"', '"')
-                  .replaceAll(r'\\', '\\')
-                  .replaceAll(r'\t', '\t');
-              extractedTexts.add(unescaped);
-            }
-          }
-
-          if (extractedTexts.isNotEmpty) {
-            final combinedText = extractedTexts.join('');
-            final words = combinedText.split(' ');
-            for (int i = 0; i < words.length; i++) {
-              yield words[i];
-              if (i < words.length - 1) yield ' ';
-              await Future.delayed(const Duration(milliseconds: 15));
-            }
-          } else {
-            debugPrint('GeminiService: Regex extraction also failed');
-            yield* _getMockResponse(userMessage, profile);
-          }
+          yield 'Error parsing AI response. Please check logs.';
         }
       } finally {
         client.close();
       }
     } catch (e) {
       debugPrint('GeminiService: Error sending message: $e');
+      yield 'Connection error: $e. Using offline mode.';
       yield* _getMockResponse(userMessage, profile);
     }
   }

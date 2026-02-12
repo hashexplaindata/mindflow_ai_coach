@@ -54,8 +54,9 @@ class RevenueCatService {
       } else if (defaultTargetPlatform == TargetPlatform.iOS) {
         apiKey = dotenv.env['REVENUECAT_IOS_KEY'];
       } else {
-        // Desktop/Web not supported for this sprint
-        debugPrint('RevenueCat: Web/Desktop not supported');
+        // Desktop/Web not supported
+        debugPrint(
+            'RevenueCat: ⚠️ Web/Desktop not supported for payments. Defaulting to Free Tier.');
         _isInitialized = true;
         return;
       }
@@ -63,7 +64,9 @@ class RevenueCatService {
       await Purchases.setLogLevel(LogLevel.debug);
 
       if (apiKey == null || apiKey.isEmpty) {
-        debugPrint('RevenueCat: API key not found in .env');
+        debugPrint(
+            'RevenueCat: ❌ API key not found in .env! (REVENUECAT_ANDROID_KEY / REVENUECAT_IOS_KEY)');
+        debugPrint('RevenueCat: Payments will NOT work.');
         _isInitialized = true;
         return;
       }
@@ -82,9 +85,11 @@ class RevenueCatService {
       _updateProStatus(customerInfo);
 
       _isInitialized = true;
-      debugPrint('RevenueCat: Initialized successfully');
+      debugPrint('RevenueCat: ✅ Initialized successfully');
     } catch (e) {
-      debugPrint('RevenueCat: Initialization error: $e');
+      debugPrint('RevenueCat: ❌ Initialization error: $e');
+      debugPrint(
+          'RevenueCat: Possible causes: Invalid API Key, Network Issue, or Misconfiguration in RevenueCat Console.');
       // Default to free tier on error
       _setIsPro(false);
       _isInitialized = true;

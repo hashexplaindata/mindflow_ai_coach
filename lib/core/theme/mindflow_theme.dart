@@ -201,8 +201,9 @@ class MindFlowTheme {
           onPrimary: cream,
         ),
         scaffoldBackgroundColor: const Color(0xFF1A1A1A),
-        cardColor: const Color(0xFF2A2A2A),
-        dividerColor: Colors.white.withValues(alpha: 0.1),
+        cardColor:
+            const Color(0xFF222222), // Distinct from background (Vitiligo Fix)
+        dividerColor: const Color(0xFFFAFAFA).withValues(alpha: 0.1),
 
         // Typography using standard off-white for dark mode
         textTheme: const TextTheme(
@@ -239,13 +240,13 @@ class MindFlowTheme {
           bodyMedium: TextStyle(
             fontSize: fontMedium,
             fontWeight: weightRegular,
-            color: Color(0xFFE0E0E0),
+            color: Color(0xFFE0E0E0), // Slightly softer
             height: 1.5,
           ),
           bodySmall: TextStyle(
             fontSize: fontSmall,
             fontWeight: weightRegular,
-            color: Color(0xFFBDBDBD),
+            color: Color(0xFFBDBDBD), // Muted
             height: 1.4,
           ),
         ),
@@ -266,16 +267,13 @@ class MindFlowTheme {
           ),
         ),
 
-        // Dark Mode Cards
+        // Dark Mode Cards (No Border, Subtle Contrast)
         cardTheme: CardThemeData(
-          color: const Color(0xFF2D2D2D), // Slightly lighter than background
+          color: const Color(0xFF222222),
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(radius16),
-            side: BorderSide(
-              color: Colors.white.withValues(alpha: 0.08),
-              width: 1,
-            ),
+            side: BorderSide.none, // Clean look
           ),
         ),
 

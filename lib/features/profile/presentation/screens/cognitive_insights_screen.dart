@@ -2,8 +2,6 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:flutter/foundation.dart';
-import 'dart:math';
 
 import '../../../../core/theme/mindflow_theme.dart';
 import '../../../auth/presentation/providers/user_provider.dart';
@@ -73,17 +71,18 @@ class _CognitiveInsightsScreenState
           ),
         ),
       ),
-      floatingActionButton: kDebugMode
-          ? FloatingActionButton(
-              onPressed: _simulateData,
-              child: const Icon(Icons.refresh),
-            )
-          : null,
+      // floatingActionButton: kDebugMode
+      //     ? FloatingActionButton(
+      //         onPressed: _simulateData,
+      //         child: const Icon(Icons.refresh),
+      //       )
+      //     : null,
+      floatingActionButton: null,
     );
   }
 
   Widget _buildHeader() {
-    return Column(
+    return const Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
@@ -95,7 +94,7 @@ class _CognitiveInsightsScreenState
             letterSpacing: -0.5,
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         Text(
           'Track how your cognitive patterns shift over time.',
           style: TextStyle(
@@ -117,10 +116,30 @@ class _CognitiveInsightsScreenState
     }
 
     if (_trends.isEmpty) {
-      return Center(
-        child: Text(
-          'Not enough data yet. Complete more sessions!',
-          style: TextStyle(color: MindFlowTheme.obsidianLight),
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.insights, size: 48, color: MindFlowTheme.obsidianLight),
+            SizedBox(height: 16),
+            Text(
+              'No trends detected yet.',
+              style: TextStyle(
+                color: MindFlowTheme.obsidian,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Your cognitive patterns will appear here\nafter your first recalibration session.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: MindFlowTheme.obsidianLight,
+                fontSize: 14,
+              ),
+            ),
+          ],
         ),
       );
     }
@@ -143,8 +162,8 @@ class _CognitiveInsightsScreenState
       ),
       child: LineChart(
         LineChartData(
-          gridData: FlGridData(show: false),
-          titlesData: FlTitlesData(
+          gridData: const FlGridData(show: false),
+          titlesData: const FlTitlesData(
             leftTitles: AxisTitles(
               sideTitles: SideTitles(showTitles: true, reservedSize: 30),
             ),
@@ -183,7 +202,7 @@ class _CognitiveInsightsScreenState
       color: color,
       barWidth: 3,
       isStrokeCapRound: true,
-      dotData: FlDotData(show: true),
+      dotData: const FlDotData(show: true),
       belowBarData: BarAreaData(show: false),
     );
   }
@@ -192,7 +211,7 @@ class _CognitiveInsightsScreenState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        const Text(
           'About Me Context',
           style: TextStyle(
             color: MindFlowTheme.obsidian,
@@ -218,7 +237,7 @@ class _CognitiveInsightsScreenState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              const Text(
                 'This context helps Gemini understand you better.',
                 style: TextStyle(
                   color: MindFlowTheme.obsidianLight,
@@ -228,7 +247,7 @@ class _CognitiveInsightsScreenState
               const SizedBox(height: 16),
               // Placeholder for editable text fields
               TextField(
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Your Core Values',
                   border: OutlineInputBorder(),
                 ),
@@ -252,26 +271,6 @@ class _CognitiveInsightsScreenState
         ),
       ],
     );
-  }
-
-  void _simulateData() async {
-    final random = Random();
-    final newVector = PersonalityVector(
-      discipline: random.nextDouble(),
-      novelty: random.nextDouble(),
-      reactivity: random.nextDouble(),
-      structure: random.nextDouble(),
-      warmth: random.nextDouble(),
-      complexity: random.nextDouble(),
-    );
-
-    // Bypassing the gated check for visual verification
-    await ref.read(userProvider.notifier).updatePersonality(
-          newVector,
-          reason: 'Debug Simulation ${DateTime.now().second}',
-        );
-
-    _loadTrends();
   }
 
   Widget _buildLockedFeature(String message) {
