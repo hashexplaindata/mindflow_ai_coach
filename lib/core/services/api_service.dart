@@ -31,7 +31,7 @@ class ApiService {
     }
 
     try {
-      final userRef = _firestore!.collection('users').doc(id);
+      final userRef = _firestore.collection('users').doc(id);
       final userData = {
         'id': id,
         'email': email,
@@ -76,7 +76,7 @@ class ApiService {
 
       // 2. Update Firestore for backend visibility
       if (_firestore != null) {
-        await _firestore!.collection('users').doc(userId).set({
+        await _firestore.collection('users').doc(userId).set({
           'isPro': isPro,
           'lastCheck': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
@@ -94,7 +94,7 @@ class ApiService {
       String userId, Map<String, dynamic> sessionData) async {
     if (_firestore == null) return;
     try {
-      await _firestore!.collection('sessions').add({
+      await _firestore.collection('sessions').add({
         'userId': userId,
         ...sessionData,
         'timestamp': FieldValue.serverTimestamp(),
@@ -112,7 +112,7 @@ class ApiService {
     }
 
     try {
-      final doc = await _firestore!.collection('users').doc(userId).get();
+      final doc = await _firestore.collection('users').doc(userId).get();
       if (doc.exists && doc.data() != null) {
         final data = doc.data()!;
         return {

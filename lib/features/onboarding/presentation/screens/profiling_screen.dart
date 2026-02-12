@@ -4,22 +4,20 @@ import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../../core/theme/headspace_theme.dart';
 import '../../../../shared/widgets/app_button.dart';
-import '../../domain/models/nlp_profile.dart';
+import '../../../identity/domain/models/personality_vector.dart';
 import '../../domain/models/onboarding_question.dart';
-import '../../data/profile_repository.dart';
+import '../../../chat/data/gemini_service.dart';
 
 /// Profiling Screen
-/// 5-question NLP assessment with Headspace-style UI
-/// Saves results to UserProfileRepository
+/// 5-question Cognitive Assessment
+/// Generates a Personality Vector (The "Weapon" Core)
 class ProfilingScreen extends StatefulWidget {
   const ProfilingScreen({
     super.key,
-    this.userId,
     this.onComplete,
   });
 
-  final String? userId;
-  final void Function(NLPProfile profile)? onComplete;
+  final void Function(PersonalityVector vector)? onComplete;
 
   @override
   State<ProfilingScreen> createState() => _ProfilingScreenState();
@@ -28,10 +26,14 @@ class ProfilingScreen extends StatefulWidget {
 class _ProfilingScreenState extends State<ProfilingScreen>
     with SingleTickerProviderStateMixin {
   final PageController _pageController = PageController();
-  final UserProfileRepository _repository = UserProfileRepository();
+
+  // Default balanced vector
+  double _discipline = 0.5;
+  double _novelty = 0.5;
+  double _volatility = 0.5;
+  double _structure = 0.5;
 
   int _currentIndex = 0;
-  final Map<String, String> _answers = {};
   bool _isSaving = false;
 
   late AnimationController _fadeController;
@@ -58,9 +60,23 @@ class _ProfilingScreenState extends State<ProfilingScreen>
     super.dispose();
   }
 
-  void _selectOption(String questionId, String value) {
+  void _selectOption(OnboardingQuestion question, QuestionOption option) {
+    // Update vector
     setState(() {
-      _answers[questionId] = value;
+      switch (question.dimension) {
+        case 'discipline':
+          _discipline = option.scoreImpact;
+          break;
+        case 'novelty':
+          _novelty = option.scoreImpact;
+          break;
+        case 'volatility':
+          _volatility = option.scoreImpact;
+          break;
+        case 'structure':
+          _structure = option.scoreImpact;
+          break;
+      }
     });
 
     // Short delay before advancing
@@ -106,39 +122,32 @@ class _ProfilingScreenState extends State<ProfilingScreen>
       _isSaving = true;
     });
 
-    // Build NLP profile from answers
-    final profile = NLPProfile(
-      motivation: _answers['motivation'] ?? 'toward',
-      reference: _answers['reference'] ?? 'internal',
-      thinking: _answers['thinking'] ?? 'visual',
-      processing: _answers['processing'] ?? 'options',
-      change: _answers['change'] ?? 'sameness',
+    // Build Final Vector
+    final vector = PersonalityVector(
+      discipline: _discipline,
+      novelty: _novelty,
+      volatility: _volatility,
+      structure: _structure,
     );
 
-    // Save to repository
-    if (widget.userId != null) {
-      await _repository.saveNLPProfile(
-        userId: widget.userId!,
-        profile: profile,
-      );
-    }
+    // Save to Core Engine
+    GeminiService.instance.setPersonality(vector);
+
+    // TODO: Save to Firestore via UserProvider if needed
+    // await UserProvider.instance.saveVector(vector);
 
     setState(() {
       _isSaving = false;
     });
 
-    // Navigate to result screen or call callback
+    // Navigate to result
     if (mounted) {
-      if (widget.onComplete != null) {
-        widget.onComplete!(profile);
-      } else {
-        // Navigate to result screen
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => ProfileResultScreen(profile: profile),
-          ),
-        );
-      }
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) =>
+              ProfileResultScreen(vector: vector, onStart: widget.onComplete),
+        ),
+      );
     }
   }
 
@@ -151,12 +160,11 @@ class _ProfilingScreenState extends State<ProfilingScreen>
       body: SafeArea(
         child: Column(
           children: [
-            // Header with back button and progress
+            // Header
             Padding(
               padding: const EdgeInsets.all(AppSpacing.screenPadding),
               child: Row(
                 children: [
-                  // Back button
                   if (_currentIndex > 0)
                     IconButton(
                       icon: const Icon(Icons.arrow_back_ios_rounded),
@@ -165,14 +173,13 @@ class _ProfilingScreenState extends State<ProfilingScreen>
                     )
                   else
                     const SizedBox(width: 48),
-
-                  // Progress indicator
                   Expanded(
                     child: Column(
                       children: [
                         Text(
-                          'Question ${_currentIndex + 1} of ${questions.length}',
-                          style: AppTextStyles.caption,
+                          'Analysis ${_currentIndex + 1}/${questions.length}',
+                          style: AppTextStyles.caption
+                              .copyWith(letterSpacing: 1.5),
                         ),
                         const SizedBox(height: AppSpacing.spacing8),
                         ClipRRect(
@@ -183,29 +190,13 @@ class _ProfilingScreenState extends State<ProfilingScreen>
                             valueColor: const AlwaysStoppedAnimation(
                               AppColors.primaryOrange,
                             ),
-                            minHeight: 6,
+                            minHeight: 4,
                           ),
                         ),
                       ],
                     ),
                   ),
-
-                  // Skip button
-                  TextButton(
-                    onPressed: () {
-                      // Skip onboarding with default profile
-                      const profile = NLPProfile.defaultProfile;
-                      if (widget.onComplete != null) {
-                        widget.onComplete!(profile);
-                      }
-                    },
-                    child: Text(
-                      'Skip',
-                      style: AppTextStyles.buttonSmall.copyWith(
-                        color: AppColors.neutralMedium,
-                      ),
-                    ),
-                  ),
+                  const SizedBox(width: 48),
                 ],
               ),
             ),
@@ -222,15 +213,13 @@ class _ProfilingScreenState extends State<ProfilingScreen>
                     opacity: _fadeAnimation,
                     child: _QuestionCard(
                       question: question,
-                      selectedValue: _answers[question.id],
-                      onSelect: (value) => _selectOption(question.id, value),
+                      onSelect: (option) => _selectOption(question, option),
                     ),
                   );
                 },
               ),
             ),
 
-            // Loading indicator when saving
             if (_isSaving)
               const Padding(
                 padding: EdgeInsets.all(AppSpacing.spacing24),
@@ -245,17 +234,14 @@ class _ProfilingScreenState extends State<ProfilingScreen>
   }
 }
 
-/// Individual question card widget
 class _QuestionCard extends StatelessWidget {
   const _QuestionCard({
     required this.question,
-    required this.selectedValue,
     required this.onSelect,
   });
 
   final OnboardingQuestion question;
-  final String? selectedValue;
-  final void Function(String value) onSelect;
+  final void Function(QuestionOption option) onSelect;
 
   @override
   Widget build(BuildContext context) {
@@ -267,16 +253,12 @@ class _QuestionCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const Spacer(flex: 1),
-
-          // Question text
           Text(
             question.question,
             style: AppTextStyles.question,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: AppSpacing.spacing12),
-
-          // Subtitle
           Text(
             question.subtitle,
             style: AppTextStyles.bodyMedium.copyWith(
@@ -284,22 +266,16 @@ class _QuestionCard extends StatelessWidget {
             ),
             textAlign: TextAlign.center,
           ),
-
           const Spacer(flex: 1),
-
-          // Options
           ...question.options.map((option) {
-            final isSelected = selectedValue == option.value;
             return Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.spacing16),
               child: _OptionCard(
                 option: option,
-                isSelected: isSelected,
-                onTap: () => onSelect(option.value),
+                onTap: () => onSelect(option),
               ),
             );
           }),
-
           const Spacer(flex: 2),
         ],
       ),
@@ -307,105 +283,54 @@ class _QuestionCard extends StatelessWidget {
   }
 }
 
-/// Individual option card
 class _OptionCard extends StatelessWidget {
   const _OptionCard({
     required this.option,
-    required this.isSelected,
     required this.onTap,
   });
 
   final QuestionOption option;
-  final bool isSelected;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      decoration: BoxDecoration(
-        color: isSelected
-            ? const Color(0x1AF4A261) // primaryOrange at 10% opacity
-            : AppColors.cardBackground,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
         borderRadius: BorderRadius.circular(AppSpacing.radiusCard),
-        border: Border.all(
-          color: isSelected ? AppColors.primaryOrange : AppColors.neutralMedium,
-          width: isSelected ? 2 : 1,
-        ),
-        boxShadow: isSelected ? HeadspaceTheme.cardShadow : null,
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusCard),
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.cardPadding),
-            child: Row(
-              children: [
-                // Emoji
-                if (option.emoji != null)
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? const Color(
-                              0x33F4A261) // primaryOrange at 20% opacity
-                          : AppColors.neutralLight,
-                      borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppColors.cardBackground,
+            borderRadius: BorderRadius.circular(AppSpacing.radiusCard),
+            border: Border.all(color: AppColors.neutralMedium),
+          ),
+          padding: const EdgeInsets.all(AppSpacing.cardPadding),
+          child: Row(
+            children: [
+              Text(
+                option.emoji ?? '',
+                style: const TextStyle(fontSize: 24),
+              ),
+              const SizedBox(width: AppSpacing.spacing16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      option.label,
+                      style: AppTextStyles.label
+                          .copyWith(fontWeight: FontWeight.w600),
                     ),
-                    child: Center(
-                      child: Text(
-                        option.emoji!,
-                        style: const TextStyle(fontSize: 24),
-                      ),
+                    Text(
+                      option.description,
+                      style: AppTextStyles.bodySmall
+                          .copyWith(color: AppColors.textSecondary),
                     ),
-                  ),
-                const SizedBox(width: AppSpacing.spacing16),
-
-                // Text
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        option.label,
-                        style: AppTextStyles.label.copyWith(
-                          color: isSelected
-                              ? AppColors.primaryOrange
-                              : AppColors.textPrimary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.spacing4),
-                      Text(
-                        option.description,
-                        style: AppTextStyles.bodySmall.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
+                  ],
                 ),
-
-                // Checkmark
-                if (isSelected)
-                  Container(
-                    width: 28,
-                    height: 28,
-                    decoration: const BoxDecoration(
-                      color: AppColors.primaryOrange,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.check_rounded,
-                      color: Colors.white,
-                      size: 18,
-                    ),
-                  ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -413,15 +338,15 @@ class _OptionCard extends StatelessWidget {
   }
 }
 
-/// Profile Result Screen
-/// Shows the user their personality type after completing profiling
 class ProfileResultScreen extends StatelessWidget {
   const ProfileResultScreen({
     super.key,
-    required this.profile,
+    required this.vector,
+    this.onStart,
   });
 
-  final NLPProfile profile;
+  final PersonalityVector vector;
+  final void Function(PersonalityVector)? onStart;
 
   @override
   Widget build(BuildContext context) {
@@ -434,96 +359,57 @@ class ProfileResultScreen extends StatelessWidget {
             children: [
               const Spacer(flex: 1),
 
-              // Celebration emoji
-              Text(
-                '${profile.emoji} 🎉',
-                style: const TextStyle(fontSize: 64),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: AppSpacing.spacing24),
-
-              // You are...
-              Text(
-                'You are',
-                style: AppTextStyles.bodyLarge.copyWith(
-                  color: AppColors.textSecondary,
-                ),
+              const Text(
+                '🧠 Analysis Complete',
+                style: AppTextStyles.headlineMedium,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: AppSpacing.spacing8),
-
-              // Profile type name
-              Text(
-                profile.displayName,
-                style: AppTextStyles.profileType,
+              const Text(
+                'Your Cognitive Vector',
+                style: TextStyle(
+                    fontFamily: 'DM Sans',
+                    fontSize: 16,
+                    color: AppColors.textSecondary),
                 textAlign: TextAlign.center,
               ),
 
-              const SizedBox(height: AppSpacing.spacing32),
+              const Spacer(),
 
-              // Profile breakdown card
+              // Vector Visualization Card
               Container(
                 decoration: HeadspaceTheme.cardDecoration,
                 padding: const EdgeInsets.all(AppSpacing.cardPaddingLarge),
                 child: Column(
                   children: [
-                    _ProfileTraitRow(
-                      label: 'Motivation',
-                      value: profile.motivation == 'toward'
-                          ? 'Goal-focused'
-                          : 'Problem-solver',
-                      emoji: profile.motivation == 'toward' ? '🚀' : '🛡️',
-                    ),
-                    const SizedBox(height: AppSpacing.spacing16),
-                    _ProfileTraitRow(
-                      label: 'Decisions',
-                      value: profile.reference == 'internal'
-                          ? 'Trust your gut'
-                          : 'Research-driven',
-                      emoji: profile.reference == 'internal' ? '💭' : '📊',
-                    ),
-                    const SizedBox(height: AppSpacing.spacing16),
-                    _ProfileTraitRow(
-                      label: 'Thinking',
-                      value: profile.thinking == 'visual'
-                          ? 'Visual thinker'
-                          : profile.thinking == 'auditory'
-                              ? 'Auditory thinker'
-                              : 'Kinesthetic thinker',
-                      emoji: profile.emoji,
-                    ),
+                    _TraitBar(
+                        'Structure', vector.structure, '🌊 Flow', '📋 Grid'),
+                    const SizedBox(height: 24),
+                    _TraitBar(
+                        'Novelty', vector.novelty, '🏠 Routine', '🌟 Seeker'),
+                    const SizedBox(height: 24),
+                    _TraitBar('Volatility', vector.volatility, '🤖 Stoic',
+                        '❤️‍🔥 Reactive'),
+                    const SizedBox(height: 24),
+                    _TraitBar('Discipline', vector.discipline, '⏰ Pressure',
+                        '✅ Order'),
                   ],
                 ),
               ),
 
-              const SizedBox(height: AppSpacing.spacing24),
-
-              // What this means
-              Text(
-                'Your coach will now speak your language and match your decision-making style.',
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.textSecondary,
-                ),
-                textAlign: TextAlign.center,
-              ),
-
               const Spacer(flex: 2),
 
-              // CTA Button
               AppButton(
-                text: 'Start Coaching',
+                text: 'Enter MindFlow',
                 onPressed: () {
-                  // Navigate to chat screen
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Welcome, ${profile.displayName}! 🧠'),
-                      backgroundColor: AppColors.sage,
-                    ),
-                  );
-                  // TODO: Navigate to chat screen
+                  if (onStart != null) {
+                    onStart!(vector);
+                  } else {
+                    // Force navigation if no callback
+                    Navigator.of(context).pushReplacementNamed('/home');
+                  }
                 },
               ),
-
               const SizedBox(height: AppSpacing.spacing24),
             ],
           ),
@@ -533,41 +419,42 @@ class ProfileResultScreen extends StatelessWidget {
   }
 }
 
-class _ProfileTraitRow extends StatelessWidget {
-  const _ProfileTraitRow({
-    required this.label,
-    required this.value,
-    required this.emoji,
-  });
+class _TraitBar extends StatelessWidget {
+  const _TraitBar(this.label, this.value, this.leftLabel, this.rightLabel);
 
   final String label;
-  final String value;
-  final String emoji;
+  final double value;
+  final String leftLabel;
+  final String rightLabel;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
       children: [
-        Text(
-          emoji,
-          style: const TextStyle(fontSize: 24),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(leftLabel,
+                style: const TextStyle(
+                    fontSize: 12, color: AppColors.textSecondary)),
+            Text(label.toUpperCase(),
+                style: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1)),
+            Text(rightLabel,
+                style: const TextStyle(
+                    fontSize: 12, color: AppColors.textSecondary)),
+          ],
         ),
-        const SizedBox(width: AppSpacing.spacing12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: AppTextStyles.caption.copyWith(
-                  color: AppColors.textSecondary,
-                ),
-              ),
-              Text(
-                value,
-                style: AppTextStyles.label,
-              ),
-            ],
+        const SizedBox(height: 8),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: value,
+            backgroundColor: AppColors.neutralLight,
+            valueColor: const AlwaysStoppedAnimation(AppColors.jobsObsidian),
+            minHeight: 8,
           ),
         ),
       ],

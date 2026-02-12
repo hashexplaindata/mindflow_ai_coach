@@ -7,180 +7,156 @@ class OnboardingQuestion {
     required this.subtitle,
     required this.optionA,
     required this.optionB,
-    required this.metaProgram,
+    required this.dimension, // Which PersonalityVector dimension this impacts
     this.optionC,
   });
 
-  /// Unique identifier for the question
   final String id;
-
-  /// The main question text
   final String question;
-
-  /// Subtitle/context for the question
   final String subtitle;
-
-  /// First option (usually "toward" / "internal" / "visual")
   final QuestionOption optionA;
-
-  /// Second option (usually "away_from" / "external" / "auditory")
   final QuestionOption optionB;
-
-  /// Third option (optional, for thinking style)
   final QuestionOption? optionC;
+  final String dimension; // discipline, novelty, volatility, structure
 
-  /// Which meta-program this question measures
-  final String metaProgram;
-
-  /// Get all options as a list
   List<QuestionOption> get options => [
-    optionA,
-    optionB,
-    if (optionC != null) optionC!,
-  ];
+        optionA,
+        optionB,
+        if (optionC != null) optionC!,
+      ];
 }
 
-/// A single option for a question
 class QuestionOption {
   const QuestionOption({
     required this.value,
     required this.label,
     required this.description,
+    required this.scoreImpact, // How this affects the dimension (0.0 to 1.0)
     this.emoji,
   });
 
-  /// The value to store (e.g., "toward", "visual")
   final String value;
-
-  /// Short label text
   final String label;
-
-  /// Longer description of what this means
   final String description;
-
-  /// Optional emoji to display
+  final double scoreImpact;
   final String? emoji;
 }
 
-/// The 5 NLP profiling questions
-/// Based on Tad James meta-programs and Bandler/Grinder systems
+/// The 5 "Psychologically Engineered" Questions
+/// Maps directly to PersonalityVector dimensions
 class OnboardingQuestions {
   OnboardingQuestions._();
 
   static const List<OnboardingQuestion> questions = [
-    // Question 1: Motivation Direction (Toward vs Away-From)
+    // 1. STRUCTURE Needs (Grid vs Flow)
     OnboardingQuestion(
-      id: 'motivation',
-      metaProgram: 'motivation',
-      question: 'When you think about change, what drives you more?',
-      subtitle: 'There\'s no right answer - just what feels true for you',
+      id: 'structure_pref',
+      dimension: 'structure',
+      question: 'How do you handle a new complex project?',
+      subtitle: 'Be honest about your natural instinct',
       optionA: QuestionOption(
-        value: 'toward',
-        label: 'Exciting possibilities',
-        description: 'I\'m energized by what I could achieve and gain',
-        emoji: '🚀',
+        value: 'high_structure',
+        label: 'Step-by-step plan',
+        description: 'I need a clear roadmap before I start',
+        scoreImpact: 0.9, // High Structure
+        emoji: '📋',
       ),
       optionB: QuestionOption(
-        value: 'away_from',
-        label: 'Problems to solve',
-        description: 'I\'m motivated to fix issues and avoid problems',
+        value: 'low_structure',
+        label: 'Jump in & figure it out',
+        description: 'I prefer to explore and adapt as I go',
+        scoreImpact: 0.2, // Low Structure
+        emoji: '🌊',
+      ),
+    ),
+
+    // 2. NOVELTY Needs (Seeker vs Traditional)
+    OnboardingQuestion(
+      id: 'novelty_pref',
+      dimension: 'novelty',
+      question: 'Your ideal weekend looks like:',
+      subtitle: 'What recharges you?',
+      optionA: QuestionOption(
+        value: 'high_novelty',
+        label: 'Trying something new',
+        description: 'New places, potential chaos, excitement',
+        scoreImpact: 0.9, // High Novelty
+        emoji: '🌟',
+      ),
+      optionB: QuestionOption(
+        value: 'low_novelty',
+        label: 'Comfort & routine',
+        description: 'Resting in a familiar, peaceful space',
+        scoreImpact: 0.2, // Low Novelty
+        emoji: '🏠',
+      ),
+    ),
+
+    // 3. VOLATILITY / Emotional Reactivity (Reactive vs Stoic)
+    OnboardingQuestion(
+      id: 'volatility_pref',
+      dimension: 'volatility',
+      question: 'When things go wrong, you tend to:',
+      subtitle: 'Your immediate reaction',
+      optionA: QuestionOption(
+        value: 'high_volatility',
+        label: 'Feel it intensely',
+        description: 'I need to process the frustration/emotion',
+        scoreImpact: 0.8, // High Volatility (needs validation)
+        emoji: '❤️‍🔥',
+      ),
+      optionB: QuestionOption(
+        value: 'low_volatility',
+        label: 'Go into fix-it mode',
+        description: 'I detach and focus on the solution',
+        scoreImpact: 0.3, // Low Volatility (needs tough love/logic)
+        emoji: '🤖',
+      ),
+    ),
+
+    // 4. DISCIPLINE / Approach (Order vs Chaos)
+    OnboardingQuestion(
+      id: 'discipline_pref',
+      dimension: 'discipline',
+      question: 'Your relationship with deadlines:',
+      subtitle: 'How you actually work',
+      optionA: QuestionOption(
+        value: 'high_discipline',
+        label: 'Early & Ready',
+        description: 'I finish early to avoid stress',
+        scoreImpact: 0.8, // High Discipline
+        emoji: '✅',
+      ),
+      optionB: QuestionOption(
+        value: 'low_discipline',
+        label: 'Pressure Performer',
+        description: 'I do my best work at the last minute',
+        scoreImpact: 0.3, // Low Discipline (needs constraints)
+        emoji: '⏰',
+      ),
+    ),
+
+    // 5. MOTIVATION (Toward vs Away) - Maps to Volatility/Novelty mix usually, but let's keep it simple
+    // We'll map this to a slight modifier on Novelty/Discipline
+    OnboardingQuestion(
+      id: 'motivation_pref',
+      dimension: 'novelty', // Using this to fine-tune Novelty/Ambition
+      question: 'What drives you more?',
+      subtitle: 'The carrot or the stick?',
+      optionA: QuestionOption(
+        value: 'toward',
+        label: 'Achieving goals',
+        description: 'The excitement of the win',
+        scoreImpact: 0.8, // High Drive (Modifies Novelty+)
+        emoji: '🏆',
+      ),
+      optionB: QuestionOption(
+        value: 'away',
+        label: 'Avoiding failure',
+        description: 'The fear of messing up',
+        scoreImpact: 0.4, // Protection (Modifies Novelty-)
         emoji: '🛡️',
       ),
     ),
-
-    // Question 2: Reference Frame (Internal vs External)
-    OnboardingQuestion(
-      id: 'reference',
-      metaProgram: 'reference',
-      question: 'When making important decisions, you tend to:',
-      subtitle: 'Think about your last big decision',
-      optionA: QuestionOption(
-        value: 'internal',
-        label: 'Trust my gut',
-        description: 'I know inside when something is right for me',
-        emoji: '💭',
-      ),
-      optionB: QuestionOption(
-        value: 'external',
-        label: 'Seek outside input',
-        description: 'I value research, experts, and others\' opinions',
-        emoji: '📊',
-      ),
-    ),
-
-    // Question 3: Representational System (Visual/Auditory/Kinesthetic)
-    OnboardingQuestion(
-      id: 'thinking',
-      metaProgram: 'thinking',
-      question: 'When you imagine your ideal future, you:',
-      subtitle: 'Notice what happens naturally when you imagine',
-      optionA: QuestionOption(
-        value: 'visual',
-        label: 'See vivid pictures',
-        description: 'I visualize scenes, colors, and images clearly',
-        emoji: '👁️',
-      ),
-      optionB: QuestionOption(
-        value: 'auditory',
-        label: 'Hear inner dialogue',
-        description: 'I think in words, sounds, and conversations',
-        emoji: '👂',
-      ),
-      optionC: QuestionOption(
-        value: 'kinesthetic',
-        label: 'Feel the emotions',
-        description: 'I sense it in my body and gut feelings',
-        emoji: '✋',
-      ),
-    ),
-
-    // Question 4: Processing Preference (Options vs Procedures)
-    OnboardingQuestion(
-      id: 'processing',
-      metaProgram: 'processing',
-      question: 'When starting something new, you prefer:',
-      subtitle: 'Think about learning a new skill',
-      optionA: QuestionOption(
-        value: 'options',
-        label: 'Explore possibilities',
-        description: 'Show me the options and let me figure it out',
-        emoji: '🎨',
-      ),
-      optionB: QuestionOption(
-        value: 'procedures',
-        label: 'Follow a system',
-        description: 'Give me clear steps that work',
-        emoji: '📋',
-      ),
-    ),
-
-    // Question 5: Change Preference (Sameness vs Difference)
-    OnboardingQuestion(
-      id: 'change',
-      metaProgram: 'change',
-      question: 'In your daily life, you value:',
-      subtitle: 'Think about your comfort zone',
-      optionA: QuestionOption(
-        value: 'sameness',
-        label: 'Stability & routine',
-        description: 'I like consistent patterns and reliable habits',
-        emoji: '🏠',
-      ),
-      optionB: QuestionOption(
-        value: 'difference',
-        label: 'Variety & novelty',
-        description: 'I crave new experiences and change',
-        emoji: '🌟',
-      ),
-    ),
   ];
-
-  /// Get a question by its id
-  static OnboardingQuestion? getById(String id) {
-    try {
-      return questions.firstWhere((q) => q.id == id);
-    } catch (_) {
-      return null;
-    }
-  }
 }

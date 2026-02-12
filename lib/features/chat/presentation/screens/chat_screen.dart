@@ -243,7 +243,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
         return Container(
           decoration: BoxDecoration(
             color: Theme.of(context).cardColor,
-            borderRadius: BorderRadius.vertical(
+            borderRadius: const BorderRadius.vertical(
               top: Radius.circular(AppSpacing.radiusCard),
             ),
           ),

@@ -130,7 +130,7 @@ class _RadarChartPainter extends CustomPainter {
       ..color = textColor.withOpacity(0.2)
       ..strokeWidth = 1;
 
-    final dimensions = 4;
+    const dimensions = 4;
     for (int i = 0; i < dimensions; i++) {
       final angle = (i * 2 * pi / dimensions) - pi / 2;
       final end = Offset(

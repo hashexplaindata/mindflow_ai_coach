@@ -145,27 +145,27 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           const SizedBox(height: 24),
                           _DimensionRow(
                               'Discipline',
-                              userState.personality?.discipline ?? 0.5,
+                              userState.personality.discipline ?? 0.5,
                               Icons.check_circle,
                               theme,
                               'Your ability to focus and follow through on tasks.'),
                           const SizedBox(height: 12),
                           _DimensionRow(
                               'Novelty',
-                              userState.personality?.novelty ?? 0.5,
+                              userState.personality.novelty ?? 0.5,
                               Icons.explore,
                               theme,
                               'Your openness to new experiences and ideas.'),
                           const SizedBox(height: 12),
                           _DimensionRow(
                               'Volatility',
-                              userState.personality?.volatility ?? 0.5,
+                              userState.personality.volatility ?? 0.5,
                               Icons.waves,
                               theme),
                           const SizedBox(height: 12),
                           _DimensionRow(
                               'Structure',
-                              userState.personality?.structure ?? 0.5,
+                              userState.personality.structure ?? 0.5,
                               Icons.grid_on,
                               theme),
                         ],
@@ -352,7 +352,7 @@ Widget _DimensionRow(String label, double value, IconData icon, ThemeData theme,
       ),
       Text(
         '${(value * 100).toInt()}%',
-        style: TextStyle(
+        style: const TextStyle(
           fontFamily: 'DM Sans',
           fontSize: 16,
           fontWeight: FontWeight.bold,
