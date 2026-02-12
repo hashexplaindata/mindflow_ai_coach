@@ -12,7 +12,7 @@ import '../widgets/suggestion_chips.dart';
 import '../../domain/models/conversation_context.dart';
 import '../../../subscription/presentation/providers/subscription_provider.dart';
 import '../../../subscription/presentation/widgets/paywall_trigger.dart';
-import '../../../coach/presentation/screens/coach_gallery_screen.dart';
+// import '../../../coach/presentation/screens/coach_gallery_screen.dart'; // Legacy
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../auth/presentation/providers/user_provider.dart';
 
@@ -205,18 +205,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
         ],
       ),
       actions: [
-        IconButton(
-          icon: Icon(
-            Icons.people_alt_rounded,
-            color: colorScheme.onSurface.withValues(alpha: 0.7),
-          ),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const CoachGalleryScreen()),
-            );
-          },
-        ),
+        // Removed CoachGalleryScreen button (Legacy)
         if (!context.watch<SubscriptionProvider>().isPro)
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 8),

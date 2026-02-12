@@ -30,7 +30,7 @@ class _ProfilingScreenState extends ConsumerState<ProfilingScreen>
   // Default balanced vector
   double _discipline = 0.5;
   double _novelty = 0.5;
-  double _volatility = 0.5;
+  double _reactivity = 0.5;
   double _structure = 0.5;
 
   int _currentIndex = 0;
@@ -70,8 +70,9 @@ class _ProfilingScreenState extends ConsumerState<ProfilingScreen>
         case 'novelty':
           _novelty = option.scoreImpact;
           break;
-        case 'volatility':
-          _volatility = option.scoreImpact;
+        case 'reactivity':
+        case 'volatility': // Keep legacy key support just in case, or map it
+          _reactivity = option.scoreImpact;
           break;
         case 'structure':
           _structure = option.scoreImpact;
@@ -126,7 +127,7 @@ class _ProfilingScreenState extends ConsumerState<ProfilingScreen>
     final vector = PersonalityVector(
       discipline: _discipline,
       novelty: _novelty,
-      volatility: _volatility,
+      reactivity: _reactivity,
       structure: _structure,
     );
 
@@ -383,7 +384,7 @@ class ProfileResultScreen extends StatelessWidget {
                     _TraitBar(
                         'Novelty', vector.novelty, '🏠 Routine', '🌟 Seeker'),
                     const SizedBox(height: 24),
-                    _TraitBar('Volatility', vector.volatility, '🤖 Stoic',
+                    _TraitBar('Reactivity', vector.reactivity, '🤖 Stoic',
                         '❤️‍🔥 Reactive'),
                     const SizedBox(height: 24),
                     _TraitBar('Discipline', vector.discipline, '⏰ Pressure',

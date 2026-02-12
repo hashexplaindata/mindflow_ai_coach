@@ -51,7 +51,7 @@ class PersonalityGraph extends StatelessWidget {
       children: [
         _legendItem('D', vector.discipline, Colors.blue, textTheme),
         _legendItem('N', vector.novelty, Colors.green, textTheme),
-        _legendItem('V', vector.volatility, Colors.orange, textTheme),
+        _legendItem('R', vector.reactivity, Colors.orange, textTheme),
         _legendItem('S', vector.structure, Colors.purple, textTheme),
       ],
     );
@@ -145,7 +145,7 @@ class _RadarChartPainter extends CustomPainter {
     final values = [
       vector.discipline,
       vector.novelty,
-      vector.volatility,
+      vector.reactivity,
       vector.structure,
     ];
 
@@ -196,7 +196,7 @@ class _RadarChartPainter extends CustomPainter {
   }
 
   void _drawLabels(Canvas canvas, Offset center, double radius) {
-    final labels = ['D', 'N', 'V', 'S'];
+    final labels = ['D', 'N', 'R', 'S'];
     final dimensions = labels.length;
     final labelOffset = radius + 20;
 

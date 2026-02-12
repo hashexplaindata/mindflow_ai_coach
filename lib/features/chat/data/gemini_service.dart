@@ -135,7 +135,7 @@ class GeminiService {
     final buffer = StringBuffer();
     buffer.writeln("\n--- IDENTITY ENGINE INSTRUCTIONS ---");
     buffer.writeln(
-        "USER_METRICS: [D:${p.discipline.toStringAsFixed(2)}, N:${p.novelty.toStringAsFixed(2)}, V:${p.volatility.toStringAsFixed(2)}, S:${p.structure.toStringAsFixed(2)}]");
+        "USER_METRICS: [D:${p.discipline.toStringAsFixed(2)}, N:${p.novelty.toStringAsFixed(2)}, R:${p.reactivity.toStringAsFixed(2)}, S:${p.structure.toStringAsFixed(2)}]");
 
     // 🚀 DEMO LOGGING: Track active constraints
     final activeConstraints = <String>[];

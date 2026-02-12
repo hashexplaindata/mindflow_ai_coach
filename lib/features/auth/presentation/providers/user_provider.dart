@@ -364,6 +364,18 @@ class UserNotifier extends Notifier<UserState> {
     }
   }
 
+  /// Recalibrates the user's personality vector.
+  /// GATED: Only available for Pro subscribers.
+  Future<void> recalibrate(PersonalityVector newVector) async {
+    if (!state.isSubscribed) {
+      debugPrint('UserProvider: 🔒 Recalibration blocked. User is not Pro.');
+      throw Exception('Recalibration is a Premium feature.');
+    }
+
+    debugPrint('UserProvider: 🧠 Recalibrating personality vector...');
+    await updatePersonality(newVector);
+  }
+
   Future<void> signOut() async {
     try {
       await GoogleSignIn().signOut();

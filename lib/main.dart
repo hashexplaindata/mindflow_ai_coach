@@ -104,9 +104,8 @@ class _MainAppShellState extends ConsumerState<MainAppShell> {
   Widget build(BuildContext context) {
     // Sync Personality Vector from UserProvider -> ChatProvider
     ref.listen(userProvider, (previous, next) {
-      if (next.personality != null &&
-          next.personality != previous?.personality) {
-        context.read<ChatProvider>().setPersonality(next.personality!);
+      if (next.personality != previous?.personality) {
+        context.read<ChatProvider>().setPersonality(next.personality);
       }
     });
 
@@ -173,7 +172,7 @@ class WelcomeScreen extends StatelessWidget {
                   iconGradient: AppColors.sageGradient,
                   title: 'Cognitive Profiling',
                   description:
-                      'Analyzes your discipline, novelty, and volatility needs.',
+                      'Analyzes your discipline, novelty, and reactivity needs.',
                 ),
                 const SizedBox(height: AppSpacing.spacing16),
                 const _FeatureCard(
@@ -206,7 +205,7 @@ class WelcomeScreen extends StatelessWidget {
                     const defaultVector = PersonalityVector(
                         discipline: 0.5,
                         novelty: 0.5,
-                        volatility: 0.5,
+                        reactivity: 0.5,
                         structure: 0.5);
                     GeminiService.instance.setPersonality(defaultVector);
                     _navigateToMainApp(context, defaultVector);

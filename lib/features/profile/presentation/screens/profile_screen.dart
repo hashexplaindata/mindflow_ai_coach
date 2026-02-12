@@ -134,10 +134,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             ),
                           ),
                           const SizedBox(height: 24),
-                          Center(
                             child: PersonalityGraph(
-                              vector: userState.personality ??
-                                  PersonalityVector.defaultProfile,
+                              vector: userState.personality,
                               showLabels: true,
                               size: 200.0,
                             ),
@@ -145,27 +143,28 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           const SizedBox(height: 24),
                           _DimensionRow(
                               'Discipline',
-                              userState.personality.discipline ?? 0.5,
+                              userState.personality.discipline,
                               Icons.check_circle,
                               theme,
                               'Your ability to focus and follow through on tasks.'),
                           const SizedBox(height: 12),
                           _DimensionRow(
                               'Novelty',
-                              userState.personality.novelty ?? 0.5,
+                              userState.personality.novelty,
                               Icons.explore,
                               theme,
                               'Your openness to new experiences and ideas.'),
                           const SizedBox(height: 12),
                           _DimensionRow(
-                              'Volatility',
-                              userState.personality.volatility ?? 0.5,
+                              'Reactivity',
+                              userState.personality.reactivity,
                               Icons.waves,
-                              theme),
+                              theme,
+                              'Your emotional responsiveness and intensity.'),
                           const SizedBox(height: 12),
                           _DimensionRow(
                               'Structure',
-                              userState.personality.structure ?? 0.5,
+                              userState.personality.structure,
                               Icons.grid_on,
                               theme),
                         ],
@@ -311,18 +310,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             );
           },
         ),
-      ),
-    );
-  }
-
-  void _showComingSoonSnackbar(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Coming soon!'),
-        backgroundColor: AppColors.jobsSage,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        duration: const Duration(seconds: 2),
       ),
     );
   }
